@@ -100,12 +100,12 @@ function has_role($role) {
 function require_auth($role = null) {
     init_session();
     if (!is_logged_in()) {
-        $loginRoute = ($role === 'school') ? 'school_login' : (($role === 'admin') ? 'admin_login' : 'teacher_login');
-        header("Location: index.php?action=$loginRoute");
+        $loginRoute = ($role === 'school') ? '/login/school' : (($role === 'admin') ? '/login/admin' : '/login');
+        header("Location: $loginRoute");
         exit();
     }
     if ($role !== null && !has_role($role)) {
-        header("Location: index.php?action=landing");
+        header("Location: /");
         exit();
     }
 }
@@ -205,5 +205,83 @@ function validate_tsc_number($tsc) {
     }
     return ['valid' => false, 'formatted' => null, 'is_registered' => false, 'error' => 'TSC Number must be between 4 and 8 digits.'];
 }
+
+/**
+ * Send official platform email notification via Resend API or SMTP
+ */
+function send_system_email($toEmail, $toName, $subject, $htmlBody, $replyToEmail = null, $replyToName = null) {
+    if (empty($toEmail)) return false;
+
+    $resendApiKey = env('RESEND_API_KEY');
+    $fromAddress = env('MAIL_FROM_ADDRESS', 'onboarding@resend.dev');
+    $fromName = env('MAIL_FROM_NAME', 'Mwalimu Link');
+
+    // 1. If RESEND_API_KEY is configured, dispatch via Resend REST API (Fastest & Most Reliable)
+    if (!empty($resendApiKey)) {
+        $payload = [
+            'from' => "{$fromName} <{$fromAddress}>",
+            'to' => [$toEmail],
+            'subject' => $subject,
+            'html' => $htmlBody,
+            'text' => strip_tags($htmlBody)
+        ];
+
+        if ($replyToEmail) {
+            $payload['reply_to'] = $replyToEmail;
+        }
+
+        $ch = curl_init('https://api.resend.com/emails');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $resendApiKey,
+            'Content-Type: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode >= 200 && $httpCode < 300) {
+            return true;
+        }
+        error_log("Resend API error (HTTP {$httpCode}): " . $response);
+    }
+
+    // 2. Fallback to PHPMailer SMTP if Resend is not set or fails
+    require_once __DIR__ . '/class.phpmailer.php';
+    require_once __DIR__ . '/class.smtp.php';
+
+    $mail = new PHPMailer();
+    try {
+        $mail->isSMTP();
+        $mail->Host = env('SMTP_HOST', 'smtp.gmail.com');
+        $mail->SMTPAuth = true;
+        $mail->Username = env('SMTP_USERNAME', 'themwalimulink@gmail.com');
+        $mail->Password = env('SMTP_PASSWORD', '');
+        $mail->SMTPSecure = env('SMTP_ENCRYPTION', 'tls');
+        $mail->Port = intval(env('SMTP_PORT', 587));
+
+        $mail->setFrom($fromAddress, $fromName);
+        $mail->addAddress($toEmail, $toName ?: 'Educator/School');
+
+        if ($replyToEmail) {
+            $mail->addReplyTo($replyToEmail, $replyToName ?: $replyToEmail);
+        }
+
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body = $htmlBody;
+        $mail->AltBody = strip_tags($htmlBody);
+
+        return $mail->send();
+    } catch (Exception $e) {
+        error_log("Email sending failed: " . $e->getMessage());
+        return false;
+    }
+}
+
 
 

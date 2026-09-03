@@ -101,11 +101,11 @@
 </style>
 <div id="splash-container">
   <div class="link-container">
-    <a href="index.php?action=school_register"><i class="fa fa-school"></i> School Register</a>
-    <a href="index.php?action=subscribe_link"><i class="fa fa-user-graduate"></i> School Subscribe</a>
-    <a href="index.php?action=school_login"><i class="fa fa-clipboard-check"></i> School Login</a>
-    <a href="index.php?action=teacher_register"><i class="fa fa-user-plus"></i> Teacher Register</a>
-    <a href="index.php?action=teacher_login"><i class="fa fa-sign-in-alt"></i> Teacher Login</a>
+    <a href="/register/school"><i class="fa fa-school"></i> School Register</a>
+    <a href="/schools/public"><i class="fa fa-user-graduate"></i> Search Schools</a>
+    <a href="/login/school"><i class="fa fa-clipboard-check"></i> School Login</a>
+    <a href="/register/teacher"><i class="fa fa-user-plus"></i> Teacher Register Free</a>
+    <a href="/login/teacher"><i class="fa fa-sign-in-alt"></i> Teacher Login</a>
     <h3 style="color:#ffffff;">Why Mwalimu Link &trade; ?</h3>
     <span style="color:#ffffff;">
         <strong> 
@@ -117,10 +117,10 @@
       + And much more ...
       </strong>
     </span>
-    <a href="/?action=school_login" class="impact-button" ><i class="fa fa-chart-bar"></i> + Over 100,000 Teachers</a>
-<a href="/?action=teacher_login" class="impact-button"><i class="fa fa-line-chart"></i> + Over 40,000 Schools</a>
-<a href="/?action=teacher_login" class="impact-button"><i class="fa fa-area-chart"></i> + Over 100 Jobs Posted Daily</a>
-<a href="/?action=teacher_login" class="impact-button"><i class="fa fa-area-chart"></i> + Over 6000 international opportunities</a>
+    <a href="/login/teacher" class="impact-button"><i class="fa fa-chart-bar"></i> + Over 100,000 Teachers</a>
+    <a href="/schools/public" class="impact-button"><i class="fa fa-line-chart"></i> + Over 40,000 Schools</a>
+    <a href="/login/teacher" class="impact-button"><i class="fa fa-area-chart"></i> + Over 100 Jobs Posted Daily</a>
+    <a href="/schools/international" class="impact-button"><i class="fa fa-globe"></i> + Over 6000 international opportunities</a>
 
     <!--<button class="impact-button"><i class="fa fa-chart-bar"></i> + Over 100,000 Teachers </button>
     <button class="impact-button"><i class="fa fa-line-chart"></i> + Over 40,000 Schools</button>

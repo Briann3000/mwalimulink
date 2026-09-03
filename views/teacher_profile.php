@@ -1,79 +1,150 @@
 <?php
-// teacher_profile.php
-if (!is_logged_in()) {
-    header("Location: index.php?action=landing");
-    exit();
-}
+// teacher_profile.php - Clean Educator Profile & CV
+require_auth();
 
 $authUser = auth_user();
+$isTeacher = ($authUser['role'] === 'teacher');
+$isSchool = ($authUser['role'] === 'school');
 
-// Teacher viewing own profile or School/Admin viewing a candidate
-if (isset($_GET['id']) && (has_role('school') || has_role('admin'))) {
-    $teacher_id = intval($_GET['id']);
-} elseif (has_role('teacher')) {
+$teacher_id = intval($_GET['teacher_id'] ?? ($_GET['id'] ?? 0));
+if (!$teacher_id && $isTeacher) {
     $teacher_id = $authUser['user_id'];
-} else {
-    header("Location: index.php?action=landing");
-    exit();
 }
 
-// Fetch the teacher's data from the database
 $teacher = R::load('teacher', $teacher_id);
-
 if (!$teacher->id) {
-    echo "<div class='container'><article class='message -error'>Teacher profile not found.</article></div>";
+    echo "<div class='container' style='padding: 2rem;'><div style='background: #fee2e2; padding: 1.5rem; border-radius: 8px; color: #991b1b;'>Teacher profile not found.</div></div>";
     exit();
 }
 ?>
 
-<article class="card" style="max-width: 80%; margin: 0 auto;">
-    <header>
-        <h2>Teacher Profile: <?php echo htmlspecialchars($teacher->name ?? ''); ?></h2>
-    </header>
+<div class="workspace-wrapper">
+    <?php include __DIR__ . '/partials/sidebar.php'; ?>
 
-    <div style="padding: 1rem;">
-        <h3>Personal Details</h3>
-        <p><strong>Name:</strong> <?php echo htmlspecialchars($teacher->name ?? ''); ?></p>
-        <p><strong>Gender:</strong> <?php echo htmlspecialchars($teacher->gender ?? ''); ?></p>
-        <p><strong>Year of Birth:</strong> <?php echo htmlspecialchars($teacher->year_of_birth ?? ''); ?></p>
-        <p><strong>Mobile:</strong> <?php echo htmlspecialchars($teacher->mobile ?? ''); ?></p>
-        <p><strong>Email:</strong> <a
-                href="mailto:<?php echo htmlspecialchars($teacher->email ?? ''); ?>"><?php echo htmlspecialchars($teacher->email ?? ''); ?></a>
-        </p>
+    <!-- Main Content Pane -->
+    <main class="content-pane">
+        <div style="max-width: 860px; margin: 0 auto;">
+            
+            <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <?php if ($isSchool): ?>
+                        <a href="/school/search-candidates" style="color: #64748b; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fa fa-arrow-left"></i> Back to Candidate Search
+                        </a>
+                    <?php else: ?>
+                        <a href="/teacher/dashboard" style="color: #64748b; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fa fa-arrow-left"></i> Back to Dashboard
+                        </a>
+                    <?php endif; ?>
+                </div>
 
-        <h3>Professional Details</h3>
-        <p><strong>TSC Status:</strong> 
-            <?php if (!empty($teacher->tsc_number)): ?>
-                <span style="display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 4px; font-weight: bold;">
-                    ✓ TSC Registered (#<?= h($teacher->tsc_number) ?>)
-                </span>
-            <?php else: ?>
-                <span style="color: #666;">Pending / Private Tutor</span>
+                <div style="display: flex; gap: 8px;">
+                    <?php if (!empty($teacher->mobile)): ?>
+                        <a href="https://wa.me/<?= preg_replace('/[^0-9]/', '', $teacher->mobile) ?>?text=<?= urlencode("Hello {$teacher->name}, we saw your educator profile on MwalimuLink and would like to get in touch.") ?>" target="_blank" style="background: #25d366; color: white !important; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fa-brands fa-whatsapp"></i> WhatsApp Candidate
+                        </a>
+                    <?php endif; ?>
+
+                    <?php if ($isTeacher && $teacher->id == $authUser['user_id']): ?>
+                        <a href="/teacher/update" class="btn-primary" style="font-size: 0.85rem; padding: 8px 16px;">
+                            <i class="fa fa-edit"></i> Edit Profile
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Profile Header Card -->
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03); margin-bottom: 1.5rem;">
+                <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+                    <div style="width: 76px; height: 76px; border-radius: 50%; background: #0f766e; color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800;">
+                        <?= strtoupper(substr($teacher->name, 0, 1)) ?>
+                    </div>
+                    <div>
+                        <h2 style="margin: 0 0 4px; font-size: 1.4rem; color: #0f172a;"><?= h($teacher->name) ?></h2>
+                        <p style="margin: 0 0 8px; font-size: 0.88rem; color: #64748b;">
+                            <i class="fa fa-map-marker-alt" style="color: #0f766e;"></i> <?= h($teacher->county ?: 'Kenya') ?> &bull; 
+                            <?= h($teacher->qualification ?: 'Educator') ?>
+                        </p>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <?php if (!empty($teacher->tsc_number)): ?>
+                                <span style="background: #dcfce7; color: #166534; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 4px;">
+                                    ✓ TSC Registered: <?= h($teacher->tsc_number) ?>
+                                </span>
+                            <?php else: ?>
+                                <span style="background: #f1f5f9; color: #64748b; font-size: 0.75rem; font-weight: 600; padding: 3px 8px; border-radius: 4px;">
+                                    Candidate / Tutor
+                                </span>
+                            <?php endif; ?>
+
+                            <span style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 12px;">
+                                🟢 <?= ucfirst($teacher->status ?: 'Available') ?>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Details Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                
+                <!-- Academic & Teaching Details -->
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem;">
+                    <h4 style="margin: 0 0 1rem; font-size: 1rem; color: #0f766e; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                        <i class="fa fa-graduation-cap"></i> Teaching Specialization
+                    </h4>
+                    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem;">
+                        <div>
+                            <strong style="color: #64748b; font-size: 0.78rem; text-transform: uppercase; display: block;">Teaching Subjects:</strong>
+                            <span style="color: #0f172a; font-weight: 600;"><?= h($teacher->teaching_subjects ?: 'General') ?></span>
+                        </div>
+                        <div>
+                            <strong style="color: #64748b; font-size: 0.78rem; text-transform: uppercase; display: block;">Highest Qualification:</strong>
+                            <span style="color: #0f172a;"><?= h($teacher->qualification ?: 'N/A') ?></span>
+                        </div>
+                        <div>
+                            <strong style="color: #64748b; font-size: 0.78rem; text-transform: uppercase; display: block;">Institutions Attended:</strong>
+                            <span style="color: #0f172a;"><?= h($teacher->institutions_attended ?: 'N/A') ?></span>
+                        </div>
+                        <div>
+                            <strong style="color: #64748b; font-size: 0.78rem; text-transform: uppercase; display: block;">Years of Experience:</strong>
+                            <span style="color: #0f172a;"><?= intval($teacher->years_of_experience) ?> Years</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact & Bio Details -->
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem;">
+                    <h4 style="margin: 0 0 1rem; font-size: 1rem; color: #0f766e; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                        <i class="fa fa-address-card"></i> Contact Information
+                    </h4>
+                    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem;">
+                        <div>
+                            <strong style="color: #64748b; font-size: 0.78rem; text-transform: uppercase; display: block;">Phone Number:</strong>
+                            <span style="color: #0f172a;"><?= h($teacher->mobile) ?></span>
+                        </div>
+                        <div>
+                            <strong style="color: #64748b; font-size: 0.78rem; text-transform: uppercase; display: block;">Email Address:</strong>
+                            <a href="mailto:<?= h($teacher->email) ?>" style="color: #0f766e;"><?= h($teacher->email) ?></a>
+                        </div>
+                        <div>
+                            <strong style="color: #64748b; font-size: 0.78rem; text-transform: uppercase; display: block;">County of Residence:</strong>
+                            <span style="color: #0f172a;"><?= h($teacher->county ?: 'Kenya') ?></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Bio -->
+            <?php if (!empty($teacher->brief_profile)): ?>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem;">
+                    <h4 style="margin: 0 0 0.75rem; font-size: 1rem; color: #0f766e; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                        <i class="fa fa-book-open"></i> Professional Summary & Background
+                    </h4>
+                    <p style="margin: 0; color: #334155; font-size: 0.88rem; line-height: 1.7;">
+                        <?= nl2br(h($teacher->brief_profile)) ?>
+                    </p>
+                </div>
             <?php endif; ?>
-        </p>
-        <p><strong>Years of Experience:</strong> <?= h($teacher->years_of_experience ?? 0) ?> years</p>
-        <p><strong>Grade Levels:</strong> <?= h($teacher->grade_levels ?? '') ?></p>
-        <p><strong>Teaching Subjects:</strong> <?= h($teacher->teaching_subjects ?? '') ?></p>
-        <p><strong>Qualification:</strong> <?= h($teacher->qualification ?? '') ?></p>
-        <?php if (!empty($teacher->institutions_attended)): ?>
-            <p><strong>Institution Attended:</strong> <?= h($teacher->institutions_attended) ?></p>
-        <?php endif; ?>
-        <?php if (!empty($teacher->responsibility)): ?>
-            <p><strong>Roles / Responsibilities:</strong> <?= h($teacher->responsibility) ?></p>
-        <?php endif; ?>
-
-        <h3>Location & Availability</h3>
-        <p><strong>County:</strong> <?= h($teacher->county ?? '') ?></p>
-        <p><strong>Country:</strong> <?= h($teacher->country ?? 'Kenya') ?></p>
-        <p><strong>Availability:</strong> <span style="text-transform: capitalize; color: #28a745; font-weight: bold;"><?= h($teacher->status ?? 'available') ?></span></p>
-
-        <h3>Brief Profile</h3>
-        <p><?php echo htmlspecialchars($teacher->brief_profile ?? ''); ?></p>
-
-        <button type="button" onclick="location.href='mailto:<?php echo htmlspecialchars($teacher->email ?? ''); ?>'"
-            style="width: 10rem; height: 3rem; display: flex; justify-content: center; align-items: center; background-color: #f7f7f2; color: black; border: 1px solid #333; box-shadow: 0 0 10px rgba(128, 128, 128, 0.5);">
-            <i class="fa fa-envelope fa-lg"></i>
-            <span>Email Teacher</span>
-        </button>
-    </div>
-</article>
+        </div>
+    </main>
+</div>

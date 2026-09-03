@@ -1,15 +1,25 @@
 <?php
-function redirectTohttps() {
-  $host = $_SERVER['HTTP_HOST'] ?? '';
-  // Skip HTTPS redirect on local development
-  if (str_contains($host, 'localhost') || str_contains($host, '127.0.0.1')) {
-    return;
-  }
-  if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != 'on') {
-    $redirect = "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-    header("Location: $redirect");
-    exit();
-  }
+// Let PHP built-in server serve static files (images, css, js) directly
+if (php_sapi_name() === 'cli-server') {
+    $filePath = __DIR__ . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if (is_file($filePath)) {
+        return false;
+    }
+}
+
+if (!function_exists('redirectTohttps')) {
+    function redirectTohttps() {
+      $host = $_SERVER['HTTP_HOST'] ?? '';
+      // Skip HTTPS redirect on local development
+      if (str_contains($host, 'localhost') || str_contains($host, '127.0.0.1')) {
+        return;
+      }
+      if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != 'on') {
+        $redirect = "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        header("Location: $redirect");
+        exit();
+      }
+    }
 }
 
 redirectTohttps();
@@ -69,70 +79,117 @@ R::freeze($isProduction);
 
 require 'header.php';
 
-// Define the action parameter to determine the route
-$action = $_GET['action'] ?? 'landing';
+// -------------------------------------------------------------------
+// Clean URL Routing Engine
+// -------------------------------------------------------------------
 
-// Map actions to corresponding files in the "views" folder
-$routes = [
-    'get_in_touch' => 'views/get_in_touch.php',
-    'faqs-on-teaching-overseas' => 'views/faqs-on-teaching-overseas.php',
-    'international_school_search' => 'views/international_school_search.php',
-    'international_school_details' => 'views/international_school_details.php',
-    'international_school_add' => 'views/international_school_add.php',
-    'blog' => 'views/blog.php',
-    'blog_view' => 'views/blog_view.php',
-    'blog_admin' => 'views/blog_admin.php',
-    'blog_setup' => 'views/blog_setup.php',
-    'populate_table' => 'views/populate_table.php',
-    'public_school_search' => 'views/public_school_search.php',
-    'public_school_detail' => 'views/public_school_detail.php',
-    'private_school_search' => 'views/private_school_search.php',
-    'private_school_detail' => 'views/private_school_detail.php',
-    'public_school_add' => 'views/public_school_add.php',
-    'contacts' => 'views/contacts.php',
-    'about_us' => 'views/about_us.php',
-    'school_list_admin' => 'views/school_list_admin.php',
-    'school_list' => 'views/public_school_search.php',
+// Determine request URI path
+$requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+$requestUri = trim($requestUri, '/');
+if (str_ends_with($requestUri, 'index.php')) {
+    $requestUri = substr($requestUri, 0, -9);
+    $requestUri = trim($requestUri, '/');
+}
+
+// Map clean modern URLs to view files
+$modernRoutes = [
+    '' => 'views/landing.php',
     'home' => 'views/landing.php',
-    'terms_and_conditions' => 'views/terms_and_conditions.php',
-    'privacy_policy' => 'views/privacy_policy.php',
-    'reset_school_password' => 'views/reset_school_password.php',
-    'reset_teacher_password' => 'views/reset_teacher_password.php',
-    'dual_login' => 'views/dual_login.php',
-    'logout' => 'views/logout.php',
-    'landing' => 'views/landing.php',
+    'about' => 'views/about_us.php',
+    'contacts' => 'views/contacts.php',
     'faqs' => 'views/faqs.php',
+    'faqs-overseas' => 'views/faqs-on-teaching-overseas.php',
+    'privacy' => 'views/privacy_policy.php',
+    'terms' => 'views/terms_and_conditions.php',
     'news' => 'views/news.php',
-    'subscribe_link' => 'views/subscribe_link.php',
-    'teacher_login' => 'views/teacher_login.php',
-    'teacher_register' => 'views/teacher_register.php',
-    'teacher_update' => 'views/teacher_update.php',
-    'teacher_dashboard' => 'views/teacher_dashboard.php',
-    'teacher_job_search' => 'views/teacher_job_search.php',
-    'teacher_profile' => 'views/teacher_profile.php',
-    'teacher_job_apply' => 'views/teacher_job_apply.php',
-    'school_login' => 'views/school_login.php',
-    'school_register' => 'views/school_register.php',
-    'school_subscribe' => 'views/school_subscribe.php',
-    'school_dashboard' => 'views/school_dashboard.php',
-    'school_post_job' => 'views/school_post_job.php',
-    'school_search_candidate' => 'views/school_search_candidate.php',
-    'admin_login' => 'views/admin_login.php',
-    'admin_dashboard' => 'views/admin_dashboard.php',
-    'pay_subscription' => 'views/pay_subscription.php', // Add pay_subscription route
-    'subscription_callback' => 'views/subscription_callback.php' // Add subscription_callback route
+    'blog' => 'views/blog.php',
+    'blog/view' => 'views/blog_view.php',
+    'blog/admin' => 'views/blog_admin.php',
+
+    // Authentication & Registration
+    'login' => 'views/dual_login.php',
+    'login/teacher' => 'views/teacher_login.php',
+    'login/school' => 'views/school_login.php',
+    'login/admin' => 'views/admin_login.php',
+    'logout' => 'views/logout.php',
+    'register/teacher' => 'views/teacher_register.php',
+    'register/school' => 'views/school_register.php',
+    'reset-password/teacher' => 'views/reset_teacher_password.php',
+    'reset-password/school' => 'views/reset_school_password.php',
+
+    // Dashboards & Portals
+    'teacher/dashboard' => 'views/teacher_dashboard.php',
+    'teacher/profile' => 'views/teacher_profile.php',
+    'teacher/update' => 'views/teacher_update.php',
+    'teacher/jobs' => 'views/teacher_job_search.php',
+    'teacher/apply' => 'views/teacher_job_apply.php',
+    'tp-hub' => 'views/tp_hub.php',
+
+    'school/dashboard' => 'views/school_dashboard.php',
+    'school/staff' => 'views/school_staff.php',
+    'school/post-job' => 'views/school_post_job.php',
+    'school/search-candidates' => 'views/school_search_candidate.php',
+    'school/subscribe' => 'views/school_subscribe.php',
+    'school/pay' => 'views/pay_subscription.php',
+    'school/callback' => 'views/subscription_callback.php',
+
+    'admin/dashboard' => 'views/admin_dashboard.php',
+
+    // School Directories
+    'schools/public' => 'views/public_school_search.php',
+    'schools/public/detail' => 'views/public_school_detail.php',
+    'schools/private' => 'views/private_school_search.php',
+    'schools/private/detail' => 'views/private_school_detail.php',
+    'schools/international' => 'views/international_school_search.php',
+    'schools/international/detail' => 'views/international_school_details.php',
 ];
 
-// Check if the requested action exists in the routes array
-if (array_key_exists($action, $routes)) {
-    include $routes[$action]; // Include the specific page content
+// Fallback legacy action support for transition
+$action = $_GET['action'] ?? null;
+$viewFile = null;
+
+if (array_key_exists($requestUri, $modernRoutes)) {
+    $viewFile = $modernRoutes[$requestUri];
+} elseif ($action && isset($modernRoutes[$action])) {
+    $viewFile = $modernRoutes[$action];
 } else {
-    // If route is not found, show a 404 error page
-    echo '<article class="container">
-    <div class="alert alert-error">
-        <h1>404 - Page Not Found</h1>
-    </div>
-</article>';
+    // Map legacy names directly if requested
+    $legacyMap = [
+        'landing' => 'views/landing.php',
+        'teacher_register' => 'views/teacher_register.php',
+        'school_register' => 'views/school_register.php',
+        'teacher_login' => 'views/teacher_login.php',
+        'school_login' => 'views/school_login.php',
+        'dual_login' => 'views/dual_login.php',
+        'teacher_dashboard' => 'views/teacher_dashboard.php',
+        'school_dashboard' => 'views/school_dashboard.php',
+        'admin_dashboard' => 'views/admin_dashboard.php',
+        'admin_login' => 'views/admin_login.php',
+        'public_school_search' => 'views/public_school_search.php',
+        'private_school_search' => 'views/private_school_search.php',
+        'international_school_search' => 'views/international_school_search.php',
+        'school_search_candidate' => 'views/school_search_candidate.php',
+        'pay_subscription' => 'views/pay_subscription.php',
+        'subscription_callback' => 'views/subscription_callback.php',
+        'reset_teacher_password' => 'views/reset_teacher_password.php',
+        'reset_school_password' => 'views/reset_school_password.php',
+        'logout' => 'views/logout.php'
+    ];
+    if ($action && isset($legacyMap[$action])) {
+        $viewFile = $legacyMap[$action];
+    }
+}
+
+if ($viewFile && file_exists(__DIR__ . '/' . $viewFile)) {
+    include __DIR__ . '/' . $viewFile;
+} else {
+    echo '<article class="container" style="max-width: 600px; margin: 3rem auto; text-align: center;">
+        <div class="alert alert-error">
+            <h2>404 - Page Not Found</h2>
+            <p>The requested URL <code>/' . h($requestUri) . '</code> does not exist.</p>
+            <a href="/" class="primary">Return to Home</a>
+        </div>
+    </article>';
 }
 
 require 'footer.php'; // Include footer at the end of every page
