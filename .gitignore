@@ -1,0 +1,28 @@
+# Environment & Secrets (CRITICAL)
+.env
+.env.*
+!.env.example
+
+# Quarantined Drafts & Old Snapshots
+_archive/
+
+# User Uploads (CVs, Resumes, Personal PDFs)
+uploads/*
+!uploads/.gitkeep
+
+# Large SQLite Database Files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Server Logs & Errors
+error_log
+views/error_log
+*.log
+
+# OS & IDE junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
