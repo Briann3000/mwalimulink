@@ -3,7 +3,7 @@
 
 // Check for necessary GET parameters
 if (!isset($_GET['api_ref'])) {
-    header('Location: index.php?action=school_login');
+    header('Location: /login/school');
     exit();
 }
 
@@ -84,7 +84,7 @@ if ($isVerified) {
             <p>Your school subscription is now <strong>Active</strong> and valid until <strong>" . htmlspecialchars($expiry_date->format('d M Y')) . "</strong>.</p>
             <p>You can now search available teachers, view contact profiles, and post job vacancies.</p>
             <footer>
-                <a href='index.php?action=school_dashboard' role='button' class='primary'>Go to School Dashboard</a>
+                <a href='/school/dashboard' role='button' class='primary'>Go to School Dashboard</a>
             </footer>
         </article>
     </div>";
@@ -96,7 +96,7 @@ if ($isVerified) {
             </header>
             <p>Your payment could not be automatically confirmed. If funds were deducted, please contact support with reference: <code>" . h($api_ref) . "</code>.</p>
             <footer>
-                <a href='index.php?action=pay_subscription' role='button' class='secondary'>Try Again</a>
+                <a href='/school/pay' role='button' class='secondary'>Try Again</a>
             </footer>
         </article>
     </div>";

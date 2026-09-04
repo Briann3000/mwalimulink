@@ -3,7 +3,7 @@
 $error_message = null;
 
 if (is_logged_in() && has_role('admin')) {
-    header('Location: index.php?action=admin_dashboard');
+    header('Location: /admin/dashboard');
     exit();
 }
 
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'email' => $admin_email
         ];
         auth_login($adminObj, 'admin');
-        header('Location: index.php?action=admin_dashboard');
+        header('Location: /admin/dashboard');
         exit();
     } else {
         $error_message = "Invalid email or password.";

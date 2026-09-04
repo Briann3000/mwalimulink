@@ -1,15 +1,17 @@
 <?php
-// dual_login.php
-$school_error_message = null;
-$teacher_error_message = null;
+// views/dual_login.php - Smart Unified Login (Auto-detects Teacher, School, or Admin)
+$error_message = null;
 
 // Auto redirect if already logged in
 if (is_logged_in()) {
     if (has_role('school')) {
-        header('Location: index.php?action=school_dashboard');
+        header('Location: /school/dashboard');
         exit();
     } elseif (has_role('teacher')) {
-        header('Location: index.php?action=teacher_dashboard');
+        header('Location: /teacher/dashboard');
+        exit();
+    } elseif (has_role('admin')) {
+        header('Location: /admin/dashboard');
         exit();
     }
 }
@@ -17,120 +19,115 @@ if (is_logged_in()) {
 // Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     validate_csrf();
-    $login_type = $_POST['login_type'] ?? '';
+    
+    $email = strtolower(trim($_POST['email'] ?? ''));
+    $password = $_POST['password'] ?? '';
 
-    if ($login_type === 'school') {
-        try {
-            $email = trim($_POST['email'] ?? '');
-            $password = $_POST['password'] ?? '';
+    if (empty($email) || empty($password)) {
+        $error_message = "Please enter both your email address and password.";
+    } else {
+        // 1. Check if it is the System Administrator
+        $admin_email = strtolower(env('ADMIN_EMAIL', 'admin@mwalimu.info'));
+        $admin_password = env('ADMIN_PASSWORD', 'Kenya@254');
 
-            $school = R::findOne('school', 'email = ?', [$email]);
-            if (!$school) {
-                throw new Exception("School does not exist.");
-            }
-
-            if (!password_verify($password, $school->password)) {
-                throw new Exception("Incorrect password.");
-            }
-
-            auth_login($school, 'school');
-            header('Location: index.php?action=school_dashboard');
+        if ($email === $admin_email && $password === $admin_password) {
+            $adminObj = (object)[
+                'id' => 1,
+                'name' => 'Administrator',
+                'email' => $admin_email
+            ];
+            auth_login($adminObj, 'admin');
+            header('Location: /admin/dashboard');
             exit();
-        } catch (Exception $e) {
-            $school_error_message = $e->getMessage();
         }
-    } elseif ($login_type === 'teacher') {
-        try {
-            $email = strtolower(trim($_POST['email'] ?? ''));
-            $password = $_POST['password'] ?? '';
 
-            $teacher = R::findOne('teacher', 'email = ?', [$email]);
-
-            if ($teacher && password_verify($password, $teacher->password)) {
-                auth_login($teacher, 'teacher');
-                header('Location: index.php?action=teacher_dashboard');
-                exit();
-            } else {
-                $teacher_error_message = "Invalid email or password.";
-            }
-        } catch (Exception $e) {
-            $teacher_error_message = $e->getMessage();
+        // 2. Check if it is a Teacher
+        $teacher = R::findOne('teacher', 'email = ?', [$email]);
+        if ($teacher && password_verify($password, $teacher->password)) {
+            auth_login($teacher, 'teacher');
+            header('Location: /teacher/dashboard');
+            exit();
         }
+
+        // 3. Check if it is a School
+        $school = R::findOne('school', 'email = ?', [$email]);
+        if ($school && password_verify($password, $school->password)) {
+            auth_login($school, 'school');
+            header('Location: /school/dashboard');
+            exit();
+        }
+
+        $error_message = "Invalid email or password. Please check your credentials and try again.";
     }
 }
 ?>
 
-<article class="card" style="max-width: 85%; margin: 2rem auto;">
-    <header>
-        <h2 style="text-align: center;">MwalimuLink&trade; Portal Login</h2>
-        <p style="text-align: center; margin-bottom: 0;">Sign in to your School or Teacher dashboard.</p>
-    </header>
-
-    <div class="grid" style="padding: 1rem;">
-        <!-- School Login Card -->
-        <article class="card" style="margin: 0.5rem;">
-            <header>
-                <h3 style="text-align: center;"><i class="fa fa-school"></i> School Login</h3>
-            </header>
-
-            <?php if (isset($school_error_message)): ?>
-                <div class="alert alert-error">
-                    <p><?= h($school_error_message) ?></p>
-                </div>
-            <?php endif; ?>
-
-            <form method="POST">
-                <?= csrf_field() ?>
-                <input type="hidden" name="login_type" value="school">
-                
-                <label for="school_email">Official School Email
-                    <input type="email" id="school_email" placeholder="e.g. info@school.ac.ke" name="email" required>
-                </label>
-
-                <label for="school_password">Password
-                    <input type="password" placeholder="Password" id="school_password" name="password" required>
-                </label>
-
-                <button type="submit" class="primary" style="width: 100%; margin-top: 1rem;">School Login</button>
-            </form>
-
-            <div style="display: flex; justify-content: space-between; margin-top: 1rem; font-size: 0.9rem;">
-                <p>New School? <a href="index.php?action=school_register">Register</a></p>
-                <p><a href="index.php?action=reset_school_password" style="color: #666;">Forgot password?</a></p>
+<div class="container" style="max-width: 480px; margin: 3rem auto 4rem; padding: 0 1rem;">
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2.25rem; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+        
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: #f0fdfa; color: #0f766e; display: inline-flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 0.75rem;">
+                <i class="fa fa-lock"></i>
             </div>
-        </article>
+            <h2 style="margin: 0 0 6px; font-size: 1.45rem; color: #0f172a; font-weight: 800;">Sign in to MwalimuLink</h2>
+            <p style="margin: 0; font-size: 0.88rem; color: #64748b;">Enter your email to access your Educator or School portal.</p>
+        </div>
 
-        <!-- Teacher Login Card -->
-        <article class="card" style="margin: 0.5rem;">
-            <header>
-                <h3 style="text-align: center;"><i class="fa fa-chalkboard-teacher"></i> Teacher Login</h3>
-            </header>
-
-            <?php if (isset($teacher_error_message)): ?>
-                <div class="alert alert-error">
-                    <p><?= h($teacher_error_message) ?></p>
-                </div>
-            <?php endif; ?>
-
-            <form method="POST">
-                <?= csrf_field() ?>
-                <input type="hidden" name="login_type" value="teacher">
-                
-                <label for="teacher_email">Teacher Email
-                    <input type="email" id="teacher_email" placeholder="e.g. teacher@gmail.com" name="email" required>
-                </label>
-
-                <label for="teacher_password">Password
-                    <input type="password" placeholder="Password" id="teacher_password" name="password" required>
-                </label>
-
-                <button type="submit" class="primary" style="width: 100%; margin-top: 1rem;">Teacher Login</button>
-            </form>
-            
-            <div style="display: flex; justify-content: space-between; margin-top: 1rem; font-size: 0.9rem;">
-                <p>New Teacher? <a href="index.php?action=teacher_register">Register Free</a></p>
-                <p><a href="index.php?action=reset_teacher_password" style="color: #666;">Forgot password?</a></p>
+        <?php if ($error_message): ?>
+            <div style="background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.88rem; display: flex; align-items: center; gap: 8px;">
+                <i class="fa fa-exclamation-circle"></i> <?= h($error_message) ?>
             </div>
-        </article>
+        <?php endif; ?>
+
+        <form method="POST" action="/login" style="margin: 0;">
+            <?= csrf_field() ?>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label for="email" style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Email Address</label>
+                <input type="email" name="email" id="email" value="<?= h($_POST['email'] ?? '') ?>" placeholder="e.g. teacher@gmail.com or info@school.ac.ke" required style="width: 100%; box-sizing: border-box; height: 44px; margin: 0; background: #ffffff;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label for="password" style="font-size: 0.82rem; font-weight: 700; color: #334155; margin: 0;">Password</label>
+                    <a href="/reset-password/teacher" style="font-size: 0.78rem; color: #0f766e; font-weight: 600;">Forgot Password?</a>
+                </div>
+                <div style="position: relative;">
+                    <input type="password" name="password" id="password" placeholder="Enter your password" required style="width: 100%; box-sizing: border-box; height: 44px; margin: 0; background: #ffffff; padding-right: 40px;">
+                    <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; padding: 4px; font-size: 0.95rem;">
+                        <i class="fa fa-eye" id="togglePasswordIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; height: 46px; font-size: 0.95rem; font-weight: 700; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fa fa-sign-in-alt"></i> Sign In
+            </button>
+        </form>
+
+        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; text-align: center; font-size: 0.85rem; color: #64748b;">
+            Don't have an account yet?<br>
+            <div style="margin-top: 8px; display: flex; justify-content: center; gap: 12px;">
+                <a href="/register/teacher" style="color: #0f766e; font-weight: 700;">Join as Teacher →</a>
+                <span style="color: #cbd5e1;">&bull;</span>
+                <a href="/register/school" style="color: #0f766e; font-weight: 700;">Register School →</a>
+            </div>
+        </div>
     </div>
-</article>
+</div>
+
+<script>
+function togglePasswordVisibility() {
+    const input = document.getElementById('password');
+    const icon = document.getElementById('togglePasswordIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+</script>

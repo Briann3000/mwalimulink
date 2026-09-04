@@ -50,7 +50,7 @@ $categories = R::find('categories');
         <?php foreach($posts as $post): ?>
             <article>
                 <h2>
-                    <a href="index.php?action=blog_view&id=<?= $post->id ?>">
+                    <a href="/blog/view?id=<?= $post->id ?>">
                         <?= htmlspecialchars($post->title) ?>
                     </a>
                 </h2>
@@ -70,13 +70,13 @@ $categories = R::find('categories');
 <!-- Pagination -->
 <div class="pagination">
     <?php if($page > 1): ?>
-        <a href="index.php?action=blog&page=<?= $page-1 ?>&search=<?= urlencode($search) ?>&category=<?= $category_id ?>">Previous</a>
+        <a href="/blog?page=<?= $page-1 ?>&search=<?= urlencode($search) ?>&category=<?= $category_id ?>">Previous</a>
     <?php endif; ?>
     
     <span>Page <?= $page ?></span>
     
     <?php if(count($posts) == $per_page): ?>
-        <a href="index.php?action=blog&page=<?= $page+1 ?>&search=<?= urlencode($search) ?>&category=<?= $category_id ?>">Next</a>
+        <a href="/blog?page=<?= $page+1 ?>&search=<?= urlencode($search) ?>&category=<?= $category_id ?>">Next</a>
     <?php endif; ?>
 </div>
 </article>

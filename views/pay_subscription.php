@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     $publicKey = env('INTASEND_PUBLIC_KEY');
     $appUrl = rtrim(env('APP_URL', 'https://mwalimu.info'), '/');
-    $redirect_url = $appUrl . "/index.php?action=subscription_callback";
+    $redirect_url = $appUrl . "/school/callback";
     $api_ref = "MwalimuLink_School_Subscription_" . $school->id . "_" . time();
 
     // Sanitize school name

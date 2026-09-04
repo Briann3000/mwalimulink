@@ -34,10 +34,10 @@ if ($countyFilter !== '') {
     <?php include __DIR__ . '/partials/sidebar.php'; ?>
 
     <!-- Content Pane -->
-    <main class="content-pane" style="<?= !$authUser ? 'max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem;' : '' ?>">
+    <main class="content-pane" style="padding-top: 1.75rem !important; <?= !$authUser ? 'max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem;' : '' ?>">
         <div style="margin-bottom: 1.5rem;">
-            <h2 style="margin: 0 0 4px; font-size: 1.4rem; color: #0f172a;">🎓 Teaching Practice (TP) & Student Placement Hub</h2>
-            <p style="margin: 0; font-size: 0.85rem; color: #64748b;">
+            <h2 style="margin: 0 0 6px; font-size: 1.45rem; color: #0f172a; font-weight: 800;">🎓 Teaching Practice (TP) & Student Placement Hub</h2>
+            <p style="margin: 0; font-size: 0.88rem; color: #64748b; line-height: 1.5;">
                 Connect university & college student educators with secondary and junior schools accepting Teaching Practice (TP) placements across Kenya.
             </p>
         </div>
@@ -45,10 +45,10 @@ if ($countyFilter !== '') {
         <!-- Filter Search Bar -->
         <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
             <form method="GET" action="/tp-hub" style="margin: 0;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; align-items: flex-end;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; align-items: flex-end;">
                     <div>
-                        <label style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block;">County Placement</label>
-                        <select name="county" style="width: 100%; box-sizing: border-box; margin: 0;">
+                        <label style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: block;">County Placement</label>
+                        <select name="county" style="width: 100%; height: 42px; box-sizing: border-box; margin: 0; background: #ffffff;">
                             <option value="">All 47 Counties</option>
                             <?php foreach (kenyan_counties() as $c): ?>
                                 <option value="<?= h($c) ?>" <?= ($countyFilter === $c) ? 'selected' : '' ?>><?= h($c) ?></option>
@@ -57,16 +57,16 @@ if ($countyFilter !== '') {
                     </div>
 
                     <div>
-                        <label style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block;">Subject Combination</label>
-                        <input type="text" name="subject" value="<?= h($subjectFilter) ?>" placeholder="e.g. Kiswahili / CRE, Math / Physics" style="width: 100%; box-sizing: border-box; margin: 0;">
+                        <label style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: block;">Subject Combination</label>
+                        <input type="text" name="subject" value="<?= h($subjectFilter) ?>" placeholder="e.g. Kiswahili / CRE, Math / Physics" style="width: 100%; height: 42px; box-sizing: border-box; margin: 0; background: #ffffff;">
                     </div>
 
-                    <div style="display: flex; gap: 6px;">
-                        <button type="submit" class="btn-primary" style="height: 40px; flex: 1; margin: 0;">
+                    <div style="display: flex; gap: 8px;">
+                        <button type="submit" class="btn-primary" style="height: 42px; flex: 1; margin: 0; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
                             <i class="fa fa-search"></i> Search Placements
                         </button>
                         <?php if ($countyFilter || $subjectFilter): ?>
-                            <a href="/tp-hub" style="height: 40px; padding: 0 14px; background: #f1f5f9; color: #475569; border-radius: 6px; font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; text-decoration: none;">Reset</a>
+                            <a href="/tp-hub" style="height: 42px; padding: 0 14px; background: #f1f5f9; color: #475569; border-radius: 6px; font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; text-decoration: none;">Reset</a>
                         <?php endif; ?>
                     </div>
                 </div>

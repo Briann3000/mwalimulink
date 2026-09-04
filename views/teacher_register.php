@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = strtolower(trim($_POST['email'] ?? ''));
     $existing_teacher = R::findOne('teacher', 'email = ?', [$email]);
     if ($existing_teacher) {
-        $message = '⚠️ This email is already registered. <a href="index.php?action=reset_teacher_password&email=' . urlencode($email) . '">Reset password?</a>';
+        $message = '⚠️ This email is already registered. <a href="/reset-password/teacher?email=' . urlencode($email) . '">Reset password?</a>';
         $showForm = false;
     } else {
         if (!isset($_POST['terms']) || $_POST['terms'] != '1') {
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $teacher->created_at = date('Y-m-d H:i:s');
 
                     R::store($teacher);
-                    $message = '🎉 Registration successful! Thank you for registering on MwalimuLink&trade;. <a href="./index.php?action=teacher_login">Click here to Login</a>.';
+                    $message = '🎉 Registration successful! Thank you for registering on MwalimuLink&trade;. <a href="/login/teacher">Click here to Login</a>.';
                     $showForm = false;
                 }
             }
@@ -293,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <p style="text-align: center; margin-top: 1.5rem;">Already registered? <a
-                    href="index.php?action=teacher_login">Login here</a></p>
+                    href="/login/teacher">Login here</a></p>
         </form>
     <?php endif; ?>
 

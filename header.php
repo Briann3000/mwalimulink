@@ -1,11 +1,12 @@
 <?php
-// Start the session only if it's not already started
-if (session_status() == PHP_SESSION_NONE) {
+if (function_exists('init_session')) {
+    init_session();
+} elseif (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,22 +32,48 @@ if (session_status() == PHP_SESSION_NONE) {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
-    /* Prevent Double Scrollbars: Lock HTML & Body to 100% viewport height */
+    /* Global Clean Layout */
     html, body {
       margin: 0 !important;
       padding: 0 !important;
-      height: 100% !important;
-      overflow: hidden !important;
+      min-height: 100% !important;
       background-color: #f8fafc !important;
       color: #1e293b !important;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     }
 
+    body {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    /* Main container: expands and scrolls naturally on standalone pages */
     body > main {
-      height: calc(100vh - 60px) !important;
-      overflow: hidden !important;
+      flex: 1 0 auto !important;
+      width: 100% !important;
       padding: 0 !important;
       margin: 0 !important;
+    }
+
+    /* When a Workspace page is active, lock viewport so inner content-pane scrolls cleanly and hide floating public footer */
+    body:has(.workspace-wrapper),
+    body.has-workspace {
+      height: 100vh !important;
+      overflow: hidden !important;
+    }
+
+    body:has(.workspace-wrapper) > main,
+    body.has-workspace > main {
+      height: calc(100vh - 60px) !important;
+      overflow: hidden !important;
+      flex: 1 1 auto !important;
+    }
+
+    body:has(.workspace-wrapper) .site-footer,
+    body.has-workspace .site-footer,
+    body:has(.workspace-wrapper) .affiliates-bottom-bar,
+    body.has-workspace .affiliates-bottom-bar {
+      display: none !important;
     }
 
     /* Force Pico card elements to always render clean pure white */
@@ -266,9 +293,9 @@ if (session_status() == PHP_SESSION_NONE) {
        SIDEBAR PANE - 100% CRISP PURE WHITE TEXT & ICONS
        ========================================================================== */
     .sidebar-pane {
-      width: 240px !important;
-      min-width: 240px !important;
-      max-width: 240px !important;
+      width: 260px !important;
+      min-width: 260px !important;
+      max-width: 260px !important;
       background: #0f172a !important;
       border-right: 1px solid #1e293b !important;
       flex-shrink: 0 !important;
@@ -279,10 +306,10 @@ if (session_status() == PHP_SESSION_NONE) {
       display: flex !important;
       flex-direction: column !important;
       gap: 4px !important;
-      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s ease, max-width 0.25s ease, padding 0.25s ease, opacity 0.2s ease !important;
+      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s ease, max-width 0.25s ease, padding 0.25s ease, opacity 0.2s ease, transform 0.25s ease !important;
       scrollbar-width: thin !important;
       scrollbar-color: #334155 transparent !important;
-      z-index: 50 !important;
+      z-index: 1050 !important;
     }
 
     .sidebar-pane::-webkit-scrollbar {
@@ -293,7 +320,7 @@ if (session_status() == PHP_SESSION_NONE) {
       border-radius: 4px;
     }
 
-    /* FULLY COLLAPSED (Closed) State: 0px width, clean complete hide */
+    /* FULLY COLLAPSED (Closed) State in Workspace: 0px width */
     .workspace-wrapper.sidebar-collapsed .sidebar-pane {
       width: 0 !important;
       min-width: 0 !important;
@@ -304,6 +331,55 @@ if (session_status() == PHP_SESSION_NONE) {
       border-right: none !important;
       opacity: 0 !important;
       pointer-events: none !important;
+    }
+
+    /* Off-Canvas Slideout Drawer for Non-Workspace Pages */
+    .sidebar-drawer-overlay {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(2px);
+      z-index: 1040;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    .sidebar-drawer-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .sidebar-offcanvas-pane {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      bottom: 0;
+      width: 260px;
+      background: #0f172a;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+      z-index: 1050;
+      transform: translateX(-100%);
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-offcanvas-pane.active {
+      transform: translateX(0);
+    }
+
+    .sidebar-offcanvas-pane .sidebar-pane {
+      width: 100% !important;
+      min-width: 100% !important;
+      max-width: 100% !important;
+      border-right: none !important;
+      height: 100% !important;
     }
 
     .sidebar-section-title {
@@ -494,14 +570,29 @@ if (session_status() == PHP_SESSION_NONE) {
       background: #f8fafc !important;
     }
 
-    /* Form and Button Uniformity */
-    input[type="text"], input[type="email"], input[type="password"], input[type="number"], select, textarea {
+    /* Form and Button Uniformity - Fully Neutralize Pico Auto-Styling */
+    input, select, textarea {
+      font-family: inherit !important;
+      font-size: 0.88rem !important;
+    }
+
+    input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+    select,
+    textarea {
       background: #ffffff !important;
+      background-color: #ffffff !important;
       color: #0f172a !important;
       border: 1px solid #cbd5e1 !important;
       border-radius: 6px !important;
       padding: 8px 12px !important;
-      font-size: 0.88rem !important;
+      box-shadow: none !important;
+      color-scheme: light !important;
+    }
+
+    input[type="date"], input[type="time"], input[type="datetime-local"] {
+      color-scheme: light !important;
+      background: #ffffff !important;
+      color: #0f172a !important;
     }
 
     input:focus, select:focus, textarea:focus {
@@ -655,22 +746,56 @@ if (session_status() == PHP_SESSION_NONE) {
     </div>
   </header>
 
+  <?php if ($authUser): ?>
+    <!-- Off-Canvas Sidebar Drawer for Standalone / Non-Workspace Pages -->
+    <div id="mwalimuDrawerOverlay" class="sidebar-drawer-overlay" onclick="closeMwalimuDrawer()"></div>
+    <div id="mwalimuOffcanvasDrawer" class="sidebar-offcanvas-pane">
+      <?php include __DIR__ . '/views/partials/sidebar.php'; ?>
+    </div>
+  <?php endif; ?>
+
   <script>
-    // Universal Sidebar Collapse & LocalStorage Memory
+    // Universal Sidebar & Workspace Layout Initialization
     function initSidebarState() {
-      const isCollapsed = localStorage.getItem('mwalimu_sidebar_collapsed') === 'true';
       const wrapper = document.querySelector('.workspace-wrapper');
-      if (wrapper && isCollapsed) {
-        wrapper.classList.add('sidebar-collapsed');
+      if (wrapper) {
+        document.body.classList.add('has-workspace');
+        const isCollapsed = localStorage.getItem('mwalimu_sidebar_collapsed') === 'true';
+        if (isCollapsed) {
+          wrapper.classList.add('sidebar-collapsed');
+        }
       }
     }
 
+    // Unified toggle function that works on BOTH workspace pages & standalone pages
     function toggleMwalimuSidebar() {
       const wrapper = document.querySelector('.workspace-wrapper');
-      if (!wrapper) return;
-      const willCollapse = !wrapper.classList.contains('sidebar-collapsed');
-      wrapper.classList.toggle('sidebar-collapsed', willCollapse);
-      localStorage.setItem('mwalimu_sidebar_collapsed', willCollapse);
+      if (wrapper) {
+        // We are on a Workspace page: toggle in-page column collapse
+        const willCollapse = !wrapper.classList.contains('sidebar-collapsed');
+        wrapper.classList.toggle('sidebar-collapsed', willCollapse);
+        localStorage.setItem('mwalimu_sidebar_collapsed', willCollapse);
+      } else {
+        // We are on a Standalone page: toggle off-canvas slideout drawer
+        const drawer = document.getElementById('mwalimuOffcanvasDrawer');
+        const overlay = document.getElementById('mwalimuDrawerOverlay');
+        if (drawer && overlay) {
+          const isActive = drawer.classList.contains('active');
+          if (isActive) {
+            closeMwalimuDrawer();
+          } else {
+            drawer.classList.add('active');
+            overlay.classList.add('active');
+          }
+        }
+      }
+    }
+
+    function closeMwalimuDrawer() {
+      const drawer = document.getElementById('mwalimuOffcanvasDrawer');
+      const overlay = document.getElementById('mwalimuDrawerOverlay');
+      if (drawer) drawer.classList.remove('active');
+      if (overlay) overlay.classList.remove('active');
     }
 
     document.addEventListener('DOMContentLoaded', initSidebarState);

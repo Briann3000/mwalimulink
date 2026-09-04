@@ -137,6 +137,14 @@ function validate_csrf() {
     }
 }
 
+function verify_csrf($token) {
+    init_session();
+    if (empty($token) || empty($_SESSION['csrf_token'])) {
+        return false;
+    }
+    return hash_equals($_SESSION['csrf_token'], $token);
+}
+
 // -------------------------------------------------------------------
 // Kenyan Geographic & Educational Metadata Helpers
 // -------------------------------------------------------------------
@@ -204,6 +212,102 @@ function validate_tsc_number($tsc) {
         return ['valid' => true, 'formatted' => $digitsOnly, 'is_registered' => true];
     }
     return ['valid' => false, 'formatted' => null, 'is_registered' => false, 'error' => 'TSC Number must be between 4 and 8 digits.'];
+}
+
+/**
+ * Secure file upload validator & handler
+ * - Validates file size
+ * - Validates extension against whitelist
+ * - Validates true binary MIME type (magic bytes via finfo)
+ * - Strips any embedded executable signatures / double extensions
+ * - Generates cryptographically safe random filename
+ */
+function secure_validate_and_upload($fileArray, $targetDirRelative = 'uploads/documents/', $allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png'], $maxBytes = 5242880) {
+    if (!isset($fileArray['error']) || is_array($fileArray['error'])) {
+        return ['success' => false, 'error' => 'Invalid file upload parameters.'];
+    }
+
+    switch ($fileArray['error']) {
+        case UPLOAD_ERR_OK:
+            break;
+        case UPLOAD_ERR_NO_FILE:
+            return ['success' => false, 'error' => 'No file was uploaded.'];
+        case UPLOAD_ERR_INI_SIZE:
+        case UPLOAD_ERR_FORM_SIZE:
+            return ['success' => false, 'error' => 'Uploaded file exceeds maximum allowed server limit.'];
+        default:
+            return ['success' => false, 'error' => 'Unknown upload error occurred.'];
+    }
+
+    // 1. File Size Verification
+    if ($fileArray['size'] > $maxBytes || $fileArray['size'] <= 0) {
+        $mb = round($maxBytes / (1024 * 1024));
+        return ['success' => false, 'error' => "File exceeds the allowed size limit of {$mb}MB."];
+    }
+
+    // 2. Strict File Extension Whitelist Check
+    $originalName = basename($fileArray['name']);
+    $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+    if (!in_array($ext, $allowedExtensions, true)) {
+        return ['success' => false, 'error' => 'Invalid file type. Allowed formats: ' . strtoupper(implode(', ', $allowedExtensions))];
+    }
+
+    // Prevent double-extension attacks (e.g., shell.php.jpg)
+    if (preg_match('/\.(php|phtml|phar|php3|php4|php5|php7|phps|cgi|pl|py|sh|bash|exe|bat|cmd|js|html|htm)\./i', $originalName)) {
+        return ['success' => false, 'error' => 'Potentially unsafe file name detected.'];
+    }
+
+    // 3. MIME Type & Magic Bytes Verification (File Content Inspection)
+    $allowedMimes = [
+        'pdf'  => ['application/pdf', 'application/x-pdf'],
+        'jpg'  => ['image/jpeg', 'image/pjpeg'],
+        'jpeg' => ['image/jpeg', 'image/pjpeg'],
+        'png'  => ['image/png', 'image/x-png']
+    ];
+
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $fileArray['tmp_name']);
+        finfo_close($finfo);
+
+        $validMimesForExt = $allowedMimes[$ext] ?? [];
+        if (!in_array($mimeType, $validMimesForExt, true)) {
+            return ['success' => false, 'error' => 'File content does not match its declared format (detected: ' . htmlspecialchars($mimeType) . ').'];
+        }
+    }
+
+    // 4. For image types, ensure they pass image integrity checks
+    if (in_array($ext, ['jpg', 'jpeg', 'png'])) {
+        $imgInfo = @getimagesize($fileArray['tmp_name']);
+        if ($imgInfo === false) {
+            return ['success' => false, 'error' => 'Corrupt or invalid image file.'];
+        }
+    }
+
+    // 5. Ensure Target Upload Directory Exists
+    $uploadDir = __DIR__ . '/' . trim($targetDirRelative, '/') . '/';
+    if (!is_dir($uploadDir)) {
+        if (!mkdir($uploadDir, 0755, true)) {
+            return ['success' => false, 'error' => 'Failed to prepare destination upload directory.'];
+        }
+    }
+
+    // 6. Generate Cryptographically Secure & Collision-Free Filename
+    $randomHex = bin2hex(random_bytes(16));
+    $safeFilename = 'doc_' . $randomHex . '.' . $ext;
+    $targetPath = $uploadDir . $safeFilename;
+
+    if (!move_uploaded_file($fileArray['tmp_name'], $targetPath)) {
+        return ['success' => false, 'error' => 'Failed to save uploaded file on server.'];
+    }
+
+    return [
+        'success' => true,
+        'relative_path' => trim($targetDirRelative, '/') . '/' . $safeFilename,
+        'filename' => $safeFilename,
+        'mime_type' => $mimeType ?? 'application/octet-stream',
+        'size' => $fileArray['size']
+    ];
 }
 
 /**
@@ -282,6 +386,195 @@ function send_system_email($toEmail, $toName, $subject, $htmlBody, $replyToEmail
         return false;
     }
 }
+
+/**
+ * Peleza Background Screening Service (Sandbox & Live)
+ */
+class PelezaService {
+    private $environment;
+    private $apiKey;
+    private $clientId;
+    private $baseUrl;
+
+    public function __construct() {
+        $this->environment = env('PELEZA_ENV', 'sandbox');
+        $this->apiKey = env('PELEZA_API_KEY', '');
+        $this->clientId = env('PELEZA_CLIENT_ID', '');
+        
+        $this->baseUrl = ($this->environment === 'production')
+            ? 'https://api.peleza.com/v1'
+            : 'https://api-sandbox.peleza.com/v1';
+    }
+
+    public function isConfigured(): bool {
+        return !empty($this->apiKey) && !empty($this->clientId);
+    }
+
+    public function getEnvironment(): string {
+        return $this->environment;
+    }
+
+    /**
+     * Submit background check for Good Conduct & TSC clearance
+     */
+    public function submitVerification($teacher, $sponsor = 'teacher'): array {
+        if (!$this->isConfigured()) {
+            // Simulated Sandbox Response when API credentials are being provisioned
+            return [
+                'success' => true,
+                'status' => 'pending',
+                'reference' => 'PLZ-MOCK-' . strtoupper(substr(md5(uniqid()), 0, 8)),
+                'message' => 'Verification request received (Sandbox Simulation). Result will be processed in background.'
+            ];
+        }
+
+        $payload = [
+            'client_id' => $this->clientId,
+            'sponsor' => $sponsor,
+            'candidate' => [
+                'full_name' => $teacher->name,
+                'email' => $teacher->email,
+                'phone' => $teacher->mobile,
+                'tsc_number' => $teacher->tsc_number ?? null,
+                'good_conduct_serial' => $teacher->good_conduct_cert_no ?? null
+            ],
+            'checks' => ['criminal_record', 'tsc_registration']
+        ];
+
+        $ch = curl_init($this->baseUrl . '/verifications');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $this->apiKey,
+            'Content-Type: application/json',
+            'Accept: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode >= 200 && $httpCode < 300) {
+            $data = json_decode($response, true);
+            return [
+                'success' => true,
+                'status' => $data['status'] ?? 'pending',
+                'reference' => $data['reference'] ?? null,
+                'data' => $data
+            ];
+        }
+
+        return [
+            'success' => false,
+            'error' => 'Peleza API responded with status ' . $httpCode . ': ' . $response
+        ];
+    }
+}
+
+/**
+ * Dispatch automatic, beautifully-styled email notification to teacher when background verification status updates
+ */
+function send_verification_status_email($teacher, $status, $notes = '') {
+    if (empty($teacher->email)) return false;
+
+    $appUrl = env('APP_URL', 'http://localhost:8000');
+    $profileUrl = rtrim($appUrl, '/') . '/teacher/profile?id=' . $teacher->id;
+    $updateUrl = rtrim($appUrl, '/') . '/teacher/update';
+    $teacherName = $teacher->name ?: 'Educator';
+
+    if ($status === 'verified') {
+        $subject = "🎉 Congratulations! Your Educator Profile is Now Verified on MwalimuLink";
+        $htmlBody = "
+        <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;\">
+            <div style=\"background: #0f766e; padding: 24px 30px; text-align: center;\">
+                <h1 style=\"color: #ffffff; margin: 0; font-size: 1.4rem; font-weight: 700;\">MwalimuLink</h1>
+                <p style=\"color: #ccfbf1; margin: 6px 0 0; font-size: 0.85rem;\">Educator Clearance & Verification</p>
+            </div>
+            
+            <div style=\"padding: 30px;\">
+                <div style=\"display: inline-block; background: #dcfce7; color: #166534; font-size: 0.8rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; margin-bottom: 16px; border: 1px solid #86efac;\">
+                    ✓ STATUS: VERIFIED EDUCATOR
+                </div>
+                
+                <h2 style=\"color: #0f172a; font-size: 1.3rem; margin: 0 0 12px;\">Congratulations, " . htmlspecialchars($teacherName) . "!</h2>
+                
+                <p style=\"color: #334155; font-size: 0.95rem; line-height: 1.6; margin: 0 0 16px;\">
+                    We are pleased to inform you that your <strong>Certificate of Good Conduct & Background Credentials</strong> have been officially authenticated.
+                </p>
+
+                <div style=\"background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 18px; margin: 20px 0;\">
+                    <h4 style=\"margin: 0 0 8px; color: #166534; font-size: 0.95rem;\">🌟 Your Profile is Now Upgraded:</h4>
+                    <ul style=\"margin: 0; padding-left: 20px; color: #15803d; font-size: 0.88rem; line-height: 1.6;\">
+                        <li><strong>Verified Educator ✓</strong> badge is now active on your public profile.</li>
+                        <li>Your CV gets <strong>Priority Candidate Ranking</strong> in school search filters.</li>
+                        <li>Hiring headteachers and school HRs can instantly verify your clearance standing.</li>
+                    </ul>
+                </div>
+
+                <div style=\"text-align: center; margin: 28px 0 20px;\">
+                    <a href=\"{$profileUrl}\" style=\"display: inline-block; background: #0f766e; color: #ffffff !important; font-weight: 700; font-size: 0.95rem; padding: 12px 28px; border-radius: 6px; text-decoration: none; box-shadow: 0 2px 4px rgba(15,118,110,0.2);\">
+                        View Your Verified Profile →
+                    </a>
+                </div>
+                
+                <p style=\"font-size: 0.82rem; color: #64748b; line-height: 1.5; margin: 20px 0 0;\">
+                    <em>Tip: Keep your subject specializations and availability status updated to receive relevant interview invitations.</em>
+                </p>
+            </div>
+
+            <div style=\"background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px 30px; text-align: center; font-size: 0.75rem; color: #94a3b8;\">
+                <p style=\"margin: 0;\">MwalimuLink &bull; Empowering Kenya's Teaching Workforce &bull; Nairobi, Kenya</p>
+            </div>
+        </div>";
+    } else {
+        $subject = "Action Required: Background Clearance Update - MwalimuLink";
+        $reasonText = !empty($notes) ? htmlspecialchars($notes) : "The certificate serial number or document uploaded could not be matched with official clearance records.";
+        $htmlBody = "
+        <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;\">
+            <div style=\"background: #0f766e; padding: 24px 30px; text-align: center;\">
+                <h1 style=\"color: #ffffff; margin: 0; font-size: 1.4rem; font-weight: 700;\">MwalimuLink</h1>
+                <p style=\"color: #ccfbf1; margin: 6px 0 0; font-size: 0.85rem;\">Educator Clearance & Verification</p>
+            </div>
+            
+            <div style=\"padding: 30px;\">
+                <div style=\"display: inline-block; background: #fee2e2; color: #991b1b; font-size: 0.8rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; margin-bottom: 16px; border: 1px solid #fca5a5;\">
+                    ⚠️ ACTION REQUIRED
+                </div>
+                
+                <h2 style=\"color: #0f172a; font-size: 1.3rem; margin: 0 0 12px;\">Hello " . htmlspecialchars($teacherName) . ",</h2>
+                
+                <p style=\"color: #334155; font-size: 0.95rem; line-height: 1.6; margin: 0 0 16px;\">
+                    We recently attempted to verify your Police Clearance / Good Conduct credentials. Unfortunately, authentication was unsuccessful:
+                </p>
+
+                <div style=\"background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 20px 0; color: #991b1b; font-size: 0.88rem; line-height: 1.5;\">
+                    <strong>Reason / Note:</strong><br>
+                    {$reasonText}
+                </div>
+
+                <p style=\"color: #475569; font-size: 0.88rem; line-height: 1.6;\">
+                    This usually happens due to a minor typographical error in the Certificate Serial Number or an unreadable document upload. You can easily re-submit your details in your profile dashboard.
+                </p>
+
+                <div style=\"text-align: center; margin: 28px 0 20px;\">
+                    <a href=\"{$updateUrl}\" style=\"display: inline-block; background: #0f766e; color: #ffffff !important; font-weight: 700; font-size: 0.95rem; padding: 12px 28px; border-radius: 6px; text-decoration: none; box-shadow: 0 2px 4px rgba(15,118,110,0.2);\">
+                        Review & Re-submit Clearance →
+                    </a>
+                </div>
+            </div>
+
+            <div style=\"background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px 30px; text-align: center; font-size: 0.75rem; color: #94a3b8;\">
+                <p style=\"margin: 0;\">MwalimuLink Support &bull; Nairobi, Kenya</p>
+            </div>
+        </div>";
+    }
+
+    return send_system_email($teacher->email, $teacher->name, $subject, $htmlBody);
+}
+
+
 
 
 

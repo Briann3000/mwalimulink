@@ -56,7 +56,13 @@ $isActive = function($path) use ($currentUri) {
 
     <?php elseif ($role === 'admin'): ?>
         <a href="/admin/dashboard" class="sidebar-item-link <?= $isActive('admin/dashboard') ?>">
-            <i class="fa fa-shield-alt"></i> <span>Admin Control</span>
+            <i class="fa fa-tachometer-alt"></i> <span>Dashboard</span>
+        </a>
+        <a href="/admin/verifications" class="sidebar-item-link <?= $isActive('admin/verifications') ?>">
+            <i class="fa fa-shield-check"></i> <span>Clearance Queue</span>
+        </a>
+        <a href="/blog/admin" class="sidebar-item-link <?= $isActive('blog/admin') ?>">
+            <i class="fa fa-newspaper"></i> <span>Manage Blog</span>
         </a>
     <?php endif; ?>
 

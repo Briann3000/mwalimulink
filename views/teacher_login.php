@@ -5,7 +5,7 @@ $error_message = null;
 
 // If already logged in, redirect to dashboard
 if (is_logged_in() && has_role('teacher')) {
-    header('Location: index.php?action=teacher_dashboard');
+    header('Location: /teacher/dashboard');
     exit();
 }
 
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($teacher && password_verify($password, $teacher->password)) {
         auth_login($teacher, 'teacher');
-        header('Location: index.php?action=teacher_dashboard');
+        header('Location: /teacher/dashboard');
         exit();
     } else {
         $error_message = "Invalid email or password.";
@@ -54,8 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <div style="display: flex; justify-content: space-between; padding: 0 1rem 1rem;">
-        <p>Don't have an account? <a href="index.php?action=teacher_register">Register here</a></p>
-        <p><a href="index.php?action=reset_teacher_password" style="color: #666;">Forgot password?</a></p>
+        <p>Don't have an account? <a href="/register/teacher">Register here</a></p>
+        <p><a href="/reset-password/teacher" style="color: #666;">Forgot password?</a></p>
     </div>
 
     <style>

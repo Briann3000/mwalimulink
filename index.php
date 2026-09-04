@@ -1,8 +1,9 @@
 <?php
 // Let PHP built-in server serve static files (images, css, js) directly
 if (php_sapi_name() === 'cli-server') {
-    $filePath = __DIR__ . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    if (is_file($filePath)) {
+    $reqPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $filePath = __DIR__ . $reqPath;
+    if ($reqPath !== '/' && $reqPath !== '/index.php' && is_file($filePath) && !str_ends_with($filePath, '.php')) {
         return false;
     }
 }
@@ -112,6 +113,7 @@ $modernRoutes = [
     'login/school' => 'views/school_login.php',
     'login/admin' => 'views/admin_login.php',
     'logout' => 'views/logout.php',
+    'register' => 'views/register_choice.php',
     'register/teacher' => 'views/teacher_register.php',
     'register/school' => 'views/school_register.php',
     'reset-password/teacher' => 'views/reset_teacher_password.php',
@@ -133,7 +135,11 @@ $modernRoutes = [
     'school/pay' => 'views/pay_subscription.php',
     'school/callback' => 'views/subscription_callback.php',
 
+    // API & Webhooks
+    'api/verification-callback' => 'views/api_verification_webhook.php',
+
     'admin/dashboard' => 'views/admin_dashboard.php',
+    'admin/verifications' => 'views/admin_verifications.php',
 
     // School Directories
     'schools/public' => 'views/public_school_search.php',
@@ -144,40 +150,48 @@ $modernRoutes = [
     'schools/international/detail' => 'views/international_school_details.php',
 ];
 
+// Legacy parameter fallback map
+$legacyMap = [
+    'landing' => 'views/landing.php',
+    'teacher_register' => 'views/teacher_register.php',
+    'school_register' => 'views/school_register.php',
+    'teacher_login' => 'views/teacher_login.php',
+    'school_login' => 'views/school_login.php',
+    'dual_login' => 'views/dual_login.php',
+    'teacher_dashboard' => 'views/teacher_dashboard.php',
+    'school_dashboard' => 'views/school_dashboard.php',
+    'admin_dashboard' => 'views/admin_dashboard.php',
+    'admin_login' => 'views/admin_login.php',
+    'public_school_search' => 'views/public_school_search.php',
+    'private_school_search' => 'views/private_school_search.php',
+    'international_school_search' => 'views/international_school_search.php',
+    'school_search_candidate' => 'views/school_search_candidate.php',
+    'pay_subscription' => 'views/pay_subscription.php',
+    'subscription_callback' => 'views/subscription_callback.php',
+    'reset_teacher_password' => 'views/reset_teacher_password.php',
+    'reset_school_password' => 'views/reset_school_password.php',
+    'logout' => 'views/logout.php'
+];
+
 // Fallback legacy action support for transition
 $action = $_GET['action'] ?? null;
 $viewFile = null;
 
-if (array_key_exists($requestUri, $modernRoutes)) {
-    $viewFile = $modernRoutes[$requestUri];
-} elseif ($action && isset($modernRoutes[$action])) {
-    $viewFile = $modernRoutes[$action];
-} else {
-    // Map legacy names directly if requested
-    $legacyMap = [
-        'landing' => 'views/landing.php',
-        'teacher_register' => 'views/teacher_register.php',
-        'school_register' => 'views/school_register.php',
-        'teacher_login' => 'views/teacher_login.php',
-        'school_login' => 'views/school_login.php',
-        'dual_login' => 'views/dual_login.php',
-        'teacher_dashboard' => 'views/teacher_dashboard.php',
-        'school_dashboard' => 'views/school_dashboard.php',
-        'admin_dashboard' => 'views/admin_dashboard.php',
-        'admin_login' => 'views/admin_login.php',
-        'public_school_search' => 'views/public_school_search.php',
-        'private_school_search' => 'views/private_school_search.php',
-        'international_school_search' => 'views/international_school_search.php',
-        'school_search_candidate' => 'views/school_search_candidate.php',
-        'pay_subscription' => 'views/pay_subscription.php',
-        'subscription_callback' => 'views/subscription_callback.php',
-        'reset_teacher_password' => 'views/reset_teacher_password.php',
-        'reset_school_password' => 'views/reset_school_password.php',
-        'logout' => 'views/logout.php'
-    ];
-    if ($action && isset($legacyMap[$action])) {
+if (!empty($action)) {
+    if (isset($modernRoutes[$action])) {
+        $viewFile = $modernRoutes[$action];
+    } elseif (isset($legacyMap[$action])) {
         $viewFile = $legacyMap[$action];
+    } else {
+        $legacyFile = 'views/' . $action . '.php';
+        if (file_exists(__DIR__ . '/' . $legacyFile)) {
+            $viewFile = $legacyFile;
+        }
     }
+}
+
+if (!$viewFile && array_key_exists($requestUri, $modernRoutes)) {
+    $viewFile = $modernRoutes[$requestUri];
 }
 
 if ($viewFile && file_exists(__DIR__ . '/' . $viewFile)) {

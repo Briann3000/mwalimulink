@@ -3,7 +3,7 @@
 $school_error_message = null;
 
 if (is_logged_in() && has_role('school')) {
-    header('Location: index.php?action=school_dashboard');
+    header('Location: /school/dashboard');
     exit();
 }
 
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         auth_login($school, 'school');
 
         // Redirect to school dashboard
-        header('Location: index.php?action=school_dashboard');
+        header('Location: /school/dashboard');
         exit();
     } catch (Exception $e) {
         $school_error_message = $e->getMessage();
@@ -63,8 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
-        <p>Don't have an account? <a href="index.php?action=school_register">Register here</a></p>
-        <p><a href="index.php?action=reset_school_password" style="color: #666;">Forgot password?</a></p>
+        <p>Don't have an account? <a href="/register/school">Register here</a></p>
+        <p><a href="/reset-password/school" style="color: #666;">Forgot password?</a></p>
     </div>
 
     <style>

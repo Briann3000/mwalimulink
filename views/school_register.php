@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Check if email already exists
         $existing_school = R::findOne('school', 'email = ?', [$_POST['email']]);
         if ($existing_school) {
-            $message = '⚠️ This email is already registered. <a href="index.php?action=reset_school_password&email=' . urlencode($_POST['email']) . '">Reset password?</a>';
+            $message = '⚠️ This email is already registered. <a href="/reset-password/school?email=' . urlencode($_POST['email']) . '">Reset password?</a>';
             $showForm = false;
         } else {
             $school = R::dispense('school');
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $school_id = R::store($school);
             auth_login($school, 'school');
 
-            header('Location: index.php?action=pay_subscription');
+            header('Location: /school/pay');
             exit;
         }
     } catch (Exception $e) {
@@ -165,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
         
-        <p style="text-align: center; margin-top: 1.5rem;">Already registered? <a href="index.php?action=school_login">Login here</a></p>
+        <p style="text-align: center; margin-top: 1.5rem;">Already registered? <a href="/login/school">Login here</a></p>
     </form>
     <?php endif; ?>
 

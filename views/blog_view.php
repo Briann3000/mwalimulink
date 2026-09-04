@@ -33,4 +33,4 @@ $category_name = $category && !is_null($category->name) ? htmlspecialchars($cate
 </article>
 
 
-<p><a href="index.php?action=blog">← Back to Resources</a></p>
+<p><a href="/blog">← Back to Resources</a></p>

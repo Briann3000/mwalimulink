@@ -30,8 +30,12 @@ $totalSchools = $publicSchoolsCount + $privateSchoolsCount;
 $myApplicationsCount = R::count('applications', 'teacher_id = ?', [$teacher_id]);
 
 // Recommended Jobs (matching teacher's teaching subjects)
-$primarySubject = explode('/', $teacher->teaching_subjects)[0] ?? '';
-$primarySubject = trim(explode(',', $primarySubject)[0] ?? '');
+$teachingSubjects = (string)($teacher->teaching_subjects ?? '');
+$primarySubject = '';
+if (!empty($teachingSubjects)) {
+    $firstSlash = explode('/', $teachingSubjects)[0] ?? '';
+    $primarySubject = trim(explode(',', $firstSlash)[0] ?? '');
+}
 $recommendedJobs = [];
 if (!empty($primarySubject)) {
     $recommendedJobs = R::find('job', 'title LIKE ? OR description LIKE ? OR requirements LIKE ? ORDER BY id DESC LIMIT 3', [

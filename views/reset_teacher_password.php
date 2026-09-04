@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token']) && isset($_P
             $teacher->reset_expiry = null;
             R::store($teacher);
 
-            $message = "Password updated successfully. <a href='index.php?action=teacher_login'>Login here</a>";
+            $message = "Password updated successfully. <a href='/login/teacher'>Login here</a>";
         }
     }
 } elseif (isset($_GET['email'])) {
@@ -67,7 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token']) && isset($_P
             R::store($teacher);
 
             // Construct reset password link
-            $reset_link = "https://mwalimu.info/index.php?action=reset_teacher_password&token=" . $token . "&email=" . urlencode($email);
+            $appUrl = rtrim(env('APP_URL', 'https://mwalimu.info'), '/');
+            $reset_link = "{$appUrl}/reset-password/teacher?token=" . $token . "&email=" . urlencode($email);
 
             // Send email with reset password link
             $subject = "Reset Your Password";

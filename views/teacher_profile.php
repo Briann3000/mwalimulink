@@ -65,18 +65,28 @@ if (!$teacher->id) {
                             <i class="fa fa-map-marker-alt" style="color: #0f766e;"></i> <?= h($teacher->county ?: 'Kenya') ?> &bull; 
                             <?= h($teacher->qualification ?: 'Educator') ?>
                         </p>
-                        <div style="display: flex; gap: 8px; align-items: center;">
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <?php if (($teacher->verification_status ?? '') === 'verified'): ?>
+                                <span style="background: #dcfce7; color: #166534; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 4px; border: 1px solid #86efac; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fa fa-shield-check"></i> Verified Educator ✓
+                                </span>
+                            <?php elseif (!empty($teacher->good_conduct_doc)): ?>
+                                <span style="background: #fef3c7; color: #92400e; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; border: 1px solid #fde68a;">
+                                    <i class="fa fa-file-check"></i> Good Conduct on File
+                                </span>
+                            <?php endif; ?>
+
                             <?php if (!empty($teacher->tsc_number)): ?>
-                                <span style="background: #dcfce7; color: #166534; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 4px;">
-                                    ✓ TSC Registered: <?= h($teacher->tsc_number) ?>
+                                <span style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px;">
+                                    ✓ TSC: <?= h($teacher->tsc_number) ?>
                                 </span>
                             <?php else: ?>
-                                <span style="background: #f1f5f9; color: #64748b; font-size: 0.75rem; font-weight: 600; padding: 3px 8px; border-radius: 4px;">
+                                <span style="background: #f1f5f9; color: #64748b; font-size: 0.75rem; font-weight: 600; padding: 4px 8px; border-radius: 4px;">
                                     Candidate / Tutor
                                 </span>
                             <?php endif; ?>
 
-                            <span style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 12px;">
+                            <span style="background: #f8fafc; color: #334155; font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 12px; border: 1px solid #e2e8f0;">
                                 🟢 <?= ucfirst($teacher->status ?: 'Available') ?>
                             </span>
                         </div>
@@ -130,6 +140,47 @@ if (!$teacher->id) {
                             <strong style="color: #64748b; font-size: 0.78rem; text-transform: uppercase; display: block;">County of Residence:</strong>
                             <span style="color: #0f172a;"><?= h($teacher->county ?: 'Kenya') ?></span>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safeguarding & Clearance Summary Card -->
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
+                    <h4 style="margin: 0; font-size: 1rem; color: #0f766e; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa fa-shield-halved"></i> Background Clearance & Child Safeguarding
+                    </h4>
+                    <?php if (($teacher->verification_status ?? '') === 'verified'): ?>
+                        <span style="background: #dcfce7; color: #166534; font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #86efac;">
+                            <i class="fa fa-check-circle"></i> Authenticated & Cleared
+                        </span>
+                    <?php endif; ?>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; font-size: 0.88rem; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 6px; padding: 1rem;">
+                    <div>
+                        <strong style="color: #64748b; font-size: 0.75rem; text-transform: uppercase; display: block;">Police Clearance (Good Conduct):</strong>
+                        <span style="color: #0f172a; font-weight: 600;">
+                            <?= !empty($teacher->good_conduct_cert_no) ? h($teacher->good_conduct_cert_no) : 'Certificate on Record' ?>
+                        </span>
+                    </div>
+
+                    <div>
+                        <strong style="color: #64748b; font-size: 0.75rem; text-transform: uppercase; display: block;">Certificate Document:</strong>
+                        <?php if (!empty($teacher->good_conduct_doc)): ?>
+                            <a href="/<?= h($teacher->good_conduct_doc) ?>" target="_blank" style="color: #0f766e; font-weight: 700; text-decoration: underline;">
+                                <i class="fa fa-file-pdf"></i> View Certificate PDF
+                            </a>
+                        <?php else: ?>
+                            <span style="color: #94a3b8;">Pending Upload</span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div>
+                        <strong style="color: #64748b; font-size: 0.75rem; text-transform: uppercase; display: block;">Validity / Expiry:</strong>
+                        <span style="color: #0f172a;">
+                            <?= !empty($teacher->good_conduct_expiry_date) ? date('M d, Y', strtotime($teacher->good_conduct_expiry_date)) : 'Verified Valid' ?>
+                        </span>
                     </div>
                 </div>
             </div>

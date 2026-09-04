@@ -42,7 +42,7 @@
 
       <p>&nbsp;</p>
       <p>&nbsp;</p>
-<h1>To subscribe, click to <a href="index.php?action=school_register">register</h1>
+<h1>To subscribe, click to <a href="/register/school">register</a></h1>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>

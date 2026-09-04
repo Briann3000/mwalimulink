@@ -24,10 +24,15 @@ $county = isset($_GET['county']) ? sanitize_input($_GET['county']) : '';
 $subject = isset($_GET['subject']) ? sanitize_input($_GET['subject']) : '';
 $experience = isset($_GET['experience']) ? (int)$_GET['experience'] : 0;
 $grade = isset($_GET['grade']) ? sanitize_input($_GET['grade']) : '';
+$verifiedOnly = !empty($_GET['verified_only']);
 
 // Build safe query with filters
 $conditions = ["1=1"];  // Base condition
 $params = [];
+
+if ($verifiedOnly) {
+    $conditions[] = "(verification_status = 'verified' OR (good_conduct_doc IS NOT NULL AND good_conduct_doc != ''))";
+}
 
 if (!empty($county)) {
     $conditions[] = "county LIKE ?";
@@ -52,9 +57,9 @@ if (!empty($grade)) {
 // Combine conditions
 $query = implode(' AND ', $conditions);
 
-// Fetch filtered results with pagination
+// Fetch filtered results with pagination (Verified educators rank first)
 $totalTeachers = R::count('teacher', $query, $params);
-$teachers = R::find('teacher', "$query ORDER BY (status = 'available') DESC, id DESC LIMIT ? OFFSET ?", 
+$teachers = R::find('teacher', "$query ORDER BY (verification_status = 'verified') DESC, (good_conduct_doc IS NOT NULL AND good_conduct_doc != '') DESC, (status = 'available') DESC, id DESC LIMIT ? OFFSET ?", 
     array_merge($params, [$limit, $offset])
 );
 
@@ -105,10 +110,14 @@ $totalPages = ceil($totalTeachers / $limit);
 
                     <div>
                         <label style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block;">Min. Experience</label>
-                        <input type="number" name="experience" value="<?= $experience > 0 ? h($experience) : '' ?>" placeholder="Years" min="0" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; margin: 0; box-sizing: border-box;">
+                        <input type="number" name="experience" value="<?= $experience > 0 ? h($experience) : '' ?>" placeholder="Years" min="0" style="width: 100%; padding: 8px 12px; border-line: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; margin: 0; box-sizing: border-box;">
                     </div>
 
-                    <div>
+                    <div style="display: flex; flex-direction: column; justify-content: flex-end;">
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 700; color: #0f766e; cursor: pointer; margin-bottom: 6px;">
+                            <input type="checkbox" name="verified_only" value="1" <?= $verifiedOnly ? 'checked' : '' ?> style="margin: 0;">
+                            <span>✓ Verified Only</span>
+                        </label>
                         <button type="submit" class="btn-primary" style="height: 38px; width: 100%; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px;">
                             <i class="fa fa-search"></i> Filter
                         </button>
@@ -130,15 +139,27 @@ $totalPages = ceil($totalTeachers / $limit);
                 <?php foreach ($teachers as $teacher): ?>
                     <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; gap: 6px;">
                                 <h4 style="margin: 0; font-size: 1.05rem; color: #0f172a;">
                                     <a href="/teacher/profile?teacher_id=<?= $teacher->id ?>" style="color: #0f172a; text-decoration: none;"><?= h($teacher->name) ?></a>
                                 </h4>
-                                <?php if (!empty($teacher->tsc_number)): ?>
-                                    <span style="background: #dcfce7; color: #166534; font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
-                                        ✓ TSC
-                                    </span>
-                                <?php endif; ?>
+                                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                    <?php if (($teacher->verification_status ?? '') === 'verified'): ?>
+                                        <span style="background: #dcfce7; color: #166534; font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; border: 1px solid #86efac;">
+                                            <i class="fa fa-shield-check"></i> Verified
+                                        </span>
+                                    <?php elseif (!empty($teacher->good_conduct_doc)): ?>
+                                        <span style="background: #fef3c7; color: #92400e; font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
+                                            <i class="fa fa-file"></i> On File
+                                        </span>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($teacher->tsc_number)): ?>
+                                        <span style="background: #e0f2fe; color: #0369a1; font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
+                                            ✓ TSC
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
                             </div>
 
                             <p style="margin: 0 0 6px; font-size: 0.82rem; color: #64748b;">
