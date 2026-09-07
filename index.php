@@ -78,8 +78,6 @@ if ($dbDriver === 'mysql') {
 $isProduction = env('APP_ENV', 'production') === 'production';
 R::freeze($isProduction);
 
-require 'header.php';
-
 // -------------------------------------------------------------------
 // Clean URL Routing Engine
 // -------------------------------------------------------------------
@@ -90,6 +88,13 @@ $requestUri = trim($requestUri, '/');
 if (str_ends_with($requestUri, 'index.php')) {
     $requestUri = substr($requestUri, 0, -9);
     $requestUri = trim($requestUri, '/');
+}
+
+$action = $_GET['action'] ?? null;
+$isApiRoute = str_starts_with($requestUri, 'api/') || (!empty($action) && str_starts_with($action, 'api/'));
+
+if (!$isApiRoute) {
+    require 'header.php';
 }
 
 // Map clean modern URLs to view files
@@ -130,6 +135,8 @@ $modernRoutes = [
     'teacher/jobs' => 'views/teacher_job_search.php',
     'teacher/apply' => 'views/teacher_job_apply.php',
     'teacher/applications' => 'views/teacher_applications.php',
+    'teacher/cv-builder' => 'views/teacher_cv_builder.php',
+    'teacher/cv-preview' => 'views/teacher_cv_preview.php',
     'tp-hub' => 'views/tp_hub.php',
 
     'school/dashboard' => 'views/school_dashboard.php',
@@ -144,6 +151,7 @@ $modernRoutes = [
 
     // API & Webhooks
     'api/verification-callback' => 'views/api_verification_webhook.php',
+    'api/cv-polish' => 'views/api_cv_polish.php',
 
     'admin/dashboard' => 'views/admin_dashboard.php',
     'admin/verifications' => 'views/admin_verifications.php',
@@ -213,6 +221,8 @@ if ($viewFile && file_exists(__DIR__ . '/' . $viewFile)) {
     </article>';
 }
 
-require 'footer.php'; // Include footer at the end of every page
+if (!$isApiRoute) {
+    require 'footer.php'; // Include footer at the end of every non-API page
+}
 ob_end_flush(); // Send the buffered content to the browser
 ?>

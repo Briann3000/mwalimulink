@@ -43,16 +43,25 @@ if (!$teacher->id) {
                         <a href="mailto:<?= h($teacher->email) ?>?subject=<?= urlencode("Teaching Inquiry from MwalimuLink") ?>&body=<?= urlencode("Dear " . ($teacher->name ?: 'Teacher') . ",\n\nWe are contacting you from MwalimuLink regarding opportunities at our school.\n\nBest regards,\nAdministration") ?>" class="btn-primary" style="background: #0f766e; color: white !important; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fa fa-envelope"></i> Contact via Email
                         </a>
+                        <a href="/teacher/cv-preview?id=<?= $teacher->id ?>" target="_blank" style="background: #f0fdfa; color: #0f766e !important; border: 1.5px solid #0f766e; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fa fa-file-lines"></i> View Educator CV
+                        </a>
                         <?php if (!empty($teacher->cv_file)): ?>
                             <a href="/<?= h($teacher->cv_file) ?>" target="_blank" style="background: #f1f5f9; color: #334155 !important; border: 1px solid #cbd5e1; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                                <i class="fa fa-download"></i> Download CV
+                                <i class="fa fa-download"></i> Uploaded Document
                             </a>
                         <?php endif; ?>
                     <?php endif; ?>
 
                     <?php if ($isTeacher && $teacher->id == $authUser['user_id']): ?>
-                        <a href="/teacher/update" class="btn-primary" style="font-size: 0.85rem; padding: 8px 16px;">
-                            <i class="fa fa-edit"></i> Edit Profile
+                        <a href="/teacher/cv-preview" target="_blank" style="background: #ffffff; color: #0f766e !important; border: 1.5px solid #0f766e; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fa fa-eye"></i> Preview & Print CV
+                        </a>
+                        <a href="/teacher/cv-builder" class="btn-primary" style="background: #0f766e; color: white !important; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fa fa-file-lines"></i> CV Builder
+                        </a>
+                        <a href="/teacher/update" style="background: #f1f5f9; color: #334155 !important; border: 1px solid #cbd5e1; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fa fa-edit"></i> Edit Account
                         </a>
                     <?php endif; ?>
                 </div>

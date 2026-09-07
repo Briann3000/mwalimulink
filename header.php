@@ -65,6 +65,10 @@ if (function_exists('init_session')) {
     }
 
     /* Global Clean Layout */
+    :root {
+      font-size: 14px !important;
+    }
+
     html, body {
       margin: 0 !important;
       padding: 0 !important;
@@ -72,6 +76,7 @@ if (function_exists('init_session')) {
       background-color: #f8fafc !important;
       color: #1e293b !important;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      font-size: 14px !important;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -896,24 +901,23 @@ if (function_exists('init_session')) {
             </a>
           </li>
 
-          <!-- Universal Navigation Links -->
           <li><a href="/"><i class="fa fa-home"></i> <span>Home</span></a></li>
-          <li><a href="/about"><i class="fa fa-info-circle"></i> <span>About</span></a></li>
-          <li><a href="/publications"><i class="fa fa-file-lines"></i> <span>Publications</span></a></li>
-          <li><a href="/contacts"><i class="fa fa-envelope"></i> <span>Contact</span></a></li>
 
           <?php if ($authUser['role'] === 'teacher'): ?>
             <li><a href="/teacher/jobs"><i class="fa fa-briefcase"></i> <span>Jobs</span></a></li>
-            <li><a href="/tp-hub"><i class="fa fa-graduation-cap"></i> <span>TP Hub</span></a></li>
           <?php elseif ($authUser['role'] === 'school'): ?>
             <li><a href="/school/staff"><i class="fa fa-users"></i> <span>Faculty</span></a></li>
             <li><a href="/school/search-candidates"><i class="fa fa-search"></i> <span>Candidates</span></a></li>
           <?php endif; ?>
 
+          <li><a href="/publications"><i class="fa fa-file-lines"></i> <span>Publications</span></a></li>
+
           <!-- Resources Dropdown -->
           <li class="top-dropdown">
             <a href="#"><i class="fa fa-book-open"></i> Resources <i class="fa fa-chevron-down" style="font-size: 10px; margin-left: 2px;"></i></a>
             <div class="top-dropdown-menu">
+              <a href="/about"><i class="fa fa-info-circle"></i> About MwalimuLink</a>
+              <a href="/contacts"><i class="fa fa-envelope"></i> Contact Support</a>
               <a href="/faqs"><i class="fa fa-question-circle"></i> Educator FAQs</a>
               <a href="/faqs-overseas"><i class="fa fa-plane"></i> Teaching Overseas FAQ</a>
               <a href="/privacy"><i class="fa fa-shield-alt"></i> Privacy Policy</a>
@@ -930,6 +934,7 @@ if (function_exists('init_session')) {
               <a href="<?= $dashRoute ?>"><i class="fa fa-home"></i> Portal Home</a>
               <?php if ($authUser['role'] === 'teacher'): ?>
                 <a href="/teacher/update"><i class="fa fa-user-edit"></i> Edit Profile</a>
+                <a href="/teacher/cv-builder"><i class="fa fa-file-lines"></i> CV Builder</a>
               <?php elseif ($authUser['role'] === 'school'): ?>
                 <a href="/school/subscribe"><i class="fa fa-credit-card"></i> Billing</a>
               <?php endif; ?>

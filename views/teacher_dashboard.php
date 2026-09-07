@@ -122,11 +122,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                     <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">TP & Intern Hub</span>
                 </a>
 
-                <a href="/teacher/update" class="quick-action-tile">
-                    <div class="quick-action-icon">
-                        <i class="fa fa-user-edit"></i>
+                <a href="/teacher/cv-builder" class="quick-action-tile">
+                    <div class="quick-action-icon" style="background: #f0fdfa; color: #0f766e;">
+                        <i class="fa fa-file-lines"></i>
                     </div>
-                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Update CV</span>
+                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">CV Builder & Polisher</span>
+                </a>
+
+                <a href="/teacher/profile" class="quick-action-tile">
+                    <div class="quick-action-icon" style="background: #eff6ff; color: #2563eb;">
+                        <i class="fa fa-id-badge"></i>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">View My Profile & CV</span>
                 </a>
 
                 <a href="/schools/public" class="quick-action-tile">

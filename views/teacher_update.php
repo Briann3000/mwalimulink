@@ -32,6 +32,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $teacher->email = trim($_POST['email'] ?? $teacher->email);
             $teacher->county = trim($_POST['county'] ?? $teacher->county);
             $teacher->country = trim($_POST['country'] ?? 'Kenya');
+
+            if (!empty($_FILES['profile_picture']['name'])) {
+                $picUpload = secure_validate_and_upload(
+                    $_FILES['profile_picture'],
+                    'uploads/photos/',
+                    ['jpg', 'jpeg', 'png', 'webp'],
+                    5 * 1024 * 1024
+                );
+                if ($picUpload['success']) {
+                    $teacher->profile_picture = $picUpload['relative_path'];
+                } else {
+                    $error = $picUpload['error'];
+                }
+            }
         }
 
         // 2. Academic & Teaching Qualifications
@@ -194,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- TAB PANE 1: Personal & Contact Details -->
             <div id="section-personal" class="profile-tab-pane" style="display: block;">
                 <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                    <form method="POST" action="/teacher/update" style="margin: 0;">
+                    <form method="POST" action="/teacher/update" enctype="multipart/form-data" style="margin: 0;">
                         <?= csrf_field() ?>
                         <input type="hidden" name="section" value="personal">
 
@@ -204,6 +218,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <p style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;">Basic profile identifying information and primary communication contacts.</p>
                             </div>
                             <span style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 4px;">Step 1 of 5</span>
+                        </div>
+
+                        <!-- Passport / Profile Picture Preview & Upload -->
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+                            <?php if (!empty($teacher->profile_picture)): ?>
+                                <img src="/<?= h($teacher->profile_picture) ?>" alt="Passport Photo" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover; border: 1px solid #cbd5e1; flex-shrink: 0;">
+                            <?php else: ?>
+                                <div style="width: 56px; height: 56px; border-radius: 8px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 1.5rem; flex-shrink: 0;">
+                                    <i class="fa fa-user"></i>
+                                </div>
+                            <?php endif; ?>
+                            <div style="flex: 1; min-width: 240px;">
+                                <label style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">Passport / Profile Photo (JPG, PNG, max 5MB)</label>
+                                <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/webp" style="font-size: 0.84rem; padding: 4px 8px;">
+                            </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">

@@ -9,10 +9,12 @@ $role = $authUser['role'] ?? 'teacher';
 $currentUri = trim(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
 
 // Helper to check active route
-$isActive = function($path) use ($currentUri) {
+$isActive = function ($path) use ($currentUri) {
     $path = trim($path, '/');
-    if ($currentUri === $path) return 'active';
-    if ($path !== '' && str_starts_with($currentUri, $path)) return 'active';
+    if ($currentUri === $path)
+        return 'active';
+    if ($path !== '' && str_starts_with($currentUri, $path))
+        return 'active';
     return '';
 };
 ?>
@@ -27,14 +29,19 @@ $isActive = function($path) use ($currentUri) {
         <a href="/teacher/applications" class="sidebar-item-link <?= $isActive('teacher/applications') ?>">
             <i class="fa fa-list-check"></i> <span>My Applications</span>
         </a>
-        <a href="/teacher/jobs" class="sidebar-item-link <?= ($isActive('teacher/jobs') || $isActive('teacher/apply')) ? 'active' : '' ?>">
+        <a href="/teacher/jobs"
+            class="sidebar-item-link <?= ($isActive('teacher/jobs') || $isActive('teacher/apply')) ? 'active' : '' ?>">
             <i class="fa fa-briefcase"></i> <span>Browse Jobs</span>
         </a>
         <a href="/tp-hub" class="sidebar-item-link <?= $isActive('tp-hub') ?>">
             <i class="fa fa-graduation-cap"></i> <span>TP & Placement Hub</span>
         </a>
         <a href="/teacher/update" class="sidebar-item-link <?= $isActive('teacher/update') ?>">
-            <i class="fa fa-user-edit"></i> <span>Edit Profile & CV</span>
+            <i class="fa fa-user-edit"></i> <span>Edit Profile</span>
+        </a>
+        <a href="/teacher/cv-builder"
+            class="sidebar-item-link <?= ($isActive('teacher/cv-builder') || $isActive('teacher/cv-preview')) ? 'active' : '' ?>">
+            <i class="fa fa-file-lines"></i> <span>CV Builder & Polisher</span>
         </a>
 
     <?php elseif ($role === 'school'): ?>
@@ -48,7 +55,7 @@ $isActive = function($path) use ($currentUri) {
             <i class="fa fa-plus-circle"></i> <span>Post Vacancy</span>
         </a>
         <a href="/school/search-candidates" class="sidebar-item-link <?= $isActive('school/search-candidates') ?>">
-            <i class="fa fa-search"></i> <span>Find Candidates</span>
+            <i class="fa fa-search"></i> <span>Find Teachers</span>
         </a>
         <a href="/school/staff" class="sidebar-item-link <?= $isActive('school/staff') ?>">
             <i class="fa fa-users"></i> <span>Employed Staff</span>
