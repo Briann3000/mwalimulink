@@ -58,6 +58,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $teacher->created_at = date('Y-m-d H:i:s');
 
                     R::store($teacher);
+
+                    $inviteToken = trim($_POST['invite_token'] ?? '');
+                    if (!empty($inviteToken)) {
+                        $invite = R::findOne('staffinvitation', 'token = ?', [$inviteToken]) ?: R::findOne('staff_invitation', 'token = ?', [$inviteToken]);
+                        if ($invite && $invite->status === 'pending') {
+                            $invitingSchool = R::load('school', $invite->school_id);
+                            if ($invitingSchool->id) {
+                                $staff = R::dispense('schoolstaff');
+                                $staff->school_id = $invitingSchool->id;
+                                $staff->teacher_id = $teacher->id;
+                                $staff->teacher_name = $teacher->name ?: 'Educator';
+                                $staff->tsc_number = $teacher->tsc_number ?? '';
+                                $staff->subjects = $teacher->teaching_subjects ?? '';
+                                $staff->employment_type = $invite->employment_type ?: 'Permanent';
+                                $staff->role_title = $invite->role_title ?: 'Teacher';
+                                $staff->date_joined = date('Y-m-d');
+                                $staff->status = 'active';
+                                R::store($staff);
+
+                                $teacher->status = 'employed';
+                                $teacher->current_school = $invitingSchool->name;
+                                R::store($teacher);
+
+                                $invite->status = 'accepted';
+                                $invite->accepted_at = date('Y-m-d H:i:s');
+                                $invite->teacher_id = $teacher->id;
+                                R::store($invite);
+
+                                auth_login($teacher, 'teacher');
+                                header("Location: /teacher/dashboard?msg=" . urlencode("Welcome! Your account is created and linked to " . $invitingSchool->name));
+                                exit();
+                            }
+                        }
+                    }
+
                     $message = '🎉 Registration successful! Thank you for registering on MwalimuLink&trade;. <a href="/login/teacher">Click here to Login</a>.';
                     $showForm = false;
                 }
@@ -65,6 +100,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$inviteToken = trim($_GET['invite_token'] ?? ($_POST['invite_token'] ?? ''));
+$prefilledEmail = trim($_GET['email'] ?? ($_POST['email'] ?? ''));
 ?>
 
 <article class="card" style="max-width: 65%; margin: 2rem auto;">
@@ -103,6 +141,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form id="teacherRegForm" method="post" style="padding: 1rem;">
             <?= csrf_field() ?>
+            <?php if (!empty($inviteToken)): ?>
+                <input type="hidden" name="invite_token" value="<?= h($inviteToken) ?>">
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 10px 14px; border-radius: 6px; margin-bottom: 1.25rem; font-size: 0.85rem;">
+                    <i class="fa fa-info-circle"></i> You are accepting an institution faculty appointment. Registering will connect you automatically to your school.
+                </div>
+            <?php endif; ?>
 
             <!-- STEP 1: Account Basics & Personal Details -->
             <div id="step-1" class="step-section">
@@ -136,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </label>
 
                     <label for="email">Email Address <span style="color: red;">*</span>
-                        <input type="email" id="email" name="email" required>
+                        <input type="email" id="email" name="email" value="<?= h($prefilledEmail) ?>" required>
                     </label>
                 </div>
 

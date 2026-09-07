@@ -36,14 +36,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $school->category = trim($_POST['category'] ?? 'Private School');
             $school->contact_person = trim($_POST['contact_person'] ?? '');
             $school->address = trim($_POST['address'] ?? '');
-            $school->country = 'Kenya';
-            $school->status = 'inactive';
+            $school->status = 'active';
+            $school->plan = 'free';
             $school->subscription_expiry = null;
 
             $school_id = R::store($school);
             auth_login($school, 'school');
 
-            header('Location: /school/pay');
+            header('Location: /school/dashboard');
             exit;
         }
     } catch (Exception $e) {

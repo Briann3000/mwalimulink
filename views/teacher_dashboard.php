@@ -101,11 +101,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         <div style="margin-bottom: 2rem;">
             <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #0f172a;">Quick Actions</h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
-                <a href="/tp-hub" class="quick-action-tile">
-                    <div class="quick-action-icon">
-                        <i class="fa fa-graduation-cap"></i>
+                <a href="/teacher/applications" class="quick-action-tile">
+                    <div class="quick-action-icon" style="background: #f0fdf4; color: #16a34a;">
+                        <i class="fa fa-list-check"></i>
                     </div>
-                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">TP & Intern Hub</span>
+                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">My Applications (<?= $myApplicationsCount ?>)</span>
                 </a>
 
                 <a href="/teacher/jobs" class="quick-action-tile">
@@ -115,18 +115,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                     <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Browse Jobs</span>
                 </a>
 
-                <a href="/schools/public" class="quick-action-tile">
+                <a href="/tp-hub" class="quick-action-tile">
                     <div class="quick-action-icon">
-                        <i class="fa fa-landmark"></i>
+                        <i class="fa fa-graduation-cap"></i>
                     </div>
-                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Public Schools</span>
-                </a>
-
-                <a href="/schools/private" class="quick-action-tile">
-                    <div class="quick-action-icon">
-                        <i class="fa fa-building"></i>
-                    </div>
-                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Private Academies</span>
+                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">TP & Intern Hub</span>
                 </a>
 
                 <a href="/teacher/update" class="quick-action-tile">
@@ -134,6 +127,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                         <i class="fa fa-user-edit"></i>
                     </div>
                     <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Update CV</span>
+                </a>
+
+                <a href="/schools/public" class="quick-action-tile">
+                    <div class="quick-action-icon">
+                        <i class="fa fa-landmark"></i>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Public Schools</span>
                 </a>
             </div>
         </div>
@@ -173,8 +173,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                 <div style="font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-bottom: 0.75rem;">
                     <?= $myApplicationsCount ?>
                 </div>
-                <a href="/teacher/jobs" style="font-size: 0.78rem; font-weight: 700; color: #2271b1; display: flex; align-items: center; gap: 4px;">
-                    Browse more openings &rarr;
+                <a href="/teacher/applications" style="font-size: 0.78rem; font-weight: 700; color: #2271b1; display: flex; align-items: center; gap: 4px;">
+                    Track applications &rarr;
                 </a>
             </div>
 

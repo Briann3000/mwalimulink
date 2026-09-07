@@ -3,9 +3,18 @@
 require_auth('school');
 
 $school = R::load('school', auth_user()['user_id']);
-if ($school->status !== 'active') {
-    header('Location: /school/pay');
-    exit();
+
+$now = new DateTime();
+$isPro = false;
+if (!empty($school->subscription_expiry)) {
+    try {
+        $expiryDate = new DateTime($school->subscription_expiry);
+        if ($school->status === 'active' && $expiryDate >= $now) {
+            $isPro = true;
+        }
+    } catch (Exception $e) {
+        $isPro = false;
+    }
 }
 
 // Helper function to sanitize GET parameters
@@ -78,6 +87,28 @@ $totalPages = ceil($totalTeachers / $limit);
                 Browse over <?= number_format($totalTeachers) ?> verified educators across Kenya.
             </p>
         </div>
+
+        <?php if (!$isPro): ?>
+            <!-- Freemium Candidate Search Notice -->
+            <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                        <i class="fa fa-lock"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #92400e;">
+                            Candidate Direct Search & WhatsApp Contact (Pro Feature)
+                        </div>
+                        <div style="font-size: 0.8rem; color: #b45309; margin-top: 2px;">
+                            You are previewing teacher profiles. Upgrade to Pro for only KES 10/year (Test Sandbox) to unlock direct WhatsApp contact and full CVs.
+                        </div>
+                    </div>
+                </div>
+                <a href="/school/pay" class="btn-primary" style="background: #0f766e; color: white !important; font-size: 0.82rem; font-weight: 700; padding: 7px 16px; border-radius: 6px; text-decoration: none; border: none; white-space: nowrap;">
+                    <i class="fa fa-bolt"></i> Unlock Pro (KES 10)
+                </a>
+            </div>
+        <?php endif; ?>
 
         <!-- Filter Search Bar -->
         <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
@@ -175,15 +206,21 @@ $totalPages = ceil($totalTeachers / $limit);
                         </div>
 
                         <div style="border-top: 1px solid #f1f5f9; padding-top: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
-                            <?php if (!empty($teacher->mobile)): ?>
-                                <a href="https://wa.me/<?= preg_replace('/[^0-9]/', '', $teacher->mobile) ?>?text=<?= urlencode("Hello {$teacher->name}, we are contacting you from {$school->name} regarding teaching opportunities.") ?>" target="_blank" style="background: #25d366; color: white !important; font-size: 0.78rem; font-weight: 600; padding: 6px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                                    <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                            <?php if ($isPro): ?>
+                                <a href="mailto:<?= h($teacher->email) ?>?subject=<?= urlencode("Teaching Opportunity at " . ($school->name ?: 'our school')) ?>&body=<?= urlencode("Dear " . ($teacher->name ?: 'Teacher') . ",\n\nWe viewed your educator profile on MwalimuLink and would like to discuss potential teaching opportunities at " . ($school->name ?: 'our school') . ".\n\nBest regards,\n" . ($school->name ?: 'School Administration')) ?>" style="background: #0f766e; color: white !important; font-size: 0.78rem; font-weight: 600; padding: 6px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="fa fa-envelope"></i> Contact Candidate
+                                </a>
+                                <a href="/teacher/profile?teacher_id=<?= $teacher->id ?>" style="font-size: 0.82rem; font-weight: 700; color: #0f766e; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    View Full Profile &rarr;
+                                </a>
+                            <?php else: ?>
+                                <a href="/school/pay" style="background: #fffbeb; color: #d97706 !important; border: 1px solid #fde68a; font-size: 0.78rem; font-weight: 700; padding: 6px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="fa fa-lock"></i> Contact Candidate (Pro)
+                                </a>
+                                <a href="/school/pay" style="font-size: 0.82rem; font-weight: 700; color: #0f766e; text-decoration: none;">
+                                    Unlock Profile &rarr;
                                 </a>
                             <?php endif; ?>
-
-                            <a href="/teacher/profile?teacher_id=<?= $teacher->id ?>" style="font-size: 0.82rem; font-weight: 700; color: #0f766e; text-decoration: none;">
-                                Full CV &rarr;
-                            </a>
                         </div>
                     </div>
                 <?php endforeach; ?>

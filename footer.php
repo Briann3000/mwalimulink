@@ -2,7 +2,7 @@
 
 <footer class="site-footer">
   <div class="footer-container">
-    <div class="footer-col">
+    <div class="footer-col" style="grid-column: span 1;">
       <img src="/mwalimu-link-logo-clean.png" alt="MwalimuLink" style="max-height: 38px; filter: brightness(1.2); margin-bottom: 0.8rem;">
       <p style="color: #94a3b8; font-size: 0.82rem; line-height: 1.6;">
         Connecting qualified Kenyan educators with top public, private, and international schools nationwide.
@@ -44,7 +44,7 @@
     <div>
       &copy; <?= date('Y') ?> MwalimuLink&trade; &bull; A product of <a href="https://schoolsnetkenya.com" target="_blank" style="color: #2dd4bf;">Schools Net Kenya</a>.
     </div>
-    <div style="display: flex; gap: 1rem;">
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
       <a href="/login/admin" style="color: #64748b;"><i class="fa fa-lock"></i> Staff Admin</a>
     </div>
   </div>
@@ -92,17 +92,17 @@
 .site-footer {
   background: #0f172a;
   color: #94a3b8;
-  padding: 3rem 1.5rem 1.5rem;
+  padding: 3.5rem 1.5rem 1.5rem;
   font-size: 0.85rem;
   border-top: 2px solid #0f766e;
 }
 
 .footer-container {
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 2rem;
+  gap: 2.25rem;
   margin-bottom: 2.5rem;
 }
 
@@ -142,6 +142,37 @@
   gap: 1rem;
   color: #64748b;
   font-size: 0.8rem;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .site-footer {
+    padding: 2.5rem 1.25rem 1.25rem;
+  }
+  .footer-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .footer-col:first-child {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+  .footer-col:first-child {
+    grid-column: span 1;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
 }
 </style>
 

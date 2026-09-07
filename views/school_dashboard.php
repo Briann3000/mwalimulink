@@ -28,11 +28,7 @@ if (!empty($school->subscription_expiry)) {
     }
 }
 
-// Redirect if subscription is inactive
-if (!$isActive) {
-    header('Location: /school/pay');
-    exit();
-}
+$isPro = $isActive;
 
 // Key Stats
 $totalTeachersCount = R::count('teacher', 'status = ?', ['available']);
@@ -57,15 +53,37 @@ $recentCandidates = R::find('teacher', 'status = ? ORDER BY id DESC LIMIT 4', ['
     <!-- Right Workspace Pane (Clean kmsurveytool #f8fafc style) -->
     <main class="content-pane">
         
+        <?php if (!$isPro): ?>
+            <!-- Freemium Welcome & Upgrade Notice -->
+            <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                        <i class="fa fa-star"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #92400e;">
+                            Freemium Plan Active &bull; 1 Free Job Post Included
+                        </div>
+                        <div style="font-size: 0.8rem; color: #b45309; margin-top: 2px;">
+                            Upgrade to Pro (KES 10/yr Test Sandbox) for unlimited vacancies, direct candidate search, and verified contacts.
+                        </div>
+                    </div>
+                </div>
+                <a href="/school/pay" class="btn-primary" style="background: #0f766e; color: white !important; font-size: 0.82rem; font-weight: 700; padding: 7px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa fa-bolt"></i> Upgrade to Pro (KES 10)
+                </a>
+            </div>
+        <?php endif; ?>
+        
         <!-- Quick Action Shortcuts (kmsurveytool style) -->
         <div style="margin-bottom: 2rem;">
             <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #0f172a;">Quick Actions</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
-                <a href="/school/staff" class="quick-action-tile">
-                    <div class="quick-action-icon">
-                        <i class="fa fa-users"></i>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem;">
+                <a href="/school/applicants" class="quick-action-tile">
+                    <div class="quick-action-icon" style="background: #f0fdf4; color: #16a34a;">
+                        <i class="fa fa-user-check"></i>
                     </div>
-                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Employed Faculty</span>
+                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Applicants (<?= $totalApplicantsCount ?>)</span>
                 </a>
 
                 <a href="/school/post-job" class="quick-action-tile">
@@ -82,11 +100,18 @@ $recentCandidates = R::find('teacher', 'status = ? ORDER BY id DESC LIMIT 4', ['
                     <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Find Teachers</span>
                 </a>
 
-                <a href="/schools/public" class="quick-action-tile">
+                <a href="/school/staff" class="quick-action-tile">
                     <div class="quick-action-icon">
-                        <i class="fa fa-landmark"></i>
+                        <i class="fa fa-users"></i>
                     </div>
-                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Browse Schools</span>
+                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Employed Faculty</span>
+                </a>
+
+                <a href="/tp-hub" class="quick-action-tile">
+                    <div class="quick-action-icon" style="background: #eff6ff; color: #2563eb;">
+                        <i class="fa fa-graduation-cap"></i>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">TP Placements</span>
                 </a>
 
                 <a href="/school/subscribe" class="quick-action-tile">
@@ -133,21 +158,27 @@ $recentCandidates = R::find('teacher', 'status = ? ORDER BY id DESC LIMIT 4', ['
                 <div style="font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-bottom: 0.75rem;">
                     <?= $totalApplicantsCount ?>
                 </div>
-                <a href="/school/dashboard" style="font-size: 0.78rem; font-weight: 700; color: #2271b1; display: flex; align-items: center; gap: 4px;">
+                <a href="/school/applicants" style="font-size: 0.78rem; font-weight: 700; color: #2271b1; display: flex; align-items: center; gap: 4px;">
                     View applicants &rarr;
                 </a>
             </div>
 
             <div class="metric-card">
                 <div style="font-size: 0.8rem; font-weight: 600; color: #64748b; margin-bottom: 0.4rem;">
-                    Subscription Remaining
+                    Account Plan
                 </div>
-                <div style="font-size: 1.8rem; font-weight: 800; color: #22c55e; margin-bottom: 0.75rem;">
-                    <?= $daysRemaining ?> Days
+                <div style="font-size: 1.5rem; font-weight: 800; color: <?= $isPro ? '#22c55e' : '#0f766e' ?>; margin-bottom: 0.75rem;">
+                    <?= $isPro ? 'Pro Recruiter' : 'Freemium' ?>
                 </div>
-                <a href="/school/subscribe" style="font-size: 0.78rem; font-weight: 700; color: #2271b1; display: flex; align-items: center; gap: 4px;">
-                    Renew plan &rarr;
-                </a>
+                <?php if ($isPro): ?>
+                    <a href="/school/pay" style="font-size: 0.78rem; font-weight: 700; color: #2271b1; display: flex; align-items: center; gap: 4px;">
+                        <?= $daysRemaining ?> days left &bull; Renew &rarr;
+                    </a>
+                <?php else: ?>
+                    <a href="/school/pay" style="font-size: 0.78rem; font-weight: 700; color: #d97706; display: flex; align-items: center; gap: 4px;">
+                        Upgrade to Pro (KES 10) &rarr;
+                    </a>
+                <?php endif; ?>
             </div>
         </div>
 

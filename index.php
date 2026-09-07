@@ -101,10 +101,14 @@ $modernRoutes = [
     'faqs' => 'views/faqs.php',
     'faqs-overseas' => 'views/faqs-on-teaching-overseas.php',
     'privacy' => 'views/privacy_policy.php',
+    'privacy-policy' => 'views/privacy_policy.php',
     'terms' => 'views/terms_and_conditions.php',
+    'terms-and-conditions' => 'views/terms_and_conditions.php',
+    'publications' => 'views/publications.php',
+    'publications/view' => 'views/publications_view.php',
     'news' => 'views/news.php',
-    'blog' => 'views/blog.php',
-    'blog/view' => 'views/blog_view.php',
+    'blog' => 'views/publications.php',
+    'blog/view' => 'views/publications_view.php',
     'blog/admin' => 'views/blog_admin.php',
 
     // Authentication & Registration
@@ -125,15 +129,18 @@ $modernRoutes = [
     'teacher/update' => 'views/teacher_update.php',
     'teacher/jobs' => 'views/teacher_job_search.php',
     'teacher/apply' => 'views/teacher_job_apply.php',
+    'teacher/applications' => 'views/teacher_applications.php',
     'tp-hub' => 'views/tp_hub.php',
 
     'school/dashboard' => 'views/school_dashboard.php',
+    'school/applicants' => 'views/school_applicants.php',
     'school/staff' => 'views/school_staff.php',
     'school/post-job' => 'views/school_post_job.php',
     'school/search-candidates' => 'views/school_search_candidate.php',
     'school/subscribe' => 'views/school_subscribe.php',
     'school/pay' => 'views/pay_subscription.php',
     'school/callback' => 'views/subscription_callback.php',
+    'staff-invitation' => 'views/staff_invitation.php',
 
     // API & Webhooks
     'api/verification-callback' => 'views/api_verification_webhook.php',

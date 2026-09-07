@@ -38,11 +38,16 @@ if (!$teacher->id) {
                     <?php endif; ?>
                 </div>
 
-                <div style="display: flex; gap: 8px;">
-                    <?php if (!empty($teacher->mobile)): ?>
-                        <a href="https://wa.me/<?= preg_replace('/[^0-9]/', '', $teacher->mobile) ?>?text=<?= urlencode("Hello {$teacher->name}, we saw your educator profile on MwalimuLink and would like to get in touch.") ?>" target="_blank" style="background: #25d366; color: white !important; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                            <i class="fa-brands fa-whatsapp"></i> WhatsApp Candidate
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <?php if ($isSchool): ?>
+                        <a href="mailto:<?= h($teacher->email) ?>?subject=<?= urlencode("Teaching Inquiry from MwalimuLink") ?>&body=<?= urlencode("Dear " . ($teacher->name ?: 'Teacher') . ",\n\nWe are contacting you from MwalimuLink regarding opportunities at our school.\n\nBest regards,\nAdministration") ?>" class="btn-primary" style="background: #0f766e; color: white !important; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fa fa-envelope"></i> Contact via Email
                         </a>
+                        <?php if (!empty($teacher->cv_file)): ?>
+                            <a href="/<?= h($teacher->cv_file) ?>" target="_blank" style="background: #f1f5f9; color: #334155 !important; border: 1px solid #cbd5e1; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa fa-download"></i> Download CV
+                            </a>
+                        <?php endif; ?>
                     <?php endif; ?>
 
                     <?php if ($isTeacher && $teacher->id == $authUser['user_id']): ?>
@@ -140,6 +145,14 @@ if (!$teacher->id) {
                             <strong style="color: #64748b; font-size: 0.78rem; text-transform: uppercase; display: block;">County of Residence:</strong>
                             <span style="color: #0f172a;"><?= h($teacher->county ?: 'Kenya') ?></span>
                         </div>
+                        <?php if (!empty($teacher->mobile)): ?>
+                            <div style="margin-top: 6px; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
+                                <strong style="color: #64748b; font-size: 0.75rem; text-transform: uppercase; display: block; margin-bottom: 4px;">Direct Messaging:</strong>
+                                <a href="https://wa.me/<?= preg_replace('/[^0-9]/', '', $teacher->mobile) ?>?text=<?= urlencode("Hello {$teacher->name}, we viewed your educator profile on MwalimuLink.") ?>" target="_blank" style="color: #16a34a; font-size: 0.84rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp (Optional)
+                                </a>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
