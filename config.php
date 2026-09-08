@@ -835,6 +835,46 @@ function send_staff_invitation_email($school, $recipientEmail, $roleTitle, $empl
     return send_system_email($recipientEmail, '', $subject, $htmlBody);
 }
 
+/**
+ * Record an entry in the administrative audit log.
+ *
+ * @param string $category 'clearance'|'teacher'|'school'|'job'|'publication'|'security'
+ * @param string $actionType e.g. 'CLEARANCE_APPROVED', 'CLEARANCE_REJECTED', 'PRO_ACTIVATED', 'ACCOUNT_SUSPENDED'
+ * @param string $targetType 'teacher'|'school'|'job'|'publication'|'system'
+ * @param int $targetId
+ * @param string $targetName
+ * @param string $details
+ * @param string $notes
+ * @return bool
+ */
+function log_admin_audit($category, $actionType, $targetType, $targetId, $targetName, $details, $notes = '') {
+    try {
+        if (!class_exists('R')) return false;
+        $user = auth_user();
+        $actorEmail = $user['email'] ?? 'System / Automated Engine';
+        $actorRole = $user['role'] ?? 'system';
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+
+        $audit = R::dispense('adminauditlog');
+        $audit->category = $category;
+        $audit->action_type = $actionType;
+        $audit->target_type = $targetType;
+        $audit->target_id = intval($targetId);
+        $audit->target_name = (string)$targetName;
+        $audit->details = (string)$details;
+        $audit->notes = (string)$notes;
+        $audit->actor_email = $actorEmail;
+        $audit->actor_role = $actorRole;
+        $audit->ip_address = $ip;
+        $audit->created_at = date('Y-m-d H:i:s');
+        R::store($audit);
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+
 
 
 

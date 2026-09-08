@@ -1331,7 +1331,7 @@ try {
       <div class="section-header">
         <span class="section-tag">Educator Opportunities</span>
         <h2 class="section-title">Latest Teaching Vacancies</h2>
-        <p class="section-desc">Sample openings from registered institutions looking for qualified Kenyan teaching
+        <p class="section-desc">Openings from registered institutions looking for qualified Kenyan teaching
           talent.</p>
       </div>
 

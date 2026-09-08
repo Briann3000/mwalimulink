@@ -157,6 +157,12 @@ $modernRoutes = [
 
     'admin/dashboard' => 'views/admin_dashboard.php',
     'admin/verifications' => 'views/admin_verifications.php',
+    'admin/teachers' => 'views/admin_teachers.php',
+    'admin/schools' => 'views/admin_schools.php',
+    'admin/jobs' => 'views/admin_jobs.php',
+    'admin/publications' => 'views/blog_admin.php',
+    'admin/audit' => 'views/admin_audit.php',
+    'admin/audit-logs' => 'views/admin_audit.php',
 
     // School Directories
     'schools/public' => 'views/public_school_search.php',

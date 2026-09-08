@@ -71,11 +71,23 @@ $isActive = function ($path) use ($currentUri) {
         <a href="/admin/dashboard" class="sidebar-item-link <?= $isActive('admin/dashboard') ?>">
             <i class="fa fa-tachometer-alt"></i> <span>Dashboard</span>
         </a>
-        <a href="/admin/verifications" class="sidebar-item-link <?= $isActive('admin/verifications') ?>">
-            <i class="fa fa-shield-check"></i> <span>Clearance Queue</span>
+        <a href="/admin/teachers" class="sidebar-item-link <?= $isActive('admin/teachers') ?>">
+            <i class="fa fa-user-graduate"></i> <span>Manage Teachers</span>
         </a>
-        <a href="/blog/admin" class="sidebar-item-link <?= $isActive('blog/admin') ?>">
-            <i class="fa fa-newspaper"></i> <span>Manage Blog</span>
+        <a href="/admin/schools" class="sidebar-item-link <?= $isActive('admin/schools') ?>">
+            <i class="fa fa-school"></i> <span>Manage Schools</span>
+        </a>
+        <a href="/admin/verifications" class="sidebar-item-link <?= $isActive('admin/verifications') ?>">
+            <i class="fa fa-shield-halved"></i> <span>Clearance Queue</span>
+        </a>
+        <a href="/admin/jobs" class="sidebar-item-link <?= $isActive('admin/jobs') ?>">
+            <i class="fa fa-briefcase"></i> <span>Job Vacancies</span>
+        </a>
+        <a href="/admin/publications" class="sidebar-item-link <?= ($isActive('admin/publications') || $isActive('blog/admin')) ? 'active' : '' ?>">
+            <i class="fa fa-book-open"></i> <span>Manage Publications</span>
+        </a>
+        <a href="/admin/audit" class="sidebar-item-link <?= ($isActive('admin/audit') || $isActive('admin/audit-logs')) ? 'active' : '' ?>">
+            <i class="fa fa-clipboard-list"></i> <span>Audit Trail</span>
         </a>
     <?php endif; ?>
 

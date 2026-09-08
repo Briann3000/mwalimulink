@@ -44,9 +44,6 @@
     <div>
       &copy; <?= date('Y') ?> MwalimuLink&trade; &bull; A product of <a href="https://schoolsnetkenya.com" target="_blank" style="color: #2dd4bf;">Schools Net Kenya</a>.
     </div>
-    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-      <a href="/login/admin" style="color: #64748b;"><i class="fa fa-lock"></i> Staff Admin</a>
-    </div>
   </div>
 </footer>
 
