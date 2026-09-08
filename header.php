@@ -770,23 +770,157 @@ if (function_exists('init_session')) {
       box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15) !important;
     }
 
-    button.primary, a.button.primary, .btn-primary {
-      background: #0f766e !important;
-      border-color: #0f766e !important;
-      color: #ffffff !important;
+    /* ==========================================================================
+       UNIVERSAL BUTTON & LINK LEVELING & HIGH-CONTRAST SYSTEM
+       Neutralizes Pico CSS button anomalies, width stretches, and text disappearing
+       ========================================================================== */
+    button,
+    input[type="submit"],
+    input[type="button"],
+    input[type="reset"],
+    a[role="button"],
+    .btn-primary,
+    button.primary,
+    a.button.primary,
+    a.btn-primary {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      vertical-align: middle !important;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+      font-size: 0.88rem !important;
       font-weight: 600 !important;
+      line-height: 1.4 !important;
+      height: auto !important;
+      min-height: 38px !important;
+      width: auto !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      margin-bottom: 0 !important;
+      padding: 8px 18px !important;
       border-radius: 6px !important;
-      padding: 8px 16px !important;
-      cursor: pointer;
+      border: 1px solid transparent !important;
+      cursor: pointer !important;
       text-decoration: none !important;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
+      white-space: nowrap !important;
+      box-sizing: border-box !important;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease !important;
+      gap: 6px !important;
+      text-align: center !important;
+      text-shadow: none !important;
     }
 
-    button.primary:hover, a.button.primary:hover, .btn-primary:hover {
-      background: #115e59 !important;
+    /* Primary Teal Buttons - Guaranteed High Contrast Pure White Text */
+    button.primary,
+    button:not(.secondary):not(.outline):not([class*="btn-landing"]):not([class*="cat-pill"]):not([class*="toggle"]):not([class*="close"]):not([class*="filter"]):not([class*="clear"]):not([class*="share"]):not([class*="faq"]),
+    input[type="submit"],
+    .btn-primary,
+    a.btn-primary,
+    a.button.primary,
+    a[role="button"]:not(.secondary):not(.outline),
+    .btn-submit-contact,
+    .btn-confirm-submit,
+    .btn-submit-paper,
+    .btn-reader-download,
+    .btn-pdf-download-sm,
+    .btn-fallback-open,
+    .btn-cta-primary {
+      background-color: #0f766e !important;
+      border-color: #0f766e !important;
+      color: #ffffff !important;
+      box-shadow: 0 1px 3px rgba(15, 118, 110, 0.2) !important;
+    }
+
+    button.primary:hover,
+    button:not(.secondary):not(.outline):not([class*="btn-landing"]):not([class*="cat-pill"]):not([class*="toggle"]):not([class*="close"]):not([class*="filter"]):not([class*="clear"]):not([class*="share"]):not([class*="faq"]):hover,
+    input[type="submit"]:hover,
+    .btn-primary:hover,
+    a.btn-primary:hover,
+    a.button.primary:hover,
+    a[role="button"]:not(.secondary):not(.outline):hover,
+    .btn-submit-contact:hover,
+    .btn-confirm-submit:hover,
+    .btn-submit-paper:hover,
+    .btn-reader-download:hover,
+    .btn-pdf-download-sm:hover,
+    .btn-fallback-open:hover,
+    .btn-cta-primary:hover {
+      background-color: #115e59 !important;
+      border-color: #115e59 !important;
+      color: #ffffff !important;
+      box-shadow: 0 3px 8px rgba(15, 118, 110, 0.3) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    /* Active / Focus States */
+    button.primary:active,
+    .btn-primary:active,
+    input[type="submit"]:active,
+    a.btn-primary:active {
+      background-color: #134e4a !important;
+      border-color: #134e4a !important;
+      color: #ffffff !important;
+      transform: translateY(0) !important;
+    }
+
+    /* Ensure Child Icons and Spans Inside Primary Buttons Never Turn Dark */
+    button.primary *,
+    .btn-primary *,
+    a.btn-primary *,
+    a.button.primary *,
+    .btn-submit-contact *,
+    .btn-confirm-submit *,
+    .btn-reader-download *,
+    .btn-cta-primary * {
+      color: #ffffff !important;
+      vertical-align: middle !important;
+    }
+
+    /* Secondary / Outline / Ghost Buttons */
+    button.secondary,
+    .btn-secondary,
+    a.btn-secondary,
+    .btn-outline,
+    a.btn-outline {
+      background-color: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #334155 !important;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+    }
+
+    button.secondary:hover,
+    .btn-secondary:hover,
+    a.btn-secondary:hover,
+    .btn-outline:hover,
+    a.btn-outline:hover {
+      background-color: #f8fafc !important;
+      border-color: #0f766e !important;
+      color: #0f766e !important;
+      transform: translateY(-1px) !important;
+    }
+
+    /* White Landing CTA Buttons */
+    .btn-landing-white,
+    .btn-cta-white {
+      background-color: #ffffff !important;
+      color: #0f766e !important;
+      border-color: #ffffff !important;
+      font-weight: 700 !important;
+    }
+
+    .btn-landing-white:hover,
+    .btn-cta-white:hover {
+      background-color: #f0fdfa !important;
+      color: #115e59 !important;
+      border-color: #f0fdfa !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    }
+
+    /* Full-width utility when explicitly needed */
+    .btn-block,
+    .btn-full-width {
+      width: 100% !important;
+      display: flex !important;
     }
 
     /* ==========================================================================

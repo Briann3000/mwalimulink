@@ -17,14 +17,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mail->SMTPAuth = true;
     $mail->Host = 'smtp.gmail.com';
     $mail->SMTPSecure = 'tls';
-    $mail->Port = 587;
-    $mail->Username = 'themwalimulink@gmail.com'; //'mr.bogibenda@gmail.com';
-    $mail->Password = 'uqon tvje qolr gpez'; //'qbsi qjad jszv kibh';
+    $mail->Username = 'infomwalimulink@gmail.com';
+    $mail->Password = 'mfix kcub okqw aipu';
 
-    $mail->SetFrom('themwalimulink@gmail.com', 'Mwalimu.info Teacher Job Portal');
-    $mail->AddAddress('themwalimulink@gmail.com');
+    $mail->SetFrom('infomwalimulink@gmail.com', 'MwalimuLink Portal');
+    $mail->AddAddress('infomwalimulink@gmail.com');
     $mail->AddReplyTo($email, $name);
-    $mail->Sender = 'themwalimulink@gmail.com'; // Return-Path
+    $mail->Sender = 'infomwalimulink@gmail.com'; // Return-Path
 
     // Department prefix in subject
     $mail->Subject = "{$department}: Message from Mwalimu.info Member - {$subject}";

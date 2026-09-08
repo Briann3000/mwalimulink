@@ -94,12 +94,12 @@ if (array_key_exists('email', $_POST)) {
             $mail->Port = 587;
             $mail->SMTPSecure = 'tls';
             $mail->SMTPAuth = true;
-            $mail->Username = 'themwalimulink@gmail.com';
+            $mail->Username = 'infomwalimulink@gmail.com';
             $mail->Password = 'mfix kcub okqw aipu';
-            $mail->setFrom($email ?: 'info@mwalimu.info', $name ?: 'MwalimuLink Visitor');
+            $mail->setFrom('infomwalimulink@gmail.com', $name ?: 'MwalimuLink Visitor');
             $mail->addReplyTo($email, $name);
-            $mail->addAddress('themwalimulink@gmail.com', 'Mwalimu Link Support');
-            $mail->addBCC('themwalimulink@gmail.com');
+            $mail->addAddress('infomwalimulink@gmail.com', 'MwalimuLink Support');
+            $mail->addBCC('infomwalimulink@gmail.com');
 
             $mail->Subject = "[MwalimuLink {$department}] {$subject}";
             $mailBody = "<h3>New Inquiry Received from MwalimuLink Contact Portal</h3>" .

@@ -1,33 +1,33 @@
 <?php
 // reset_teacher_password.php
 
-// Enable error reporting for debugging
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 $message = '';
+$msgType = 'info';
 
 // Process password reset submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token']) && isset($_POST['email'])) {
-    $token = filter_var($_POST['token'], FILTER_SANITIZE_STRING);
-    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+    $token = trim($_POST['token'] ?? '');
+    $email = strtolower(trim($_POST['email'] ?? ''));
     $new_password = $_POST['new_password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
     // Validate email and token
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message = "Invalid email address.";
+        $message = "Please enter a valid email address.";
+        $msgType = 'error';
     } elseif (strlen($new_password) < 8) {
         $message = "Password must be at least 8 characters long.";
+        $msgType = 'error';
     } elseif ($new_password !== $confirm_password) {
         $message = "Passwords do not match.";
+        $msgType = 'error';
     } else {
         // Find the teacher with the given email and token
         $teacher = R::findOne('teacher', 'email = ? AND reset_token = ? AND reset_expiry > NOW()', [$email, $token]);
 
         if (!$teacher) {
             $message = "Invalid or expired reset link. Please request a new password reset.";
+            $msgType = 'error';
         } else {
             // Hash the new password
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
@@ -38,28 +38,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token']) && isset($_P
             $teacher->reset_expiry = null;
             R::store($teacher);
 
-            $message = "Password updated successfully. <a href='/login/teacher'>Login here</a>";
+            $message = "Your password has been reset successfully! <a href='/login/teacher' style='color: #0f766e; font-weight: 700;'>Click here to Login</a>";
+            $msgType = 'success';
         }
     }
 } elseif (isset($_GET['email'])) {
     // Email is provided, generate token and send email
-    $email = filter_var($_GET['email'], FILTER_SANITIZE_EMAIL);
+    $email = strtolower(trim($_GET['email'] ?? ''));
 
     // Validate email format
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message = "Invalid email address.";
+        $message = "Please enter a valid email address.";
+        $msgType = 'error';
     } else {
         // Check if email exists in the database
         $teacher = R::findOne('teacher', 'email = ?', [$email]);
 
         if (!$teacher) {
-            $message = "Email address not found in our database.";
+            // Friendly message without leaking user existence
+            $message = "If that email is registered with MwalimuLink, a secure password reset link has been dispatched to your inbox.";
+            $msgType = 'info';
         } else {
             // Generate unique token
             $token = bin2hex(random_bytes(32));
 
-            // Set expiration time (e.g., 1 hour)
-            $expiry_time = date('Y-m-d H:i:s', time() + 3600); // 1 hour from now
+            // Set expiration time (1 hour from now)
+            $expiry_time = date('Y-m-d H:i:s', time() + 3600);
 
             // Store the token and expiry time in the database
             $teacher->reset_token = $token;
@@ -70,20 +74,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token']) && isset($_P
             $appUrl = rtrim(env('APP_URL', 'https://mwalimu.info'), '/');
             $reset_link = "{$appUrl}/reset-password/teacher?token=" . $token . "&email=" . urlencode($email);
 
-            // Send email with reset password link
-            $subject = "Reset Your Password";
-            $message_body = "Please click on the following link to reset your password:\n\n" . $reset_link;
-            $headers = "From: noreply@mwalimu.info"; // Replace with your email address
+            // Styled HTML Email Notification
+            $subject = "Reset Your MwalimuLink Password";
+            $teacherName = $teacher->name ?: 'Educator';
+            $htmlBody = "
+            <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;\">
+                <div style=\"background: #0f766e; padding: 24px 30px; text-align: center;\">
+                    <h1 style=\"color: #ffffff; margin: 0; font-size: 1.4rem; font-weight: 700;\">MwalimuLink</h1>
+                    <p style=\"color: #ccfbf1; margin: 4px 0 0; font-size: 0.85rem;\">Security & Account Access</p>
+                </div>
+                <div style=\"padding: 30px;\">
+                    <h2 style=\"color: #0f172a; font-size: 1.25rem; margin: 0 0 14px;\">Hello " . htmlspecialchars($teacherName) . ",</h2>
+                    <p style=\"color: #334155; font-size: 0.95rem; line-height: 1.6; margin: 0 0 16px;\">
+                        We received a request to reset your password for your MwalimuLink Educator account. Click the button below to choose a new password:
+                    </p>
+                    <div style=\"text-align: center; margin: 28px 0;\">
+                        <a href=\"{$reset_link}\" style=\"display: inline-block; background: #0f766e; color: #ffffff !important; font-weight: 700; font-size: 0.95rem; padding: 12px 28px; border-radius: 6px; text-decoration: none; box-shadow: 0 2px 4px rgba(15,118,110,0.2);\">
+                            Reset Password →
+                        </a>
+                    </div>
+                    <p style=\"color: #64748b; font-size: 0.85rem; line-height: 1.5; margin: 20px 0 0;\">
+                        This link is valid for <strong>1 hour</strong>. If you did not make this request, you can safely ignore this email.
+                    </p>
+                </div>
+                <div style=\"background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px 30px; text-align: center; font-size: 0.75rem; color: #94a3b8;\">
+                    <p style=\"margin: 0;\">MwalimuLink Support &bull; Nairobi, Kenya</p>
+                </div>
+            </div>";
 
-            if (mail($email, $subject, $message_body, $headers)) {
-                $message = "A password reset link has been sent to your email address.";
+            if (send_system_email($teacher->email, $teacher->name, $subject, $htmlBody)) {
+                $message = "A password reset link has been dispatched to <strong>" . htmlspecialchars($email) . "</strong>. Please check your inbox or spam folder.";
+                $msgType = 'success';
             } else {
-                $message = "Failed to send email. Please try again later.";
+                $message = "We encountered a temporary issue sending your email. Please try again or contact support at infomwalimulink@gmail.com.";
+                $msgType = 'error';
             }
         }
     }
-} else {
-    $message = "Email address is required to reset password.";
 }
 ?>
 
@@ -93,8 +120,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token']) && isset($_P
     </header>
 
     <?php if ($message): ?>
-        <div class="alert alert-info">
-            <h4><?= htmlspecialchars($message) ?></h4>
+        <div class="alert <?= $msgType === 'success' ? 'alert-success' : ($msgType === 'error' ? 'alert-error' : 'alert-info') ?>" style="padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px;">
+            <p style="margin: 0; font-size: 0.95rem; line-height: 1.5;"><?= $message ?></p>
         </div>
     <?php endif; ?>
 

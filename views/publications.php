@@ -81,7 +81,7 @@ if ($count === 0) {
             'author_role' => 'Senior Curriculum Specialist, Nairobi',
             'summary' => 'An evaluation of classroom readiness, laboratory apparatus adaptations, and teacher formative assessment practices in Junior Secondary Schools across 12 rural sub-counties.',
             'content' => "This empirical research study examines the pedagogical transitions under the Competency Based Curriculum (CBC) in Grade 7 and Grade 8 classrooms.\n\nKey Findings:\n1. 78% of rural schools have improvised STEM experimental kits using locally available materials.\n2. Formative rubric assessments have increased student engagement by 42% compared to summative rote learning.\n3. Continuous teacher professional development remains critical in integrated science and pre-technical studies.",
-            'pdf_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+            'pdf_url' => '/uploads/publications/cbc_jss_transition_study.pdf',
             'created_at' => date('Y-m-d H:i:s', strtotime('-5 days')),
             'views_count' => 142
         ],
@@ -92,7 +92,7 @@ if ($count === 0) {
             'author_role' => 'Head of Physics & ICT Lead, Nakuru',
             'summary' => 'A practical framework demonstrating how offline digital simulations (PhET) and mobile micro-assessments improved student retention in Physics and Chemistry by 34%.',
             'content' => "This paper outlines a blended learning model tailored for Kenyan high school science teachers operating in low-bandwidth environments.\n\nBy leveraging localized digital simulations and 5-minute interactive quizzes, educators can significantly reinforce abstract concepts in mechanics and chemical stoichiometry without requiring constant high-speed internet connectivity.",
-            'pdf_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+            'pdf_url' => '/uploads/publications/kenyan_educators_stem_guide.pdf',
             'created_at' => date('Y-m-d H:i:s', strtotime('-12 days')),
             'views_count' => 289
         ],
@@ -103,7 +103,7 @@ if ($count === 0) {
             'author_role' => 'Special Needs Coordinator, Kiambu',
             'summary' => 'Actionable classroom interventions, differentiated instruction templates, and peer-buddy systems to support autistic and ADHD pupils in primary and secondary schools.',
             'content' => "Inclusive pedagogy requires systematic differentiation rather than separate exclusion. This guide presents seven core classroom adaptations tested across 15 public and private schools in Central Kenya.\n\nHighlights include visual schedules, sensory quiet zones, and structured cooperative learning teams that elevate classroom belonging and academic performance.",
-            'pdf_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+            'pdf_url' => '/uploads/publications/cbc_jss_transition_study.pdf',
             'created_at' => date('Y-m-d H:i:s', strtotime('-18 days')),
             'views_count' => 195
         ],
@@ -114,7 +114,7 @@ if ($count === 0) {
             'author_role' => 'International Educator & Mentor, Dubai',
             'summary' => 'A comprehensive review of curriculum cross-training (IB vs. Cambridge), licensing equivalency, visa document attestation, and cultural adaptation for teachers moving abroad.',
             'content' => "Drawing upon first-hand experiences of over 200 Kenyan teachers placed across UAE, Qatar, and Oman, this publication offers a step-by-step roadmap for educators seeking international career mobility.\n\nCovers syllabus mapping, interview simulation strategies, and contract negotiation standards for maximum career growth.",
-            'pdf_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+            'pdf_url' => '/uploads/publications/kenyan_educators_stem_guide.pdf',
             'created_at' => date('Y-m-d H:i:s', strtotime('-25 days')),
             'views_count' => 512
         ]

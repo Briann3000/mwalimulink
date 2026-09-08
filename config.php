@@ -363,7 +363,7 @@ function send_system_email($toEmail, $toName, $subject, $htmlBody, $replyToEmail
         $mail->isSMTP();
         $mail->Host = env('SMTP_HOST', 'smtp.gmail.com');
         $mail->SMTPAuth = true;
-        $mail->Username = env('SMTP_USERNAME', 'themwalimulink@gmail.com');
+        $mail->Username = env('SMTP_USERNAME', 'infomwalimulink@gmail.com');
         $mail->Password = env('SMTP_PASSWORD', '');
         $mail->SMTPSecure = env('SMTP_ENCRYPTION', 'tls');
         $mail->Port = intval(env('SMTP_PORT', 587));
@@ -388,90 +388,45 @@ function send_system_email($toEmail, $toName, $subject, $htmlBody, $replyToEmail
 }
 
 /**
- * Peleza Background Screening Service (Sandbox & Live)
+ * Peleza Background Screening Service (Dormant / Deprecated in favor of direct document verification)
+ * 
+ * class PelezaService {
+ *     private $environment;
+ *     private $apiKey;
+ *     private $clientId;
+ *     private $baseUrl;
+ * 
+ *     public function __construct() {
+ *         $this->environment = env('PELEZA_ENV', 'sandbox');
+ *         $this->apiKey = env('PELEZA_API_KEY', '');
+ *         $this->clientId = env('PELEZA_CLIENT_ID', '');
+ *         
+ *         $this->baseUrl = ($this->environment === 'production')
+ *             ? 'https://api.peleza.com/v1'
+ *             : 'https://api-sandbox.peleza.com/v1';
+ *     }
+ * 
+ *     public function isConfigured(): bool {
+ *         return !empty($this->apiKey) && !empty($this->clientId);
+ *     }
+ * 
+ *     public function getEnvironment(): string {
+ *         return $this->environment;
+ *     }
+ * 
+ *     public function submitVerification($teacher, $sponsor = 'teacher'): array {
+ *         if (!$this->isConfigured()) {
+ *             return [
+ *                 'success' => true,
+ *                 'status' => 'pending',
+ *                 'reference' => 'PLZ-MOCK-' . strtoupper(substr(md5(uniqid()), 0, 8)),
+ *                 'message' => 'Verification request received (Sandbox Simulation).'
+ *             ];
+ *         }
+ *         return ['success' => false, 'error' => 'Peleza API is dormant.'];
+ *     }
+ * }
  */
-class PelezaService {
-    private $environment;
-    private $apiKey;
-    private $clientId;
-    private $baseUrl;
-
-    public function __construct() {
-        $this->environment = env('PELEZA_ENV', 'sandbox');
-        $this->apiKey = env('PELEZA_API_KEY', '');
-        $this->clientId = env('PELEZA_CLIENT_ID', '');
-        
-        $this->baseUrl = ($this->environment === 'production')
-            ? 'https://api.peleza.com/v1'
-            : 'https://api-sandbox.peleza.com/v1';
-    }
-
-    public function isConfigured(): bool {
-        return !empty($this->apiKey) && !empty($this->clientId);
-    }
-
-    public function getEnvironment(): string {
-        return $this->environment;
-    }
-
-    /**
-     * Submit background check for Good Conduct & TSC clearance
-     */
-    public function submitVerification($teacher, $sponsor = 'teacher'): array {
-        if (!$this->isConfigured()) {
-            // Simulated Sandbox Response when API credentials are being provisioned
-            return [
-                'success' => true,
-                'status' => 'pending',
-                'reference' => 'PLZ-MOCK-' . strtoupper(substr(md5(uniqid()), 0, 8)),
-                'message' => 'Verification request received (Sandbox Simulation). Result will be processed in background.'
-            ];
-        }
-
-        $payload = [
-            'client_id' => $this->clientId,
-            'sponsor' => $sponsor,
-            'candidate' => [
-                'full_name' => $teacher->name,
-                'email' => $teacher->email,
-                'phone' => $teacher->mobile,
-                'tsc_number' => $teacher->tsc_number ?? null,
-                'good_conduct_serial' => $teacher->good_conduct_cert_no ?? null
-            ],
-            'checks' => ['criminal_record', 'tsc_registration']
-        ];
-
-        $ch = curl_init($this->baseUrl . '/verifications');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $this->apiKey,
-            'Content-Type: application/json',
-            'Accept: application/json'
-        ]);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode >= 200 && $httpCode < 300) {
-            $data = json_decode($response, true);
-            return [
-                'success' => true,
-                'status' => $data['status'] ?? 'pending',
-                'reference' => $data['reference'] ?? null,
-                'data' => $data
-            ];
-        }
-
-        return [
-            'success' => false,
-            'error' => 'Peleza API responded with status ' . $httpCode . ': ' . $response
-        ];
-    }
-}
 
 /**
  * Dispatch automatic, beautifully-styled email notification to teacher when background verification status updates

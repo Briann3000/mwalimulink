@@ -152,6 +152,8 @@ $modernRoutes = [
     // API & Webhooks
     'api/verification-callback' => 'views/api_verification_webhook.php',
     'api/cv-polish' => 'views/api_cv_polish.php',
+    'api/verify-tsc' => 'views/api_verify_tsc.php',
+    'verify-referee' => 'views/referee_endorse.php',
 
     'admin/dashboard' => 'views/admin_dashboard.php',
     'admin/verifications' => 'views/admin_verifications.php',

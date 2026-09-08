@@ -195,9 +195,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_cv'])) {
         $teacher->brief_profile = $summary;
     }
 
+    // Auto-verify TSC Registration credentials if provided
+    $submittedTsc = trim($personal['tsc_number'] ?? '');
+    if (!empty($submittedTsc)) {
+        $oldTsc = $teacher->tsc_number;
+        $teacher->tsc_number = $submittedTsc;
+        if ($submittedTsc !== $oldTsc || $teacher->verification_status !== 'verified') {
+            require_once __DIR__ . '/../services/TscVerificationService.php';
+            $vRes = TscVerificationService::verifyTeacher($teacher->id, $submittedTsc, trim($personal['id_number'] ?? ''), trim($personal['name'] ?? $teacher->name));
+            if (!empty($vRes['success']) || ($vRes['status'] ?? '') === 'verified') {
+                $savedMessage = 'Your curriculum vitae has been saved and your TSC credentials were automatically verified!';
+            }
+        }
+    }
+
     R::store($teacher);
     $cvData = $cvPayload;
-    $savedMessage = 'Your curriculum vitae has been updated and saved successfully.';
+    if (empty($savedMessage)) {
+        $savedMessage = 'Your curriculum vitae has been updated and saved successfully.';
+    }
 }
 
 // Pre-fill values
@@ -722,8 +738,28 @@ $referees = $cvData['referees'] ?? [];
                             <input type="text" name="county" id="field_county" value="<?= h($personal['county']) ?>" placeholder="e.g. Nakuru">
                         </div>
                         <div>
-                            <label class="field-label">TSC Registration Number (Optional)</label>
-                            <input type="text" name="tsc_number" id="field_tsc_number" value="<?= h($personal['tsc_number']) ?>" placeholder="e.g. 765432">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <label class="field-label" style="margin: 0;">TSC Registration Number (Optional)</label>
+                                <?php if ($teacher->verification_status === 'verified'): ?>
+                                    <span style="font-size: 0.72rem; color: #166534; background: #dcfce7; border: 1px solid #86efac; padding: 1px 6px; border-radius: 4px; font-weight: 700;">
+                                        <i class="fa fa-check-circle"></i> Verified ✓
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                            <input type="text" name="tsc_number" id="field_tsc_number" value="<?= h($personal['tsc_number']) ?>" placeholder="e.g. 765432" oninput="updateChecklist()">
+                            <div id="cvTscStatusFeedback" style="margin-top: 4px;">
+                                <?php if ($teacher->verification_status === 'verified'): ?>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: #166534;">
+                                        <span>Matched: <strong><?= h($teacher->tsc_verified_name ?? $teacher->name) ?></strong></span>
+                                        <button type="button" onclick="clearTscFromBuilder()" style="background: none; border: none; color: #dc2626; font-size: 0.72rem; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">Reset</button>
+                                    </div>
+                                <?php else: ?>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: #64748b;">
+                                        <span>Verify with National ID</span>
+                                        <button type="button" onclick="verifyTscFromBuilder()" id="btnTscVerifyBuilder" style="background: none; border: none; color: #0f766e; font-size: 0.72rem; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">Verify Now</button>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
                         <div>
                             <label class="field-label">Teaching Subject Combination</label>
@@ -1093,11 +1129,39 @@ $referees = $cvData['referees'] ?? [];
                         <?php else: ?>
                             <?php foreach ($referees as $idx => $rf): ?>
                                 <div class="card-entry">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <?php
+                                    $refUrl = '';
+                                    if (!empty($rf['name']) && !empty($rf['institution'])) {
+                                        require_once __DIR__ . '/../services/TscVerificationService.php';
+                                        $refUrl = TscVerificationService::generateRefereeToken(
+                                            $teacher->id,
+                                            $personal['name'] ?? $teacher->name,
+                                            $rf['name'],
+                                            $rf['email'] ?? '',
+                                            $rf['institution'],
+                                            $rf['title'] ?? 'Referee'
+                                        );
+                                    }
+                                    ?>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 6px;">
                                         <strong style="font-size: 0.84rem; color: #0f172a;">Referee #<?= $idx + 1 ?></strong>
-                                        <button type="button" onclick="this.closest('.card-entry').remove(); updateChecklist();" style="color: #dc2626; background: none; border: none; font-size: 0.78rem; cursor: pointer;">
-                                            <i class="fa fa-trash"></i> Remove
-                                        </button>
+                                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                            <?php if (!empty($rf['name']) && !empty($rf['institution'])): ?>
+                                                <?php if (!empty($rf['email'])): ?>
+                                                    <button type="button" onclick="sendRefereeInvite(this, '<?= h(addslashes($rf['name'])) ?>', '<?= h(addslashes($rf['email'])) ?>', '<?= h(addslashes($rf['institution'])) ?>', '<?= h(addslashes($rf['title'] ?? 'Referee')) ?>')" style="background: #0f766e; border: none; color: #ffffff !important; font-size: 0.74rem; font-weight: 600; padding: 3px 10px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                                                        <i class="fa fa-paper-plane"></i> Send Endorsement Email
+                                                    </button>
+                                                <?php endif; ?>
+                                                <?php if (!empty($refUrl)): ?>
+                                                    <button type="button" onclick="copyRefereeLink('<?= h($refUrl) ?>', this)" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; font-size: 0.74rem; font-weight: 600; padding: 3px 8px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Copy link to send to your referee directly">
+                                                        <i class="fa fa-link"></i> Copy Link
+                                                    </button>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                            <button type="button" onclick="this.closest('.card-entry').remove(); updateChecklist();" style="color: #dc2626; background: none; border: none; font-size: 0.78rem; cursor: pointer; padding: 2px 6px;">
+                                                <i class="fa fa-trash"></i> Remove
+                                            </button>
+                                        </div>
                                     </div>
                                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.65rem; margin-bottom: 0.65rem;">
                                         <div>
@@ -1732,5 +1796,169 @@ $referees = $cvData['referees'] ?? [];
         `;
         container.appendChild(row);
         updateChecklist();
+    }
+
+    // Verify TSC Registration directly from CV Builder
+    function verifyTscFromBuilder() {
+        const input = document.getElementById('field_tsc_number');
+        const tscVal = input ? input.value.trim() : '';
+        const nameInput = document.getElementById('field_full_name');
+        const nameVal = nameInput ? nameInput.value.trim() : '';
+        const idInput = document.getElementById('field_id_number');
+        const idVal = idInput ? idInput.value.trim() : '';
+        const feedback = document.getElementById('cvTscStatusFeedback');
+        const btn = document.getElementById('btnTscVerifyBuilder');
+
+        if (!tscVal) {
+            alert('Please enter your TSC Registration Number first.');
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Checking...';
+        }
+        if (feedback) {
+            feedback.innerHTML = `
+                <div style="font-size: 0.72rem; color: #0f766e; background: #f0fdfa; border: 1px solid #99f6e4; padding: 4px 8px; border-radius: 4px; margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa fa-spinner fa-spin"></i> <span>Querying live TSC portal...</span>
+                </div>
+            `;
+        }
+
+        fetch('/api/verify-tsc', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tsc_number: tscVal,
+                candidate_name: nameVal,
+                id_number: idVal
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.status === 'verified') {
+                feedback.innerHTML = `
+                    <div style="font-size: 0.74rem; color: #166534; background: #dcfce7; border: 1px solid #86efac; padding: 4px 8px; border-radius: 4px; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                        <i class="fa fa-check-circle"></i> <span><strong>Verified ✓</strong> (${data.match_score}% match: ${data.portal_name})</span>
+                    </div>
+                `;
+                updateChecklist();
+            } else if (data.status === 'pending_manual') {
+                feedback.innerHTML = `
+                    <div style="font-size: 0.74rem; color: #854d0e; background: #fef9c3; border: 1px solid #fde047; padding: 4px 8px; border-radius: 4px; margin-top: 4px;">
+                        <i class="fa fa-clock"></i> <span>${data.message || 'Queued for manual confirmation.'}</span>
+                    </div>
+                `;
+            } else {
+                feedback.innerHTML = `
+                    <div style="font-size: 0.74rem; color: #991b1b; background: #fee2e2; border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 4px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center;">
+                        <span><i class="fa fa-circle-exclamation"></i> ${data.message || 'Verification record not found.'}</span>
+                        <button type="button" onclick="verifyTscFromBuilder()" style="background: none; border: none; color: #991b1b; font-weight: 700; text-decoration: underline; cursor: pointer;">Retry</button>
+                    </div>
+                `;
+            }
+        })
+        .catch(err => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = 'Verify Now';
+            }
+            feedback.innerHTML = '<span style="font-size: 0.72rem; color: #991b1b;">Lookup temporarily timed out. Will auto-verify on save.</span>';
+        });
+    }
+
+    // Clear / Reset TSC status from CV Builder
+    function clearTscFromBuilder() {
+        if (!confirm('Are you sure you want to reset your TSC verification status? You will need to re-verify.')) {
+            return;
+        }
+
+        const feedback = document.getElementById('cvTscStatusFeedback');
+
+        fetch('/api/verify-tsc', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'clear_tsc' })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                feedback.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: #64748b;">
+                        <span>Verify with National ID</span>
+                        <button type="button" onclick="verifyTscFromBuilder()" id="btnTscVerifyBuilder" style="background: none; border: none; color: #0f766e; font-size: 0.72rem; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">Verify Now</button>
+                    </div>
+                `;
+                updateChecklist();
+            } else {
+                alert(data.message || 'Could not reset verification status.');
+            }
+        })
+        .catch(() => {
+            alert('Failed to connect to verification reset service.');
+        });
+    }
+
+    // Dispatch institutional referee endorsement email directly
+    function sendRefereeInvite(btn, name, email, inst, title) {
+        if (!email) {
+            alert('Please enter an email address for ' + name + ' before sending the endorsement request.');
+            return;
+        }
+
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Sending...';
+
+        fetch('/api/verify-tsc', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'send_referee_request',
+                referee_name: name,
+                referee_email: email,
+                institution: inst,
+                role_title: title
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                btn.innerHTML = '<i class="fa fa-check"></i> Email Sent!';
+                btn.style.background = '#16a34a';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '#0f766e';
+                    btn.disabled = false;
+                }, 4000);
+            } else {
+                alert(data.message || 'Could not send endorsement invitation.');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        })
+        .catch(() => {
+            alert('Failed to connect to verification dispatch service.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    }
+
+    // Copy institutional referee endorsement link
+    function copyRefereeLink(url, btn) {
+        const fullUrl = window.location.origin + url;
+        navigator.clipboard.writeText(fullUrl).then(() => {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa fa-check"></i> Copied Link!';
+            btn.style.background = '#dcfce7';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '#f8fafc';
+            }, 2500);
+            alert('Endorsement link copied! Please send this link directly to your referee. Note: Self-endorsement is prohibited.');
+        }).catch(() => {
+            prompt('Copy this institutional endorsement link and send directly to your referee:', fullUrl);
+        });
     }
 </script>

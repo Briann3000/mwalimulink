@@ -179,7 +179,7 @@
           </p>
           <div class="legal-contact-box">
             <p><strong>Schools Net Kenya / MwalimuLink Operations</strong></p>
-            <p>Email: <a href="mailto:info@mwalimu.info" style="color: #0f766e; font-weight: 700;">info@mwalimu.info</a></p>
+            <p>Email: <a href="mailto:infomwalimulink@gmail.com" style="color: #0f766e; font-weight: 700;">infomwalimulink@gmail.com</a></p>
             <p>Direct Support: <a href="/contacts" style="color: #0f766e; font-weight: 700;">www.mwalimu.info/contacts</a></p>
             <p>P.O. Box Nairobi, Kenya</p>
           </div>

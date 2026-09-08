@@ -92,17 +92,28 @@ $pdfSrc = $publication->pdf_url ?? ($publication->pdf_path ?? null);
             </div>
 
             <div class="toolbar-actions">
-              <a href="<?= htmlspecialchars($pdfSrc) ?>" target="_blank" class="btn-pdf-fullscreen" title="Open Fullscreen">
-                <i class="fa-solid fa-expand"></i> Fullscreen
+              <a href="<?= htmlspecialchars($pdfSrc) ?>" target="_blank" class="btn-pdf-fullscreen" title="Open PDF in Full Tab">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Open in New Tab
               </a>
               <a href="<?= htmlspecialchars($pdfSrc) ?>" download class="btn-pdf-download-sm">
-                <i class="fa-solid fa-arrow-down-to-line"></i> Download
+                <i class="fa-solid fa-arrow-down-to-line"></i> Download PDF
               </a>
             </div>
           </div>
 
           <div class="pdf-iframe-container">
-            <iframe src="<?= htmlspecialchars($pdfSrc) ?>#toolbar=1&navpanes=0" class="pdf-iframe" title="PDF Document Viewer"></iframe>
+            <object data="<?= htmlspecialchars($pdfSrc) ?>#toolbar=1&navpanes=0" type="application/pdf" class="pdf-iframe">
+              <iframe src="<?= htmlspecialchars($pdfSrc) ?>#toolbar=1&navpanes=0" class="pdf-iframe" title="PDF Document Viewer">
+                <div class="pdf-fallback-banner">
+                  <i class="fa-solid fa-file-pdf fa-3x" style="color: #ef4444; margin-bottom: 12px;"></i>
+                  <h4>Preview Not Supported in This Browser Window</h4>
+                  <p>Your browser requires direct viewing for this research paper format.</p>
+                  <a href="<?= htmlspecialchars($pdfSrc) ?>" target="_blank" class="btn-fallback-open">
+                    <i class="fa-solid fa-eye"></i> View Full Document Here
+                  </a>
+                </div>
+              </iframe>
+            </object>
           </div>
         </section>
       <?php endif; ?>
@@ -451,12 +462,56 @@ $pdfSrc = $publication->pdf_url ?? ($publication->pdf_path ?? null);
   width: 100%;
   height: 650px;
   background: #f1f5f9;
+  position: relative;
 }
 
 .pdf-iframe {
   width: 100%;
   height: 100%;
   border: none;
+  display: block;
+}
+
+.pdf-fallback-banner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+  text-align: center;
+  background: #f8fafc;
+}
+
+.pdf-fallback-banner h4 {
+  font-size: 1.15rem;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+}
+
+.pdf-fallback-banner p {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0 0 18px 0;
+}
+
+.btn-fallback-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #0f766e;
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 10px 22px;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(15,118,110,0.2);
+}
+
+.btn-fallback-open:hover {
+  background: #115e59;
 }
 
 /* Body Text */

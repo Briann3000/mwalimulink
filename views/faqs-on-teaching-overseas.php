@@ -286,7 +286,7 @@
           <i class="fa-solid fa-chevron-down faq-chevron"></i>
         </button>
         <div class="faq-answer">
-          <p>Reach out directly to our international liaison desk at <a href="mailto:info@mwalimu.info" style="color: #0f766e; font-weight: 700;">info@mwalimu.info</a> or submit an inquiry via our <a href="/contacts" style="color: #0f766e; font-weight: 700;">Contact Support Desk</a>.</p>
+          <p>Reach out directly to our international liaison desk at <a href="mailto:infomwalimulink@gmail.com" style="color: #0f766e; font-weight: 700;">infomwalimulink@gmail.com</a> or submit an inquiry via our <a href="/contacts" style="color: #0f766e; font-weight: 700;">Contact Support Desk</a>.</p>
         </div>
       </div>
 

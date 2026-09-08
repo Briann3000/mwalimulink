@@ -16,13 +16,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $teacher = R::load('teacher', $teacher_id);
         if ($teacher && $teacher->id) {
-            if ($action === 'approve') {
+            if ($action === 'approve' || $action === 'approve_tsc') {
                 $teacher->verification_status = 'verified';
-                $teacher->good_conduct_status = 'verified';
+                if ($action === 'approve') {
+                    $teacher->good_conduct_status = 'verified';
+                }
                 $teacher->verified_at = date('Y-m-d H:i:s');
+                $teacher->verified_source = ($action === 'approve_tsc') ? 'admin_tsc_override' : 'admin_document_audit';
                 R::store($teacher);
                 send_verification_status_email($teacher, 'verified');
-                $msg = "Teacher " . htmlspecialchars($teacher->name) . " verified and confirmation email dispatched!";
+                $msg = "Teacher " . htmlspecialchars($teacher->name) . " marked as Verified and confirmation email dispatched!";
             } elseif ($action === 'flag') {
                 $teacher->verification_status = 'failed';
                 $teacher->good_conduct_status = 'failed';
@@ -40,6 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+// Include TSC Verification Service & Fetch audit logs
+require_once __DIR__ . '/../services/TscVerificationService.php';
+$tscAuditLogs = TscVerificationService::getVerificationAuditLogs(50);
 
 // Fetch pending and recent requests
 $pendingTeachers = R::find('teacher', 'verification_status = ? OR (good_conduct_doc IS NOT NULL AND verification_status = ?) ORDER BY id DESC', ['pending', 'pending']);
@@ -71,6 +78,105 @@ $allTeachersWithDocs = R::find('teacher', 'good_conduct_doc IS NOT NULL OR good_
             <i class="fa fa-exclamation-circle"></i> <?= h($error) ?>
         </div>
     <?php endif; ?>
+
+    <!-- Automated TSC Portal Verification Audits -->
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03); margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.1rem; color: #0f766e; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa fa-shield-halved"></i> Automated TSC Verification Audits (<?= count($tscAuditLogs) ?>)
+                </h3>
+                <p style="margin: 3px 0 0; font-size: 0.8rem; color: #64748b;">
+                    Live background checks against the Teachers Service Commission online database.
+                </p>
+            </div>
+            <span style="font-size: 0.76rem; background: #f0fdfa; color: #0f766e; border: 1px solid #ccfbf1; padding: 4px 10px; border-radius: 4px; font-weight: 600;">
+                Automated Verification Active
+            </span>
+        </div>
+
+        <?php if (empty($tscAuditLogs)): ?>
+            <p style="color: #64748b; font-size: 0.88rem; margin: 0;">No automated TSC checks logged yet.</p>
+        <?php else: ?>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.86rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #e2e8f0; text-align: left; color: #64748b;">
+                            <th style="padding: 8px 10px;">Timestamp</th>
+                            <th style="padding: 8px 10px;">Educator</th>
+                            <th style="padding: 8px 10px;">TSC Number</th>
+                            <th style="padding: 8px 10px;">Portal Name</th>
+                            <th style="padding: 8px 10px;">Match Score</th>
+                            <th style="padding: 8px 10px;">Status</th>
+                            <th style="padding: 8px 10px; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($tscAuditLogs as $log): ?>
+                            <?php $teacherObj = R::load('teacher', $log->teacher_id); ?>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 10px; color: #64748b; font-size: 0.78rem; white-space: nowrap;">
+                                    <?= date('M d, H:i', strtotime($log->created_at)) ?>
+                                </td>
+                                <td style="padding: 10px;">
+                                    <strong style="color: #0f172a;"><?= h($log->candidate_name) ?></strong>
+                                    <?php if ($teacherObj && $teacherObj->id): ?>
+                                        <br><a href="/teacher/profile?id=<?= $teacherObj->id ?>" target="_blank" style="font-size: 0.75rem; color: #0f766e; text-decoration: underline;">View Profile</a>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="padding: 10px;">
+                                    <code style="font-weight: 700; color: #0f766e;"><?= h($log->tsc_number) ?></code>
+                                </td>
+                                <td style="padding: 10px; color: #334155;">
+                                    <?= h($log->portal_name ?: 'None Identified') ?>
+                                </td>
+                                <td style="padding: 10px;">
+                                    <?php
+                                    $score = intval($log->match_score);
+                                    $badgeBg = ($score >= 80) ? '#dcfce7' : (($score >= 55) ? '#fef9c3' : '#fee2e2');
+                                    $badgeColor = ($score >= 80) ? '#166534' : (($score >= 55) ? '#854d0e' : '#991b1b');
+                                    ?>
+                                    <span style="background: <?= $badgeBg ?>; color: <?= $badgeColor ?>; font-weight: 700; font-size: 0.74rem; padding: 2px 7px; border-radius: 4px;">
+                                        <?= $score ?>%
+                                    </span>
+                                </td>
+                                <td style="padding: 10px;">
+                                    <?php if ($log->status === 'verified'): ?>
+                                        <span style="background: #dcfce7; color: #166534; font-weight: 700; font-size: 0.75rem; padding: 3px 8px; border-radius: 4px;">
+                                            Verified ✓
+                                        </span>
+                                    <?php elseif ($log->status === 'pending_manual'): ?>
+                                        <span style="background: #fef9c3; color: #854d0e; font-weight: 700; font-size: 0.75rem; padding: 3px 8px; border-radius: 4px;">
+                                            Pending Review
+                                        </span>
+                                    <?php else: ?>
+                                        <span style="background: #fee2e2; color: #991b1b; font-weight: 700; font-size: 0.75rem; padding: 3px 8px; border-radius: 4px;">
+                                            Unmatched
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="padding: 10px; text-align: right;">
+                                    <?php if ($teacherObj && $teacherObj->id && $teacherObj->verification_status !== 'verified'): ?>
+                                        <form method="POST" action="/admin/verifications" style="margin: 0; display: inline-block;">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="teacher_id" value="<?= $teacherObj->id ?>">
+                                            <button type="submit" name="admin_action" value="approve_tsc" style="background: #16a34a; color: white !important; font-size: 0.74rem; font-weight: 600; padding: 4px 10px; border: none; border-radius: 4px; cursor: pointer;">
+                                                Approve
+                                            </button>
+                                        </form>
+                                    <?php elseif ($teacherObj && $teacherObj->verification_status === 'verified'): ?>
+                                        <span style="font-size: 0.74rem; color: #166534; font-weight: 600;">
+                                            <i class="fa fa-check"></i> Confirmed
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
 
     <!-- Pending Verification Table -->
     <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03); margin-bottom: 2rem;">

@@ -875,10 +875,28 @@ $isVerified = (($teacher->verification_status ?? '') === 'verified');
                 </h2>
                 <div class="referee-grid">
                     <?php foreach ($referees as $ref): ?>
-                        <?php if (empty($ref['name']))
-                            continue; ?>
+                        <?php if (empty($ref['name'])) continue; ?>
+                        <?php
+                        $isEndorsedRef = false;
+                        if (!empty($ref['name']) && !empty($ref['institution']) && !empty($teacher->id)) {
+                            $endCheck = R::findOne('refereeendorsement', 'teacher_id = ? AND referee_name = ? AND institution = ? AND status = ?', [
+                                $teacher->id,
+                                $ref['name'],
+                                $ref['institution'],
+                                'endorsed'
+                            ]);
+                            $isEndorsedRef = !empty($endCheck);
+                        }
+                        ?>
                         <div class="referee-box">
-                            <strong style="color: #0f172a; display: block; font-size: 0.94rem;"><?= h($ref['name']) ?></strong>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 6px;">
+                                <strong style="color: #0f172a; display: block; font-size: 0.94rem;"><?= h($ref['name']) ?></strong>
+                                <?php if ($isEndorsedRef): ?>
+                                    <span style="background: #dcfce7; color: #166534; font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; border: 1px solid #86efac; white-space: nowrap;">
+                                        <i class="fa fa-check-circle"></i> Endorsed ✓
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                             <div style="color: #0f766e; font-weight: 600; font-size: 0.84rem;">
                                 <?= h($ref['title'] ?? 'Educator / Administrator') ?></div>
                             <div style="color: #475569; font-size: 0.84rem;"><?= h($ref['institution'] ?? '') ?></div>
