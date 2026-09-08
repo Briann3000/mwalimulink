@@ -12,12 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $configuredSecret = env('WEBHOOK_SECRET', env('PELEZA_WEBHOOK_SECRET', ''));
 $providedSecret = $_SERVER['HTTP_X_WEBHOOK_SECRET'] ?? ($_SERVER['HTTP_AUTHORIZATION'] ?? ($_GET['secret'] ?? ''));
 
-if (!empty($configuredSecret)) {
-    if (empty($providedSecret) || !hash_equals($configuredSecret, str_replace('Bearer ', '', $providedSecret))) {
-        http_response_code(401);
-        echo json_encode(['error' => 'Unauthorized: Invalid or missing webhook signature']);
-        exit();
-    }
+if (empty($configuredSecret) || empty($providedSecret) || !hash_equals($configuredSecret, str_replace('Bearer ', '', $providedSecret))) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized: Invalid or missing webhook signature']);
+    exit();
 }
 
 $rawInput = file_get_contents('php://input');

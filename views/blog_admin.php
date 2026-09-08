@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if ($ext === 'pdf') {
                             $uploadDir = __DIR__ . '/../uploads/publications/';
                             if (!is_dir($uploadDir)) {
-                                mkdir($uploadDir, 0777, true);
+                                mkdir($uploadDir, 0755, true);
                             }
                             $fileName = 'paper_' . time() . '_' . rand(100, 999) . '.pdf';
                             if (move_uploaded_file($_FILES['pdf_file']['tmp_name'], $uploadDir . $fileName)) {

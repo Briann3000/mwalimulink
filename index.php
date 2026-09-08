@@ -15,7 +15,10 @@ if (!function_exists('redirectTohttps')) {
       if (str_contains($host, 'localhost') || str_contains($host, '127.0.0.1')) {
         return;
       }
-      if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != 'on') {
+      $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+          || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
+          || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+      if (!$isHttps) {
         $redirect = "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         header("Location: $redirect");
         exit();

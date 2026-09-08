@@ -7,6 +7,7 @@ if (file_exists('class.phpmailer.php') && file_exists('class.smtp.php')) {
 $msg = '';
 $msgType = '';
 if (array_key_exists('email', $_POST)) {
+    validate_csrf();
     date_default_timezone_set('Etc/UTC');
 
     $name = trim($_POST['name'] ?? '');
@@ -87,19 +88,26 @@ if (array_key_exists('email', $_POST)) {
 
     if ($attachmentValid) {
         if (class_exists('PHPMailer')) {
+            $smtpHost = env('SMTP_HOST', 'smtp.gmail.com');
+            $smtpPort = intval(env('SMTP_PORT', 587));
+            $smtpEnc = env('SMTP_ENCRYPTION', 'tls');
+            $smtpUser = env('SMTP_USERNAME', 'infomwalimulink@gmail.com');
+            $smtpPass = env('SMTP_PASSWORD', '');
+            $mailFrom = env('MAIL_FROM_ADDRESS', 'infomwalimulink@gmail.com');
+
             $mail = new PHPMailer();
             $mail->isSMTP();
             $mail->SMTPDebug = 0;
-            $mail->Host = 'smtp.gmail.com';
-            $mail->Port = 587;
-            $mail->SMTPSecure = 'tls';
-            $mail->SMTPAuth = true;
-            $mail->Username = 'infomwalimulink@gmail.com';
-            $mail->Password = 'mfix kcub okqw aipu';
-            $mail->setFrom('infomwalimulink@gmail.com', $name ?: 'MwalimuLink Visitor');
+            $mail->Host = $smtpHost;
+            $mail->Port = $smtpPort;
+            $mail->SMTPSecure = $smtpEnc;
+            $mail->SMTPAuth = !empty($smtpPass);
+            $mail->Username = $smtpUser;
+            $mail->Password = $smtpPass;
+            $mail->setFrom($mailFrom, $name ?: 'MwalimuLink Visitor');
             $mail->addReplyTo($email, $name);
-            $mail->addAddress('infomwalimulink@gmail.com', 'MwalimuLink Support');
-            $mail->addBCC('infomwalimulink@gmail.com');
+            $mail->addAddress($mailFrom, 'MwalimuLink Support');
+            $mail->addBCC($mailFrom);
 
             $mail->Subject = "[MwalimuLink {$department}] {$subject}";
             $mailBody = "<h3>New Inquiry Received from MwalimuLink Contact Portal</h3>" .
@@ -163,6 +171,7 @@ if (array_key_exists('email', $_POST)) {
         <?php endif; ?>
 
         <form method="post" action="" enctype="multipart/form-data" class="modern-form" onsubmit="return validateContactForm()">
+          <?= csrf_field() ?>
           <div class="form-row-2">
             <div class="form-group">
               <label for="name">Your Full Name <span class="req">*</span></label>

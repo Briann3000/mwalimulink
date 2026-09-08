@@ -71,14 +71,8 @@ if (!empty($secretKey) && !empty($tracking_id)) {
     $result = json_decode($response, true);
     if ($http_code == 200 && isset($result['invoice']['state']) && in_array(strtoupper($result['invoice']['state']), ['COMPLETE', 'SUCCESS'])) {
         $isVerified = true;
-    }
-}
-
-// Fallback: check status parameter from return URL
-if (!$isVerified) {
-    $cleanStatus = strtoupper((string)$raw_status);
-    if ($cleanStatus === 'SUCCESS' || $cleanStatus === 'COMPLETE' || $cleanStatus === 'PAID') {
-        $isVerified = true;
+    } else {
+        error_log("IntaSend payment verification failed for tracking_id: {$tracking_id}. Response: " . $response);
     }
 }
 

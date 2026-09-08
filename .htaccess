@@ -1,20 +1,46 @@
-# Enable Rewrite Engine
+# ===================================================================
+# MwalimuLink Production Server Configuration & Security Rules
+# ===================================================================
+
+# Prevent directory listings
+Options -Indexes -MultiViews
+
+# Set default character set
+AddDefaultCharset UTF-8
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
+
+    # Pass Authorization Header to PHP
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Block access to hidden files and sensitive file extensions
-    RewriteRule (^|/)\.(env|git|htaccess|htpasswd) - [F,L]
-    RewriteRule \.(db|sqlite|sqlite3|sql|log|ini|bak|zip|gz)$ - [F,L]
-    RewriteRule ^(_archive|data)(/|$) - [F,L]
+    # 1. Enforce HTTPS in Production (skip for localhost)
+    RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:[0-9]+)?$ [NC]
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-    # Route clean requests through index.php
+    # 2. Block direct HTTP access to dotfiles (.env, .git, etc.)
+    RewriteRule (^|/)\.(env|git|htaccess|htpasswd|user\.ini) - [F,L]
+
+    # 3. Block access to sensitive database dumps, logs, backups, and configs
+    RewriteRule \.(db|sqlite|sqlite3|sql|log|ini|bak|zip|gz|tar|sh|bat|cmd)$ - [F,L]
+    RewriteRule ^(_archive|data|scratch|\.system_generated)(/|$) - [F,L]
+
+    # 4. Clean URL routing through index.php
     RewriteRule ^index\.php$ - [L]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule . /index.php [L]
 </IfModule>
 
-# Prevent directory indexing
-Options -Indexes
+# ===================================================================
+# HTTP Security Headers
+# ===================================================================
+<IfModule mod_headers.c>
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
