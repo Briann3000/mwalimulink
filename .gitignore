@@ -3,6 +3,13 @@
 .env.*
 !.env.example
 
+# Outreach Campaign Data & Opt-outs (CRITICAL)
+data/campaign_tracker.json
+data/unsubscribes.json
+data/*.json
+.campaign_tracker.json
+campaign_tracker.json
+
 # Quarantined Drafts & Old Snapshots
 _archive/
 

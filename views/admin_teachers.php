@@ -220,9 +220,10 @@ $totalPages = ceil($totalTeachers / $limit);
                                     <th style="padding: 12px 14px;">Educator Details</th>
                                     <th style="padding: 12px 14px;">Credentials</th>
                                     <th style="padding: 12px 14px;">Subject / County</th>
-                                    <th style="padding: 12px 14px;">Clearance Standing</th>
+                                    <th style="padding: 12px 14px;">Clearance</th>
                                     <th style="padding: 12px 14px;">Account</th>
-                                    <th style="padding: 12px 14px; text-align: right;">Operations</th>
+                                    <th style="padding: 12px 14px;">Date Joined</th>
+                                    <th style="padding: 12px 14px; text-align: center; width: 60px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -270,7 +271,7 @@ $totalPages = ceil($totalTeachers / $limit);
                                                 </span>
                                             <?php elseif ($t->verification_status === 'pending'): ?>
                                                 <span style="background: #fef08a; color: #854d0e; font-weight: 700; font-size: 0.74rem; padding: 4px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
-                                                    <i class="fa fa-clock"></i> Pending Review
+                                                    <i class="fa fa-clock"></i> Pending
                                                 </span>
                                             <?php else: ?>
                                                 <span style="background: #f1f5f9; color: #64748b; font-size: 0.74rem; padding: 4px 8px; border-radius: 4px;">
@@ -295,32 +296,50 @@ $totalPages = ceil($totalTeachers / $limit);
                                                 <span style="background: #f0fdf4; color: #166534; font-weight: 600; font-size: 0.74rem; padding: 3px 8px; border-radius: 4px;">Active</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td style="padding: 12px 14px; text-align: right;">
-                                            <div style="display: inline-flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;">
-                                                <!-- Action Form -->
-                                                <form method="POST" action="/admin/teachers" style="margin: 0; display: inline-flex; gap: 4px;" id="teacher-form-<?= $t->id ?>">
-                                                    <?= csrf_field() ?>
-                                                    <input type="hidden" name="teacher_id" value="<?= $t->id ?>">
-                                                    <input type="hidden" name="admin_notes" id="notes-input-<?= $t->id ?>" value="">
-                                                    
-                                                    <button type="submit" name="admin_action" value="approve" title="Approve & Dispatch Verified Email" style="background: #16a34a; color: white !important; font-size: 0.74rem; font-weight: 600; padding: 5px 9px; border: none; border-radius: 4px; cursor: pointer;">
-                                                        <i class="fa fa-check"></i> Approve
-                                                    </button>
+                                        <td style="padding: 12px 14px; font-size: 0.8rem; color: #64748b; white-space: nowrap;">
+                                            <?php
+                                                $regDate = $t->created_at ?: $t->registration_date ?: $t->date_created;
+                                                echo $regDate ? date('M d, Y', strtotime($regDate)) : '—';
+                                            ?>
+                                        </td>
+                                        <td style="padding: 12px 14px; text-align: center; position: relative;">
+                                            <!-- 3-Dot Dropdown Menu -->
+                                            <div style="position: relative; display: inline-block;">
+                                                <button type="button" onclick="toggleTeacherMenu(event, <?= $t->id ?>)" style="background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 6px 10px; cursor: pointer; color: #64748b; font-size: 1rem; transition: all 0.15s;" onmouseover="this.style.background='#f1f5f9'; this.style.borderColor='#cbd5e1'" onmouseout="this.style.background='transparent'; this.style.borderColor='transparent'" title="Actions">
+                                                    <i class="fa fa-ellipsis-v"></i>
+                                                </button>
 
-                                                    <button type="button" onclick="promptReject(<?= $t->id ?>, '<?= addslashes(h($t->name)) ?>')" title="Reject / Request Update" style="background: #ef4444; color: white !important; font-size: 0.74rem; font-weight: 600; padding: 5px 9px; border: none; border-radius: 4px; cursor: pointer;">
-                                                        <i class="fa fa-times"></i> Reject
-                                                    </button>
+                                                <div id="dropdown-menu-<?= $t->id ?>" class="action-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; z-index: 100; min-width: 170px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); padding: 4px 0; text-align: left;">
+                                                    <form method="POST" action="/admin/teachers" id="teacher-form-<?= $t->id ?>" style="margin: 0;">
+                                                        <?= csrf_field() ?>
+                                                        <input type="hidden" name="teacher_id" value="<?= $t->id ?>">
+                                                        <input type="hidden" name="admin_notes" id="notes-input-<?= $t->id ?>" value="">
+                                                        
+                                                        <a href="/teacher/profile?teacher_id=<?= $t->id ?>" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.82rem; color: #334155; text-decoration: none;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                                                            <i class="fa fa-user" style="width: 16px; color: #64748b;"></i> View Profile
+                                                        </a>
 
-                                                    <?php if ($t->status === 'suspended'): ?>
-                                                        <button type="submit" name="admin_action" value="activate" title="Reactivate Educator" style="background: #f1f5f9; color: #1e293b; font-size: 0.74rem; padding: 5px 9px; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer;">
-                                                            Activate
+                                                        <button type="submit" name="admin_action" value="approve" style="display: flex; align-items: center; gap: 8px; width: 100%; border: none; background: transparent; padding: 8px 14px; font-size: 0.82rem; color: #16a34a; font-weight: 600; cursor: pointer; text-align: left;" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='transparent'">
+                                                            <i class="fa fa-check-circle" style="width: 16px;"></i> Approve Clearance
                                                         </button>
-                                                    <?php else: ?>
-                                                        <button type="submit" name="admin_action" value="suspend" onclick="return confirm('Suspend this educator account?')" title="Suspend Educator" style="background: #f8fafc; color: #64748b; font-size: 0.74rem; padding: 5px 9px; border: 1px solid #e2e8f0; border-radius: 4px; cursor: pointer;">
-                                                            Suspend
+
+                                                        <button type="button" onclick="promptReject(<?= $t->id ?>, '<?= addslashes(h($t->name)) ?>')" style="display: flex; align-items: center; gap: 8px; width: 100%; border: none; background: transparent; padding: 8px 14px; font-size: 0.82rem; color: #dc2626; font-weight: 600; cursor: pointer; text-align: left;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+                                                            <i class="fa fa-triangle-exclamation" style="width: 16px;"></i> Reject / Flag
                                                         </button>
-                                                    <?php endif; ?>
-                                                </form>
+
+                                                        <hr style="margin: 4px 0; border: none; border-top: 1px solid #f1f5f9;">
+
+                                                        <?php if ($t->status === 'suspended'): ?>
+                                                            <button type="submit" name="admin_action" value="activate" style="display: flex; align-items: center; gap: 8px; width: 100%; border: none; background: transparent; padding: 8px 14px; font-size: 0.82rem; color: #0284c7; cursor: pointer; text-align: left;" onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background='transparent'">
+                                                                <i class="fa fa-user-check" style="width: 16px;"></i> Reactivate
+                                                            </button>
+                                                        <?php else: ?>
+                                                            <button type="submit" name="admin_action" value="suspend" onclick="return confirm('Suspend this educator account?')" style="display: flex; align-items: center; gap: 8px; width: 100%; border: none; background: transparent; padding: 8px 14px; font-size: 0.82rem; color: #64748b; cursor: pointer; text-align: left;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                                                                <i class="fa fa-user-slash" style="width: 16px;"></i> Suspend Account
+                                                            </button>
+                                                        <?php endif; ?>
+                                                    </form>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -356,8 +375,32 @@ $totalPages = ceil($totalTeachers / $limit);
     </main>
 </div>
 
-<!-- Modal / Reason Prompt Script -->
+<!-- Modal / Reason Prompt & Dropdown Script -->
 <script>
+function toggleTeacherMenu(event, teacherId) {
+    event.stopPropagation();
+    // Close other open menus
+    document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
+        if (menu.id !== 'dropdown-menu-' + teacherId) {
+            menu.style.display = 'none';
+        }
+    });
+    
+    const menu = document.getElementById('dropdown-menu-' + teacherId);
+    if (menu) {
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+}
+
+// Close dropdown when clicking anywhere outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.action-dropdown-menu')) {
+        document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+    }
+});
+
 function promptReject(teacherId, teacherName) {
     const reason = prompt('Please enter the reason for flagging / rejecting ' + teacherName + ' clearance (will be emailed to educator):', 'Document details could not be validated against official registry.');
     if (reason !== null) {

@@ -9,20 +9,21 @@ if (php_sapi_name() === 'cli-server') {
 }
 
 if (!function_exists('redirectTohttps')) {
-    function redirectTohttps() {
-      $host = $_SERVER['HTTP_HOST'] ?? '';
-      // Skip HTTPS redirect on local development
-      if (str_contains($host, 'localhost') || str_contains($host, '127.0.0.1')) {
-        return;
-      }
-      $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-          || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
-          || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-      if (!$isHttps) {
-        $redirect = "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-        header("Location: $redirect");
-        exit();
-      }
+    function redirectTohttps()
+    {
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        // Skip HTTPS redirect on local development
+        if (str_contains($host, 'localhost') || str_contains($host, '127.0.0.1')) {
+            return;
+        }
+        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
+            || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+        if (!$isHttps) {
+            $redirect = "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+            header("Location: $redirect");
+            exit();
+        }
     }
 }
 
@@ -52,12 +53,21 @@ require_once 'rb.php';
 /** Custom Formatter to Allow Underscores in RedBeanPHP */
 class UnderscoreFormatter
 {
-    public function formatBeanTable($beanType) { return $beanType; }
-    public function formatBeanID($beanType) { return 'id'; }
-    public function formatBeanForeignKey($beanType) { return $beanType . '_id'; }
+    public function formatBeanTable($beanType)
+    {
+        return $beanType;
+    }
+    public function formatBeanID($beanType)
+    {
+        return 'id';
+    }
+    public function formatBeanForeignKey($beanType)
+    {
+        return $beanType . '_id';
+    }
 }
 
-R::ext('formatter', function() {
+R::ext('formatter', function () {
     return new UnderscoreFormatter();
 });
 
@@ -70,7 +80,7 @@ if ($dbDriver === 'mysql') {
     $dbName = env('DB_DATABASE', 'mwalimu');
     $dbUser = env('DB_USERNAME', 'root');
     $dbPass = env('DB_PASSWORD', '');
-    
+
     R::setup("mysql:host={$dbHost};port={$dbPort};dbname={$dbName};charset=utf8mb4", $dbUser, $dbPass);
 } else {
     $dbPath = __DIR__ . '/' . env('DB_PATH', 'data/mwalimu.db');
@@ -110,6 +120,7 @@ $modernRoutes = [
     'faqs-overseas' => 'views/faqs-on-teaching-overseas.php',
     'privacy' => 'views/privacy_policy.php',
     'privacy-policy' => 'views/privacy_policy.php',
+    'unsubscribe' => 'views/unsubscribe.php',
     'terms' => 'views/terms_and_conditions.php',
     'terms-and-conditions' => 'views/terms_and_conditions.php',
     'publications' => 'views/publications.php',
