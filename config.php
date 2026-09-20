@@ -1205,6 +1205,514 @@ function require_directory_access($targetRedirect = null)
     }
 }
 
+// -------------------------------------------------------------------
+// Teachers Forum & Direct Messaging Engine
+// -------------------------------------------------------------------
+
+/**
+ * Initialize and seed default forum categories and schema if not present.
+ */
+function init_forum_and_messaging_schema()
+{
+    if (!class_exists('R') || !R::testConnection()) {
+        return;
+    }
+
+    try {
+        $isMysql = false;
+        try {
+            if (class_exists('R') && R::testConnection()) {
+                $driverName = R::getDatabaseAdapter()->getDatabase()->getPDO()->getAttribute(PDO::ATTR_DRIVER_NAME);
+                $isMysql = ($driverName === 'mysql');
+            }
+        } catch (\Throwable $e) {
+            $isMysql = (env('DB_CONNECTION', '') === 'mysql');
+        }
+        $pk = $isMysql ? 'INT AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
+
+        // Create tables with raw SQL DDL
+        R::exec("CREATE TABLE IF NOT EXISTS forumcategory (
+            id {$pk},
+            name VARCHAR(191) NOT NULL,
+            slug VARCHAR(191) NOT NULL,
+            description TEXT NULL,
+            icon VARCHAR(100) DEFAULT 'fa-comments',
+            sort_order INT DEFAULT 0,
+            threads_count INT DEFAULT 0,
+            replies_count INT DEFAULT 0,
+            created_at DATETIME NULL
+        )");
+
+        R::exec("CREATE TABLE IF NOT EXISTS forumthread (
+            id {$pk},
+            category_id INT NOT NULL,
+            user_id INT NOT NULL,
+            user_role VARCHAR(50) NOT NULL,
+            author_name VARCHAR(191) NULL,
+            author_alias VARCHAR(191) NULL,
+            author_county VARCHAR(100) NULL,
+            author_subjects VARCHAR(191) NULL,
+            is_author_private TINYINT(1) DEFAULT 1,
+            title VARCHAR(255) NOT NULL,
+            slug VARCHAR(255) NOT NULL,
+            content TEXT NOT NULL,
+            views_count INT DEFAULT 0,
+            replies_count INT DEFAULT 0,
+            likes_count INT DEFAULT 0,
+            is_pinned TINYINT(1) DEFAULT 0,
+            is_locked TINYINT(1) DEFAULT 0,
+            is_hidden TINYINT(1) DEFAULT 0,
+            last_reply_at DATETIME NULL,
+            created_at DATETIME NULL
+        )");
+
+        R::exec("CREATE TABLE IF NOT EXISTS forumreply (
+            id {$pk},
+            thread_id INT NOT NULL,
+            user_id INT NOT NULL,
+            user_role VARCHAR(50) NOT NULL,
+            author_name VARCHAR(191) NULL,
+            author_alias VARCHAR(191) NULL,
+            author_county VARCHAR(100) NULL,
+            author_subjects VARCHAR(191) NULL,
+            is_author_private TINYINT(1) DEFAULT 1,
+            content TEXT NOT NULL,
+            likes_count INT DEFAULT 0,
+            is_solution TINYINT(1) DEFAULT 0,
+            is_hidden TINYINT(1) DEFAULT 0,
+            created_at DATETIME NULL
+        )");
+
+        R::exec("CREATE TABLE IF NOT EXISTS directconversation (
+            id {$pk},
+            user1_id INT NOT NULL,
+            user1_role VARCHAR(50) NOT NULL,
+            user2_id INT NOT NULL,
+            user2_role VARCHAR(50) NOT NULL,
+            last_message_at DATETIME NULL,
+            created_at DATETIME NULL
+        )");
+
+        R::exec("CREATE TABLE IF NOT EXISTS directmessage (
+            id {$pk},
+            conversation_id INT NOT NULL,
+            sender_id INT NOT NULL,
+            sender_role VARCHAR(50) NOT NULL,
+            recipient_id INT NOT NULL,
+            recipient_role VARCHAR(50) NOT NULL,
+            message TEXT NOT NULL,
+            is_read TINYINT(1) DEFAULT 0,
+            created_at DATETIME NULL
+        )");
+
+        R::exec("CREATE TABLE IF NOT EXISTS forumreaction (
+            id {$pk},
+            thread_id INT NULL,
+            reply_id INT NULL,
+            user_id INT NOT NULL,
+            user_role VARCHAR(50) NOT NULL,
+            reaction_type VARCHAR(50) DEFAULT 'like',
+            created_at DATETIME NULL
+        )");
+
+        R::exec("CREATE TABLE IF NOT EXISTS forumreport (
+            id {$pk},
+            thread_id INT NULL,
+            reply_id INT NULL,
+            reporter_id INT NOT NULL,
+            reporter_role VARCHAR(50) NOT NULL,
+            reason VARCHAR(191) NOT NULL,
+            details TEXT NULL,
+            status VARCHAR(50) DEFAULT 'pending',
+            created_at DATETIME NULL
+        )");
+
+        // Add teacher table privacy columns if missing (safe execution)
+        try {
+            R::exec("ALTER TABLE teacher ADD COLUMN profile_visibility VARCHAR(50) DEFAULT 'schools_only'");
+        } catch (\Throwable $ignored) {
+        }
+        try {
+            R::exec("ALTER TABLE teacher ADD COLUMN forum_alias VARCHAR(100) NULL");
+        } catch (\Throwable $ignored) {
+        }
+        try {
+            R::exec("ALTER TABLE teacher ADD COLUMN allow_direct_messages TINYINT(1) DEFAULT 1");
+        } catch (\Throwable $ignored) {
+        }
+
+        // Add attachment columns to forumthread & directmessage if missing
+        $attachmentCols = [
+            'attachment_url' => 'VARCHAR(255) NULL',
+            'attachment_type' => 'VARCHAR(50) NULL',
+            'attachment_name' => 'VARCHAR(255) NULL',
+            'attachment_size' => 'VARCHAR(50) NULL'
+        ];
+        foreach ($attachmentCols as $col => $typeDef) {
+            try {
+                R::exec("ALTER TABLE forumthread ADD COLUMN {$col} {$typeDef}");
+            } catch (\Throwable $ignored) {
+            }
+            try {
+                R::exec("ALTER TABLE directmessage ADD COLUMN {$col} {$typeDef}");
+            } catch (\Throwable $ignored) {
+            }
+        }
+
+        // Check if categories need seeding
+        $categoryCount = (int) R::getCell("SELECT COUNT(*) FROM forumcategory");
+        if ($categoryCount === 0) {
+            $defaultCategories = [
+                [
+                    'name' => 'General Chat',
+                    'slug' => 'general-chat',
+                    'description' => 'General educator discussions, daily advice, wellness, and community networking.',
+                    'icon' => 'fa-comments',
+                    'sort_order' => 1
+                ],
+                [
+                    'name' => 'TSC Swaps & Transfers',
+                    'slug' => 'tsc-swaps',
+                    'description' => 'Transfer swap requests across counties, replacement stations, and relocation matching.',
+                    'icon' => 'fa-landmark',
+                    'sort_order' => 2
+                ],
+                [
+                    'name' => 'Teaching Practice & Internships',
+                    'slug' => 'tp-internships',
+                    'description' => 'Guidance, TP letters, university placement coordination, and mentoring.',
+                    'icon' => 'fa-graduation-cap',
+                    'sort_order' => 3
+                ],
+                [
+                    'name' => 'CBC & Curriculum Exchange',
+                    'slug' => 'cbc-curriculum',
+                    'description' => 'Schemes of work, lesson plans, assessment materials, and pedagogical methodologies.',
+                    'icon' => 'fa-book-open',
+                    'sort_order' => 4
+                ],
+                [
+                    'name' => 'Job Opportunities & Interviews',
+                    'slug' => 'job-opportunities',
+                    'description' => 'Private school hiring insights, BOM openings, interview preparation, and salary guidance.',
+                    'icon' => 'fa-briefcase',
+                    'sort_order' => 5
+                ]
+            ];
+
+            foreach ($defaultCategories as $catData) {
+                R::exec("INSERT INTO forumcategory (name, slug, description, icon, sort_order, threads_count, replies_count, created_at) VALUES (?, ?, ?, ?, ?, 0, 0, ?)", [
+                    $catData['name'],
+                    $catData['slug'],
+                    $catData['description'],
+                    $catData['icon'],
+                    $catData['sort_order'],
+                    date('Y-m-d H:i:s')
+                ]);
+            }
+        } else {
+            // Migrate Staffroom Lounge to General Chat if it exists
+            try {
+                R::exec("UPDATE forumcategory SET name = 'General Chat', slug = 'general-chat', description = 'General educator discussions, daily advice, wellness, and community networking.' WHERE slug = 'staffroom-lounge'");
+            } catch (\Throwable $ignored) {
+            }
+        }
+    } catch (\Throwable $e) {
+        error_log("init_forum_and_messaging_schema error: " . $e->getMessage());
+    }
+}
+
+/**
+ * Fetch all forum categories sorted by display order.
+ */
+function forum_get_categories()
+{
+    if (!class_exists('R') || !R::testConnection()) {
+        return [];
+    }
+    init_forum_and_messaging_schema();
+    return R::findAll('forumcategory', 'ORDER BY sort_order ASC');
+}
+
+/**
+ * Helper to determine if viewer can view full teacher profile based on privacy settings.
+ */
+function teacher_can_view_profile($viewerUser, $teacherBean)
+{
+    if (!$teacherBean || !$teacherBean->id) {
+        return false;
+    }
+
+    // Owner always sees own profile
+    if (!empty($viewerUser['user_id']) && ($viewerUser['role'] ?? '') === 'teacher' && (int) $viewerUser['user_id'] === (int) $teacherBean->id) {
+        return true;
+    }
+
+    // Admins always have access
+    if (!empty($viewerUser['role']) && $viewerUser['role'] === 'admin') {
+        return true;
+    }
+
+    $visibility = $teacherBean->profile_visibility ?? 'schools_only';
+
+    // Strictly private
+    if ($visibility === 'private') {
+        return false;
+    }
+
+    // Schools only
+    if ($visibility === 'schools_only') {
+        return (!empty($viewerUser['role']) && $viewerUser['role'] === 'school');
+    }
+
+    // Public
+    return true;
+}
+
+/**
+ * Get privacy-safe author display details for forum and messaging.
+ */
+function forum_get_author_display($userId, $userRole = 'teacher')
+{
+    $default = [
+        'display_name' => 'Educator',
+        'sub_text' => 'Teacher',
+        'county' => 'Kenya',
+        'is_private' => 1,
+        'initial' => 'E',
+        'verified' => false
+    ];
+
+    if (!class_exists('R') || !R::testConnection() || !$userId) {
+        return $default;
+    }
+
+    try {
+        if ($userRole === 'admin') {
+            return [
+                'display_name' => 'Mwalimu Staff',
+                'sub_text' => 'Administrator',
+                'county' => 'Official',
+                'is_private' => 0,
+                'initial' => 'M',
+                'verified' => true
+            ];
+        }
+
+        if ($userRole === 'school') {
+            $school = R::load('school', (int) $userId);
+            if ($school && $school->id) {
+                return [
+                    'display_name' => $school->name ?: 'School Administration',
+                    'sub_text' => 'Institution',
+                    'county' => $school->county ?: 'Kenya',
+                    'is_private' => 0,
+                    'initial' => strtoupper(substr($school->name ?: 'S', 0, 1)),
+                    'verified' => true
+                ];
+            }
+        }
+
+        if ($userRole === 'teacher') {
+            $teacher = R::load('teacher', (int) $userId);
+            if ($teacher && $teacher->id) {
+                $isPrivate = in_array($teacher->profile_visibility ?? 'schools_only', ['schools_only', 'private']);
+
+                // Display name: use alias if set, otherwise formatted name
+                $name = !empty($teacher->forum_alias) ? $teacher->forum_alias : ($teacher->name ?: 'Educator');
+                $initial = strtoupper(substr($name, 0, 1));
+
+                return [
+                    'display_name' => $name,
+                    'sub_text' => $teacher->teaching_subjects ?: ($teacher->qualification ?: 'Educator'),
+                    'county' => $teacher->county ?: 'Kenya',
+                    'is_private' => $isPrivate ? 1 : 0,
+                    'initial' => $initial,
+                    'verified' => (($teacher->verification_status ?? '') === 'verified')
+                ];
+            }
+        }
+    } catch (\Throwable $e) {
+        error_log("forum_get_author_display error: " . $e->getMessage());
+    }
+
+    return $default;
+}
+
+/**
+ * Get total unread direct messages for a given user.
+ */
+function get_unread_message_count($userId, $userRole)
+{
+    if (!class_exists('R') || !R::testConnection() || !$userId) {
+        return 0;
+    }
+
+    try {
+        return (int) R::count('directmessage', 'recipient_id = ? AND recipient_role = ? AND is_read = 0', [(int) $userId, $userRole]);
+    } catch (\Throwable $e) {
+        return 0;
+    }
+}
+
+/**
+ * Get or create a direct 1-on-1 conversation thread between two users.
+ */
+function get_or_create_conversation($user1Id, $user1Role, $user2Id, $user2Role)
+{
+    if (!class_exists('R') || !R::testConnection()) {
+        return null;
+    }
+
+    try {
+        // Find existing conversation in either order
+        $conv = R::findOne('directconversation', '
+            (user1_id = ? AND user1_role = ? AND user2_id = ? AND user2_role = ?)
+            OR
+            (user1_id = ? AND user1_role = ? AND user2_id = ? AND user2_role = ?)
+        ', [
+            (int) $user1Id,
+            $user1Role,
+            (int) $user2Id,
+            $user2Role,
+            (int) $user2Id,
+            $user2Role,
+            (int) $user1Id,
+            $user1Role
+        ]);
+
+        if (!$conv || !$conv->id) {
+            $conv = R::dispense('directconversation');
+            $conv->user1_id = (int) $user1Id;
+            $conv->user1_role = $user1Role;
+            $conv->user2_id = (int) $user2Id;
+            $conv->user2_role = $user2Role;
+            $conv->last_message_at = date('Y-m-d H:i:s');
+            $conv->created_at = date('Y-m-d H:i:s');
+            R::store($conv);
+        }
+
+        return $conv;
+    } catch (\Throwable $e) {
+        error_log("get_or_create_conversation error: " . $e->getMessage());
+        return null;
+    }
+}
+
+/**
+ * Validate and securely store chat attachments (Document, Image, Audio)
+ */
+function chat_validate_and_store_attachment($file, $expectedType = '')
+{
+    if (empty($file) || !isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+        $errMap = [
+            UPLOAD_ERR_INI_SIZE => 'File exceeds upload_max_filesize directive in php.ini.',
+            UPLOAD_ERR_FORM_SIZE => 'File exceeds MAX_FILE_SIZE specified in the form.',
+            UPLOAD_ERR_PARTIAL => 'The uploaded file was only partially uploaded.',
+            UPLOAD_ERR_NO_FILE => 'No file was uploaded.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Missing a temporary folder.',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk.'
+        ];
+        return ['success' => false, 'error' => $errMap[$file['error'] ?? 0] ?? 'File upload error.'];
+    }
+
+    // 10MB Max Size Limit
+    $maxBytes = 10 * 1024 * 1024;
+    if ($file['size'] > $maxBytes) {
+        return ['success' => false, 'error' => 'File exceeds maximum 10MB size limit.'];
+    }
+
+    $tmpPath = $file['tmp_name'];
+    $origName = basename($file['name']);
+    $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+
+    // Determine MIME type using finfo binary inspect
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mimeType = $finfo ? finfo_file($finfo, $tmpPath) : mime_content_type($tmpPath);
+    if ($finfo) {
+        finfo_close($finfo);
+    }
+
+    $allowedMimes = [
+        // Images
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'webp' => 'image/webp',
+        'gif' => 'image/gif',
+        // Audio
+        'mp3' => ['audio/mpeg', 'audio/mp3'],
+        'wav' => ['audio/wav', 'audio/x-wav'],
+        'm4a' => ['audio/mp4', 'audio/x-m4a', 'audio/aac'],
+        'ogg' => ['audio/ogg', 'application/ogg'],
+        // Documents
+        'pdf' => 'application/pdf',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'doc' => ['application/msword', 'application/vnd.ms-word'],
+        'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'ppt' => 'application/vnd.ms-powerpoint',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'xls' => 'application/vnd.ms-excel',
+        'txt' => ['text/plain', 'text/x-plain'],
+        'csv' => ['text/csv', 'text/plain', 'application/vnd.ms-excel']
+    ];
+
+    // Disallowed dangerous extensions
+    $dangerous = ['php', 'phtml', 'php3', 'php4', 'php5', 'php7', 'phps', 'cgi', 'pl', 'asp', 'aspx', 'jsp', 'sh', 'exe', 'bat', 'cmd', 'js', 'py', 'htaccess', 'phar'];
+    if (in_array($ext, $dangerous, true)) {
+        return ['success' => false, 'error' => 'Executable file type is not allowed for security reasons.'];
+    }
+
+    if (!isset($allowedMimes[$ext])) {
+        return ['success' => false, 'error' => 'Unsupported file format (.' . $ext . '). Allowed formats: PDF, DOCX, PPTX, XLSX, TXT, PNG, JPG, MP3, WAV, M4A, OGG.'];
+    }
+
+    // Validate MIME match
+    $expectedMime = $allowedMimes[$ext];
+    $mimeMatches = is_array($expectedMime) ? in_array($mimeType, $expectedMime, true) : ($mimeType === $expectedMime);
+    if (!$mimeMatches) {
+        return ['success' => false, 'error' => "File content does not match its extension (Detected MIME: {$mimeType})."];
+    }
+
+    // Determine category
+    $mediaCategory = 'document';
+    if (strpos($mimeType, 'image/') === 0) {
+        $mediaCategory = 'image';
+    } elseif (strpos($mimeType, 'audio/') === 0 || $ext === 'ogg' || $ext === 'm4a') {
+        $mediaCategory = 'audio';
+    }
+
+    // Format human readable size
+    $bytes = (int) $file['size'];
+    if ($bytes >= 1048576) {
+        $formattedSize = number_format($bytes / 1048576, 1) . ' MB';
+    } else {
+        $formattedSize = max(1, round($bytes / 1024)) . ' KB';
+    }
+
+    // Create target directory if needed
+    $uploadDir = __DIR__ . '/uploads/chat';
+    if (!is_dir($uploadDir)) {
+        @mkdir($uploadDir, 0755, true);
+    }
+
+    $uniqueName = 'chat_' . $mediaCategory . '_' . time() . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
+    $targetPath = $uploadDir . '/' . $uniqueName;
+    $saved = is_uploaded_file($tmpPath) ? move_uploaded_file($tmpPath, $targetPath) : (@copy($tmpPath, $targetPath) || @rename($tmpPath, $targetPath));
+    if (!$saved) {
+        return ['success' => false, 'error' => 'Failed to save uploaded file to storage.'];
+    }
+
+    return [
+        'success' => true,
+        'url' => '/uploads/chat/' . $uniqueName,
+        'type' => $mediaCategory,
+        'name' => htmlspecialchars($origName, ENT_QUOTES, 'UTF-8'),
+        'size' => $formattedSize
+    ];
+}
+
+
 
 
 

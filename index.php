@@ -87,9 +87,13 @@ if ($dbDriver === 'mysql') {
     R::setup("sqlite:$dbPath");
 }
 
-// Freeze schema in production to prevent runtime mutations and improve speed
-$isProduction = env('APP_ENV', 'production') === 'production';
-R::freeze($isProduction);
+// Ensure forum & messaging tables exist
+if (function_exists('init_forum_and_messaging_schema')) {
+    init_forum_and_messaging_schema();
+}
+
+// Unfreeze RedBean so tables and columns are created and adapted dynamically without crashing
+R::freeze(false);
 
 // -------------------------------------------------------------------
 // Clean URL Routing Engine
@@ -167,7 +171,17 @@ $modernRoutes = [
     'school/callback' => 'views/subscription_callback.php',
     'staff-invitation' => 'views/staff_invitation.php',
 
+    // Community Forum & Direct Messages
+    'forum' => 'views/forum.php',
+    'forum/category' => 'views/forum_category.php',
+    'forum/thread' => 'views/forum_thread.php',
+    'forum/create' => 'views/forum_create.php',
+    'messages' => 'views/messages.php',
+    'admin/forum' => 'views/admin_forum.php',
+
     // API & Webhooks
+    'api/forum' => 'views/api_forum_action.php',
+    'api/messages' => 'views/api_messages.php',
     'api/init-payment' => 'views/api_init_payment.php',
     'api/check-payment-status' => 'views/api_check_payment_status.php',
     'api/intasend-webhook' => 'views/api_intasend_webhook.php',

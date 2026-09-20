@@ -1,20 +1,23 @@
 <?php
 if (function_exists('init_session')) {
-    init_session();
+  init_session();
 } elseif (session_status() == PHP_SESSION_NONE) {
-    session_start();
+  session_start();
 }
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <meta name="description" content="Mwalimu.info connects teachers and schools across Kenya, offering job opportunities, educational resources, and a professional networking platform for educators.">
-<meta name="keywords" content="teachers, schools, Kenya, teaching jobs, education, mwalimu, teacher resources, school vacancies, educators, employment">
-<meta name="author" content="Mwalimu.info">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="robots" content="index, follow">
+  <meta name="description"
+    content="Mwalimu.info connects teachers and schools across Kenya, offering job opportunities, educational resources, and a professional networking platform for educators.">
+  <meta name="keywords"
+    content="teachers, schools, Kenya, teaching jobs, education, mwalimu, teacher resources, school vacancies, educators, employment">
+  <meta name="author" content="Mwalimu.info">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="robots" content="index, follow">
   <title>Mwalimu Link&trade;</title>
 
   <!-- Favicon & Icons -->
@@ -29,7 +32,8 @@ if (function_exists('init_session')) {
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
 
   <style>
     /* ==========================================================================
@@ -49,18 +53,56 @@ if (function_exists('init_session')) {
       color: #ffffff;
     }
 
-    .hero h1, .hero h2, .hero h3, .hero h4, .hero h5, .hero h6,
-    .hero-content h1, .hero-content h2, .hero-content h3, .hero-content h4,
-    .pub-hero h1, .pub-hero h2, .pub-hero h3, .pub-hero h4,
-    .about-hero h1, .about-hero h2, .about-hero h3, .about-hero h4,
-    .contact-hero h1, .contact-hero h2, .contact-hero h3, .contact-hero h4,
-    .faq-hero h1, .faq-hero h2, .faq-hero h3, .faq-hero h4,
-    .overseas-hero h1, .overseas-hero h2, .overseas-hero h3, .overseas-hero h4,
-    .legal-hero h1, .legal-hero h2, .legal-hero h3, .legal-hero h4,
-    .landing-cta-banner h1, .landing-cta-banner h2, .landing-cta-banner h3, .landing-cta-banner h4,
-    .faq-support-banner h1, .faq-support-banner h2, .faq-support-banner h3, .faq-support-banner h4,
-    .cta-inner-card h1, .cta-inner-card h2, .cta-inner-card h3, .cta-inner-card h4,
-    .banner-left h1, .banner-left h2, .banner-left h3, .banner-left h4 {
+    .hero h1,
+    .hero h2,
+    .hero h3,
+    .hero h4,
+    .hero h5,
+    .hero h6,
+    .hero-content h1,
+    .hero-content h2,
+    .hero-content h3,
+    .hero-content h4,
+    .pub-hero h1,
+    .pub-hero h2,
+    .pub-hero h3,
+    .pub-hero h4,
+    .about-hero h1,
+    .about-hero h2,
+    .about-hero h3,
+    .about-hero h4,
+    .contact-hero h1,
+    .contact-hero h2,
+    .contact-hero h3,
+    .contact-hero h4,
+    .faq-hero h1,
+    .faq-hero h2,
+    .faq-hero h3,
+    .faq-hero h4,
+    .overseas-hero h1,
+    .overseas-hero h2,
+    .overseas-hero h3,
+    .overseas-hero h4,
+    .legal-hero h1,
+    .legal-hero h2,
+    .legal-hero h3,
+    .legal-hero h4,
+    .landing-cta-banner h1,
+    .landing-cta-banner h2,
+    .landing-cta-banner h3,
+    .landing-cta-banner h4,
+    .faq-support-banner h1,
+    .faq-support-banner h2,
+    .faq-support-banner h3,
+    .faq-support-banner h4,
+    .cta-inner-card h1,
+    .cta-inner-card h2,
+    .cta-inner-card h3,
+    .cta-inner-card h4,
+    .banner-left h1,
+    .banner-left h2,
+    .banner-left h3,
+    .banner-left h4 {
       color: #ffffff !important;
     }
 
@@ -69,7 +111,8 @@ if (function_exists('init_session')) {
       font-size: 14px !important;
     }
 
-    html, body {
+    html,
+    body {
       margin: 0 !important;
       padding: 0 !important;
       min-height: 100% !important;
@@ -88,7 +131,7 @@ if (function_exists('init_session')) {
     }
 
     /* Main container: expands and scrolls naturally on standalone pages */
-    body > main {
+    body>main {
       flex: 1 0 auto !important;
       width: 100% !important;
       padding: 0 !important;
@@ -102,8 +145,8 @@ if (function_exists('init_session')) {
       overflow: hidden !important;
     }
 
-    body:has(.workspace-wrapper) > main,
-    body.has-workspace > main {
+    body:has(.workspace-wrapper)>main,
+    body.has-workspace>main {
       height: calc(100vh - 60px) !important;
       overflow: hidden !important;
       flex: 1 1 auto !important;
@@ -117,29 +160,92 @@ if (function_exists('init_session')) {
     }
 
     /* Force Pico card elements to always render clean pure white */
-    article, .card, article.card, dialog article {
+    article,
+    .card,
+    article.card,
+    dialog article {
       background: #ffffff !important;
       color: #1e293b !important;
       border: 1px solid #e2e8f0 !important;
       border-radius: 10px !important;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03) !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
       margin-bottom: 1.5rem;
     }
 
-    article.card header, .card header {
+    article.card header,
+    .card header {
       background: transparent !important;
       border-bottom: 1px solid #f1f5f9 !important;
       padding-bottom: 0.75rem !important;
       margin-bottom: 1rem !important;
     }
 
-    h1, h2, h3, h4, h5, h6 {
+    /* Global Search Input Icon & Clear Button Helper */
+    .search-input-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .search-input-wrapper .search-icon,
+    .search-input-wrapper>i.fa-search {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      pointer-events: none;
+      font-size: 0.78rem;
+      z-index: 2;
+    }
+
+    .search-input-wrapper input {
+      padding-left: 32px !important;
+      padding-right: 28px !important;
+      margin: 0 !important;
+      margin-bottom: 0 !important;
+      height: 32px !important;
+      border-radius: 20px !important;
+      box-sizing: border-box !important;
+      background: #f8fafc !important;
+      border: 1px solid #cbd5e1 !important;
+      font-size: 0.8rem !important;
+    }
+
+    .search-input-wrapper .search-clear-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.95rem;
+      line-height: 1;
+      z-index: 3;
+      user-select: none;
+    }
+
+    .search-input-wrapper .search-clear-btn:hover {
+      color: #475569;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
       font-family: 'Inter', sans-serif !important;
       font-weight: 700 !important;
       color: #0f172a !important;
     }
 
-    p, span, li, td, th, label {
+    p,
+    span,
+    li,
+    td,
+    th,
+    label {
       color: #334155;
     }
 
@@ -249,7 +355,8 @@ if (function_exists('init_session')) {
       white-space: nowrap !important;
     }
 
-    .topbar-nav li::before, .topbar-nav li::marker {
+    .topbar-nav li::before,
+    .topbar-nav li::marker {
       display: none !important;
       content: none !important;
     }
@@ -313,7 +420,7 @@ if (function_exists('init_session')) {
       background: #0f172a !important;
       border: 1px solid #334155 !important;
       border-radius: 8px !important;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.6) !important;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6) !important;
       min-width: 220px !important;
       width: max-content !important;
       z-index: 1050 !important;
@@ -340,10 +447,10 @@ if (function_exists('init_session')) {
       left: auto !important;
     }
 
-    .app-topbar .top-dropdown:hover > .top-dropdown-menu,
-    .top-dropdown:hover > .top-dropdown-menu,
-    .app-topbar .top-dropdown.open > .top-dropdown-menu,
-    .top-dropdown.open > .top-dropdown-menu {
+    .app-topbar .top-dropdown:hover>.top-dropdown-menu,
+    .top-dropdown:hover>.top-dropdown-menu,
+    .app-topbar .top-dropdown.open>.top-dropdown-menu,
+    .top-dropdown.open>.top-dropdown-menu {
       display: flex !important;
       flex-direction: column !important;
     }
@@ -413,6 +520,7 @@ if (function_exists('init_session')) {
     .sidebar-pane::-webkit-scrollbar {
       width: 5px;
     }
+
     .sidebar-pane::-webkit-scrollbar-thumb {
       background: #334155;
       border-radius: 4px;
@@ -631,6 +739,7 @@ if (function_exists('init_session')) {
     .content-pane::-webkit-scrollbar {
       width: 6px;
     }
+
     .content-pane::-webkit-scrollbar-thumb {
       background: #cbd5e1;
       border-radius: 4px;
@@ -648,7 +757,7 @@ if (function_exists('init_session')) {
       justify-content: center !important;
       text-decoration: none !important;
       transition: all 0.2s ease !important;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03) !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
     }
 
     .quick-action-tile:hover {
@@ -681,14 +790,14 @@ if (function_exists('init_session')) {
       background: #ffffff !important;
       border: 1px solid #e2e8f0 !important;
       border-radius: 10px !important;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03) !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
       padding: 1.25rem 1.5rem !important;
       transition: all 0.2s ease !important;
     }
 
     .metric-card:hover {
       transform: translateY(-2px) !important;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
     }
 
     /* Universal Responsive Tables */
@@ -696,7 +805,7 @@ if (function_exists('init_session')) {
       background: #ffffff !important;
       border: 1px solid #e2e8f0 !important;
       border-radius: 10px !important;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.03) !important;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
       overflow-x: auto !important;
       -webkit-overflow-scrolling: touch !important;
       margin-bottom: 1.5rem !important;
@@ -740,7 +849,9 @@ if (function_exists('init_session')) {
     }
 
     /* Forms */
-    input, select, textarea {
+    input,
+    select,
+    textarea {
       font-family: inherit !important;
       font-size: 0.88rem !important;
     }
@@ -758,13 +869,17 @@ if (function_exists('init_session')) {
       color-scheme: light !important;
     }
 
-    input[type="date"], input[type="time"], input[type="datetime-local"] {
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"] {
       color-scheme: light !important;
       background: #ffffff !important;
       color: #0f172a !important;
     }
 
-    input:focus, select:focus, textarea:focus {
+    input:focus,
+    select:focus,
+    textarea:focus {
       border-color: #0f766e !important;
       outline: none !important;
       box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15) !important;
@@ -885,7 +1000,7 @@ if (function_exists('init_session')) {
       background-color: #ffffff !important;
       border: 1px solid #cbd5e1 !important;
       color: #334155 !important;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
     }
 
     button.secondary:hover,
@@ -913,7 +1028,7 @@ if (function_exists('init_session')) {
       background-color: #f0fdfa !important;
       color: #115e59 !important;
       border-color: #f0fdfa !important;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
     }
 
     /* Full-width utility when explicitly needed */
@@ -927,6 +1042,7 @@ if (function_exists('init_session')) {
        MOBILE RESPONSIVENESS OVERRIDES (< 900px)
        ========================================================================== */
     @media (max-width: 900px) {
+
       /* Show hamburger toggle for public visitors */
       .public-mobile-toggle {
         display: flex !important;
@@ -952,7 +1068,7 @@ if (function_exists('init_session')) {
         max-width: 85vw !important;
         z-index: 1050 !important;
         transform: translateX(-100%) !important;
-        box-shadow: 4px 0 25px rgba(0,0,0,0.4) !important;
+        box-shadow: 4px 0 25px rgba(0, 0, 0, 0.4) !important;
         border-right: none !important;
       }
 
@@ -967,7 +1083,8 @@ if (function_exists('init_session')) {
       }
 
       /* Modals */
-      dialog article, .modal-dialog {
+      dialog article,
+      .modal-dialog {
         width: 95vw !important;
         max-width: 95vw !important;
         padding: 1.25rem 1rem !important;
@@ -993,6 +1110,7 @@ if (function_exists('init_session')) {
       .topbar-container {
         padding: 0 0.75rem 0 0.5rem;
       }
+
       .content-pane {
         padding: 1rem 0.75rem !important;
       }
@@ -1000,7 +1118,7 @@ if (function_exists('init_session')) {
   </style>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
         for (let registration of registrations) {
           registration.unregister();
         }
@@ -1008,6 +1126,7 @@ if (function_exists('init_session')) {
     }
   </script>
 </head>
+
 <body>
   <?php $authUser = auth_user(); ?>
   <header class="app-topbar">
@@ -1015,7 +1134,8 @@ if (function_exists('init_session')) {
       <div class="topbar-left">
         <?php if ($authUser): ?>
           <!-- Universal Sidebar Toggle for Authenticated Users -->
-          <button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle Sidebar" onclick="toggleMwalimuSidebar()">
+          <button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle Sidebar"
+            onclick="toggleMwalimuSidebar()">
             <i class="fa-solid fa-bars-staggered" id="sidebarToggleIcon"></i>
           </button>
         <?php endif; ?>
@@ -1044,11 +1164,27 @@ if (function_exists('init_session')) {
             <li><a href="/school/search-candidates"><i class="fa fa-search"></i> <span>Candidates</span></a></li>
           <?php endif; ?>
 
+          <li><a href="/forum"><i class="fa fa-comments"></i> <span>Forum</span></a></li>
+          <?php
+          $topNavUnread = ($isLoggedIn && function_exists('get_unread_message_count')) ? get_unread_message_count($authUser['user_id'] ?? 0, $authUser['role'] ?? '') : 0;
+          ?>
+          <li>
+            <a href="/messages">
+              <i class="fa fa-envelope"></i> <span>Messages</span>
+              <?php if ($topNavUnread > 0): ?>
+                <span
+                  style="background: #0f766e; color: white; font-size: 0.65rem; font-weight: 800; padding: 1px 6px; border-radius: 10px; margin-left: 2px;">
+                  <?= $topNavUnread ?>
+                </span>
+              <?php endif; ?>
+            </a>
+          </li>
           <li><a href="/publications"><i class="fa fa-file-lines"></i> <span>Publications</span></a></li>
 
           <!-- Resources Dropdown -->
           <li class="top-dropdown">
-            <a href="#"><i class="fa fa-book-open"></i> Resources <i class="fa fa-chevron-down" style="font-size: 10px; margin-left: 2px;"></i></a>
+            <a href="#"><i class="fa fa-book-open"></i> Resources <i class="fa fa-chevron-down"
+                style="font-size: 10px; margin-left: 2px;"></i></a>
             <div class="top-dropdown-menu">
               <a href="/about"><i class="fa fa-info-circle"></i> About MwalimuLink</a>
               <a href="/contacts"><i class="fa fa-envelope"></i> Contact Support</a>
@@ -1061,8 +1197,10 @@ if (function_exists('init_session')) {
 
           <!-- Account Dropdown -->
           <li class="top-dropdown account-menu-item">
-            <a href="#" style="background: #1e293b; color: #ffffff !important; border: 1px solid #334155; border-radius: 6px;">
-              <i class="fa fa-user-circle" style="color: #2dd4bf;"></i> <?= h($authUser['name']) ?> <i class="fa fa-chevron-down" style="font-size: 10px; margin-left: 4px;"></i>
+            <a href="#"
+              style="background: #1e293b; color: #ffffff !important; border: 1px solid #334155; border-radius: 6px;">
+              <i class="fa fa-user-circle" style="color: #2dd4bf;"></i> <?= h($authUser['name']) ?> <i
+                class="fa fa-chevron-down" style="font-size: 10px; margin-left: 4px;"></i>
             </a>
             <div class="top-dropdown-menu">
               <a href="<?= $dashRoute ?>"><i class="fa fa-home"></i> Portal Home</a>
@@ -1081,12 +1219,14 @@ if (function_exists('init_session')) {
         <!-- Public Desktop Nav -->
         <ul class="topbar-nav public-nav-desktop">
           <li><a href="/"><i class="fa fa-home"></i> Home</a></li>
+          <li><a href="/forum"><i class="fa fa-comments"></i> Forum</a></li>
           <li><a href="/about"><i class="fa fa-info-circle"></i> About</a></li>
           <li><a href="/publications"><i class="fa fa-file-lines"></i> Publications</a></li>
           <li><a href="/contacts"><i class="fa fa-envelope"></i> Contact</a></li>
-          
+
           <li class="top-dropdown">
-            <a href="#"><i class="fa fa-school"></i> Schools <i class="fa fa-chevron-down" style="font-size: 10px;"></i></a>
+            <a href="#"><i class="fa fa-school"></i> Schools <i class="fa fa-chevron-down"
+                style="font-size: 10px;"></i></a>
             <div class="top-dropdown-menu">
               <a href="/schools/public"><i class="fa fa-landmark"></i> Public Schools</a>
               <a href="/schools/private"><i class="fa fa-building"></i> Private Academies</a>
@@ -1097,7 +1237,8 @@ if (function_exists('init_session')) {
           </li>
 
           <li class="top-dropdown">
-            <a href="#"><i class="fa fa-graduation-cap"></i> Teachers <i class="fa fa-chevron-down" style="font-size: 10px;"></i></a>
+            <a href="#"><i class="fa fa-graduation-cap"></i> Teachers <i class="fa fa-chevron-down"
+                style="font-size: 10px;"></i></a>
             <div class="top-dropdown-menu">
               <a href="/register/teacher"><i class="fa fa-user-plus"></i> Register Free</a>
               <a href="/login/teacher"><i class="fa fa-sign-in-alt"></i> Teacher Login</a>
@@ -1106,7 +1247,8 @@ if (function_exists('init_session')) {
           </li>
 
           <li class="top-dropdown">
-            <a href="#"><i class="fa fa-book-open"></i> Resources <i class="fa fa-chevron-down" style="font-size: 10px;"></i></a>
+            <a href="#"><i class="fa fa-book-open"></i> Resources <i class="fa fa-chevron-down"
+                style="font-size: 10px;"></i></a>
             <div class="top-dropdown-menu">
               <a href="/faqs"><i class="fa fa-question-circle"></i> Educator FAQs</a>
               <a href="/faqs-overseas"><i class="fa fa-plane"></i> Teaching Overseas FAQ</a>
@@ -1133,7 +1275,7 @@ if (function_exists('init_session')) {
   <?php if ($authUser): ?>
     <!-- Universal Backdrop Overlay for Workspace Mobile Drawer & Standalone Offcanvas -->
     <div id="mwalimuDrawerOverlay" class="sidebar-drawer-overlay" onclick="closeMwalimuDrawer()"></div>
-    
+
     <!-- Off-Canvas Sidebar Drawer for Standalone Pages -->
     <div id="mwalimuOffcanvasDrawer" class="sidebar-offcanvas-pane">
       <?php include __DIR__ . '/views/partials/sidebar.php'; ?>
@@ -1142,45 +1284,62 @@ if (function_exists('init_session')) {
     <!-- Public Guest Mobile Drawer & Overlay -->
     <div id="mwalimuPublicOverlay" class="mobile-nav-overlay" onclick="closePublicMobileNav()"></div>
     <div id="mwalimuPublicDrawer" class="public-mobile-drawer">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 0.75rem;">
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 0.75rem;">
         <span style="color: #2dd4bf; font-weight: 800; font-size: 1rem;">MwalimuLink Navigation</span>
-        <button type="button" onclick="closePublicMobileNav()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer;">
+        <button type="button" onclick="closePublicMobileNav()"
+          style="background: transparent; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer;">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
       <div class="public-drawer-section">
         <a href="/" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-home"></i> Home</a>
-        <a href="/about" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-info-circle"></i> About MwalimuLink</a>
-        <a href="/publications" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-file-lines"></i> Publications Hub</a>
-        <a href="/contacts" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-envelope"></i> Contact Us</a>
+        <a href="/about" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-info-circle"></i>
+          About MwalimuLink</a>
+        <a href="/publications" class="public-drawer-link" onclick="closePublicMobileNav()"><i
+            class="fa fa-file-lines"></i> Publications Hub</a>
+        <a href="/contacts" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-envelope"></i>
+          Contact Us</a>
       </div>
 
       <div class="public-drawer-section">
         <div class="public-drawer-title">Schools Directory</div>
-        <a href="/schools/public" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-landmark"></i> Public Schools</a>
-        <a href="/schools/private" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-building"></i> Private Academies</a>
-        <a href="/schools/international" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-globe"></i> International Schools</a>
-        <a href="/register/school" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-school"></i> Register Institution</a>
+        <a href="/schools/public" class="public-drawer-link" onclick="closePublicMobileNav()"><i
+            class="fa fa-landmark"></i> Public Schools</a>
+        <a href="/schools/private" class="public-drawer-link" onclick="closePublicMobileNav()"><i
+            class="fa fa-building"></i> Private Academies</a>
+        <a href="/schools/international" class="public-drawer-link" onclick="closePublicMobileNav()"><i
+            class="fa fa-globe"></i> International Schools</a>
+        <a href="/register/school" class="public-drawer-link" onclick="closePublicMobileNav()"><i
+            class="fa fa-school"></i> Register Institution</a>
       </div>
 
       <div class="public-drawer-section">
         <div class="public-drawer-title">Educators Hub</div>
-        <a href="/register/teacher" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-user-plus"></i> Register as Teacher (Free)</a>
-        <a href="/login/teacher" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-graduation-cap"></i> Teacher Login</a>
-        <a href="/tp-hub" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-award"></i> Teaching Practice (TP) Hub</a>
+        <a href="/register/teacher" class="public-drawer-link" onclick="closePublicMobileNav()"><i
+            class="fa fa-user-plus"></i> Register as Teacher (Free)</a>
+        <a href="/login/teacher" class="public-drawer-link" onclick="closePublicMobileNav()"><i
+            class="fa fa-graduation-cap"></i> Teacher Login</a>
+        <a href="/tp-hub" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-award"></i> Teaching
+          Practice (TP) Hub</a>
       </div>
 
       <div class="public-drawer-section">
         <div class="public-drawer-title">Resources & Legal</div>
-        <a href="/faqs" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-question-circle"></i> Educator FAQs</a>
-        <a href="/faqs-overseas" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-plane"></i> Teaching Overseas FAQ</a>
-        <a href="/privacy" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-shield-alt"></i> Privacy Policy</a>
-        <a href="/terms" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-file-contract"></i> Terms of Service</a>
+        <a href="/faqs" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-question-circle"></i>
+          Educator FAQs</a>
+        <a href="/faqs-overseas" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-plane"></i>
+          Teaching Overseas FAQ</a>
+        <a href="/privacy" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-shield-alt"></i>
+          Privacy Policy</a>
+        <a href="/terms" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-file-contract"></i>
+          Terms of Service</a>
       </div>
 
       <div style="border-top: 1px solid #1e293b; padding-top: 1rem; display: flex; flex-direction: column; gap: 8px;">
-        <a href="/login" class="btn-primary" style="width: 100%; text-align: center; justify-content: center; padding: 10px; font-weight: 700;">
+        <a href="/login" class="btn-primary"
+          style="width: 100%; text-align: center; justify-content: center; padding: 10px; font-weight: 700;">
           <i class="fa fa-sign-in-alt"></i> Member Sign In
         </a>
       </div>
@@ -1260,18 +1419,18 @@ if (function_exists('init_session')) {
       if (overlay) overlay.classList.remove('active');
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       initSidebarState();
 
       // Click/Tap toggle for top navigation dropdowns
-      document.querySelectorAll('.top-dropdown > a').forEach(function(trigger) {
-        trigger.addEventListener('click', function(e) {
+      document.querySelectorAll('.top-dropdown > a').forEach(function (trigger) {
+        trigger.addEventListener('click', function (e) {
           e.preventDefault();
           const parent = trigger.closest('.top-dropdown');
           const isAlreadyOpen = parent.classList.contains('open');
-          
+
           // Close all other dropdowns
-          document.querySelectorAll('.top-dropdown.open').forEach(function(d) {
+          document.querySelectorAll('.top-dropdown.open').forEach(function (d) {
             d.classList.remove('open');
           });
 
@@ -1282,16 +1441,16 @@ if (function_exists('init_session')) {
       });
 
       // Dismiss open dropdowns when clicking outside
-      document.addEventListener('click', function(e) {
+      document.addEventListener('click', function (e) {
         if (!e.target.closest('.top-dropdown')) {
-          document.querySelectorAll('.top-dropdown.open').forEach(function(d) {
+          document.querySelectorAll('.top-dropdown.open').forEach(function (d) {
             d.classList.remove('open');
           });
         }
       });
     });
 
-    window.addEventListener('resize', function() {
+    window.addEventListener('resize', function () {
       if (window.innerWidth > 900) {
         closeMwalimuDrawer();
         closePublicMobileNav();

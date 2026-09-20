@@ -89,6 +89,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // 5. Privacy & Forum Settings
+        if (in_array($section, ['all', 'privacy'])) {
+            $teacher->profile_visibility = trim($_POST['profile_visibility'] ?? ($teacher->profile_visibility ?? 'schools_only'));
+            $teacher->forum_alias = trim($_POST['forum_alias'] ?? ($teacher->forum_alias ?? ''));
+            $teacher->allow_direct_messages = isset($_POST['allow_direct_messages']) ? 1 : 0;
+            $msg = "Privacy and communication settings updated successfully.";
+        }
+
         // 5. Safeguarding & Good Conduct
         if (in_array($section, ['all', 'compliance'])) {
             // Handle Reset Clearance action
@@ -236,6 +244,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button type="button" class="tab-btn" onclick="switchSection('security', this)"
                     style="background: transparent; border: none; border-bottom: 3px solid transparent; color: #64748b; font-weight: 600; font-size: 0.9rem; padding: 10px 16px; border-radius: 0; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; margin-bottom: -2px;">
                     <i class="fa fa-lock"></i> 5. Status & Security
+                </button>
+                <button type="button" class="tab-btn" onclick="switchSection('privacy', this)"
+                    style="background: transparent; border: none; border-bottom: 3px solid transparent; color: #64748b; font-weight: 600; font-size: 0.9rem; padding: 10px 16px; border-radius: 0; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; margin-bottom: -2px;">
+                    <i class="fa fa-user-shield"></i> 6. Privacy & Forum
                 </button>
             </div>
 
@@ -874,6 +886,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 password containing letters and numbers.</span>
                             <button type="submit" class="btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">
                                 <i class="fa fa-save"></i> Save Status & Security
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TAB PANE 6: Privacy & Forum Settings -->
+            <div id="section-privacy" class="profile-tab-pane" style="display: none;">
+                <div
+                    style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <form method="POST" action="/teacher/update" style="margin: 0;">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="section" value="privacy">
+
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
+                            <div>
+                                <h3 style="margin: 0; font-size: 1.2rem; color: #0f172a;">Privacy & Forum Settings</h3>
+                                <p style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;">Control your profile
+                                    visibility to peers and customize your community discussion identity.</p>
+                            </div>
+                            <span
+                                style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 4px;">Step
+                                6 of 6</span>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <div>
+                                <label
+                                    style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">Profile
+                                    Visibility</label>
+                                <select name="profile_visibility"
+                                    style="width: 100%; box-sizing: border-box; background: white; margin: 0;">
+                                    <option value="schools_only" <?= (($teacher->profile_visibility ?? 'schools_only') === 'schools_only') ? 'selected' : '' ?>>
+                                        Verified Recruiting Schools Only (Recommended)
+                                    </option>
+                                    <option value="private" <?= (($teacher->profile_visibility ?? '') === 'private') ? 'selected' : '' ?>>
+                                        Strictly Private (Hidden from Directory & Peers)
+                                    </option>
+                                    <option value="public" <?= (($teacher->profile_visibility ?? '') === 'public') ? 'selected' : '' ?>>
+                                        Public (Open to All Educators & Schools)
+                                    </option>
+                                </select>
+                                <span style="font-size: 0.75rem; color: #64748b; margin-top: 4px; display: block;">
+                                    When set to "Schools Only", other teachers on the forum cannot view your personal
+                                    phone, email, or TSC registration.
+                                </span>
+                            </div>
+
+                            <div>
+                                <label
+                                    style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">Forum
+                                    Display Alias (Optional)</label>
+                                <input type="text" name="forum_alias" value="<?= h($teacher->forum_alias ?? '') ?>"
+                                    placeholder="e.g. MwalimuPhys or Teacher_John"
+                                    style="width: 100%; box-sizing: border-box; margin: 0;">
+                                <span style="font-size: 0.75rem; color: #64748b; margin-top: 4px; display: block;">
+                                    Leave blank to use your standard name (<?= h($teacher->name) ?>) in forum threads.
+                                </span>
+                            </div>
+                        </div>
+
+                        <div
+                            style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
+                            <label
+                                style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; margin: 0;">
+                                <input type="checkbox" name="allow_direct_messages" value="1"
+                                    <?= (!isset($teacher->allow_direct_messages) || $teacher->allow_direct_messages) ? 'checked' : '' ?> style="margin-top: 2px;">
+                                <div>
+                                    <strong style="font-size: 0.88rem; color: #0f172a; display: block;">Allow Direct
+                                        Messages from Other Educators</strong>
+                                    <span style="font-size: 0.8rem; color: #64748b; line-height: 1.4; display: block;">
+                                        Enables fellow teachers to message you securely via MwalimuLink internal inbox
+                                        (without revealing your phone or email).
+                                    </span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div
+                            style="border-top: 1px solid #f1f5f9; padding-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <span style="font-size: 0.82rem; color: #94a3b8;"><i class="fa fa-shield-halved"></i> Your
+                                contact privacy is always protected.</span>
+                            <button type="submit" class="btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">
+                                <i class="fa fa-save"></i> Save Privacy Settings
                             </button>
                         </div>
                     </form>

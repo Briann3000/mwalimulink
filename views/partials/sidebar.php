@@ -97,6 +97,26 @@ $isActive = function ($path) use ($currentUri) {
         </a>
     <?php endif; ?>
 
+    <div class="sidebar-section-title">Community</div>
+    <a href="/forum" class="sidebar-item-link <?= ($isActive('forum') && !$isActive('admin/forum')) ? 'active' : '' ?>">
+        <i class="fa fa-comments"></i> <span>Teachers Forum</span>
+    </a>
+    <?php
+    $unreadMsgs = get_unread_message_count($authUser['user_id'] ?? 0, $role);
+    ?>
+    <a href="/messages" class="sidebar-item-link <?= $isActive('messages') ?>">
+        <i class="fa fa-envelope"></i> <span>Messages</span>
+        <?php if ($unreadMsgs > 0): ?>
+            <span
+                style="background: #0f766e; color: white; font-size: 0.7rem; font-weight: 800; padding: 2px 7px; border-radius: 10px; margin-left: auto;"><?= $unreadMsgs ?></span>
+        <?php endif; ?>
+    </a>
+    <?php if ($role === 'admin'): ?>
+        <a href="/admin/forum" class="sidebar-item-link <?= $isActive('admin/forum') ?>">
+            <i class="fa fa-shield-halved"></i> <span>Forum Moderation</span>
+        </a>
+    <?php endif; ?>
+
     <div class="sidebar-section-title">School Directories</div>
     <a href="/schools/public" class="sidebar-item-link <?= $isActive('schools/public') ?>">
         <i class="fa fa-landmark"></i> <span>Public Schools</span>
