@@ -158,12 +158,19 @@ $modernRoutes = [
     'school/staff' => 'views/school_staff.php',
     'school/post-job' => 'views/school_post_job.php',
     'school/search-candidates' => 'views/school_search_candidate.php',
+    // Payments & Subscriptions
+    'schools/pay' => 'views/pay_directory_access.php',
+    'directory/pay' => 'views/pay_directory_access.php',
+    'payment/callback' => 'views/payment_callback.php',
     'school/subscribe' => 'views/school_subscribe.php',
     'school/pay' => 'views/pay_subscription.php',
     'school/callback' => 'views/subscription_callback.php',
     'staff-invitation' => 'views/staff_invitation.php',
 
     // API & Webhooks
+    'api/init-payment' => 'views/api_init_payment.php',
+    'api/check-payment-status' => 'views/api_check_payment_status.php',
+    'api/intasend-webhook' => 'views/api_intasend_webhook.php',
     'api/verification-callback' => 'views/api_verification_webhook.php',
     'api/cv-polish' => 'views/api_cv_polish.php',
     'api/verify-tsc' => 'views/api_verify_tsc.php',
@@ -177,6 +184,8 @@ $modernRoutes = [
     'admin/publications' => 'views/blog_admin.php',
     'admin/audit' => 'views/admin_audit.php',
     'admin/audit-logs' => 'views/admin_audit.php',
+    'admin/pricing' => 'views/admin_pricing.php',
+    'admin/settings' => 'views/admin_pricing.php',
 
     // School Directories
     'schools/public' => 'views/public_school_search.php',

@@ -3,6 +3,10 @@
 
 $message = '';
 $showForm = true;
+$redirect = trim($_GET['redirect'] ?? ($_POST['redirect'] ?? ''));
+if (!empty($redirect) && (!str_starts_with($redirect, '/') || str_starts_with($redirect, '//'))) {
+    $redirect = '';
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     validate_csrf();
@@ -93,8 +97,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
 
-                    $message = '🎉 Registration successful! Thank you for registering on MwalimuLink&trade;. <a href="/login/teacher">Click here to Login</a>.';
-                    $showForm = false;
+                    auth_login($teacher, 'teacher');
+                    $dest = !empty($redirect) ? $redirect : '/teacher/dashboard?welcome=1';
+                    header("Location: $dest");
+                    exit();
                 }
             }
         }
@@ -143,8 +149,10 @@ $prefilledEmail = trim($_GET['email'] ?? ($_POST['email'] ?? ''));
             <?= csrf_field() ?>
             <?php if (!empty($inviteToken)): ?>
                 <input type="hidden" name="invite_token" value="<?= h($inviteToken) ?>">
-                <div style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 10px 14px; border-radius: 6px; margin-bottom: 1.25rem; font-size: 0.85rem;">
-                    <i class="fa fa-info-circle"></i> You are accepting an institution faculty appointment. Registering will connect you automatically to your school.
+                <div
+                    style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 10px 14px; border-radius: 6px; margin-bottom: 1.25rem; font-size: 0.85rem;">
+                    <i class="fa fa-info-circle"></i> You are accepting an institution faculty appointment. Registering will
+                    connect you automatically to your school.
                 </div>
             <?php endif; ?>
 
@@ -336,8 +344,8 @@ $prefilledEmail = trim($_GET['email'] ?? ($_POST['email'] ?? ''));
                 </div>
             </div>
 
-            <p style="text-align: center; margin-top: 1.5rem;">Already registered? <a
-                    href="/login/teacher">Login here</a></p>
+            <p style="text-align: center; margin-top: 1.5rem;">Already registered? <a href="/login/teacher">Login here</a>
+            </p>
         </form>
     <?php endif; ?>
 

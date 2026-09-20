@@ -1,7 +1,8 @@
 <?php
 // config.php - Application Configuration and Environment Loader
 
-function env($key, $default = null) {
+function env($key, $default = null)
+{
     static $env = null;
     if ($env === null) {
         $env = [];
@@ -10,7 +11,8 @@ function env($key, $default = null) {
             $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
             foreach ($lines as $line) {
                 $line = trim($line);
-                if (empty($line) || str_starts_with($line, '#')) continue;
+                if (empty($line) || str_starts_with($line, '#'))
+                    continue;
                 if (strpos($line, '=') !== false) {
                     list($name, $value) = explode('=', $line, 2);
                     $name = trim($name);
@@ -24,7 +26,8 @@ function env($key, $default = null) {
 }
 
 if (!function_exists('h')) {
-    function h($str) {
+    function h($str)
+    {
         return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
     }
 }
@@ -33,7 +36,8 @@ if (!function_exists('h')) {
 // Session & Authentication Helper Functions
 // -------------------------------------------------------------------
 
-function init_session() {
+function init_session()
+{
     if (session_status() === PHP_SESSION_NONE) {
         if (!headers_sent()) {
             $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
@@ -52,7 +56,8 @@ function init_session() {
     }
 }
 
-function auth_login($user, $role) {
+function auth_login($user, $role)
+{
     init_session();
     if (session_status() === PHP_SESSION_ACTIVE && !headers_sent()) {
         @session_regenerate_id(true); // Prevent session fixation
@@ -67,14 +72,20 @@ function auth_login($user, $role) {
     ];
 }
 
-function auth_logout() {
+function auth_logout()
+{
     init_session();
     $_SESSION = [];
     if (!headers_sent() && ini_get("session.use_cookies")) {
         $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000,
-            $params["path"], $params["domain"],
-            $params["secure"], $params["httponly"]
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params["path"],
+            $params["domain"],
+            $params["secure"],
+            $params["httponly"]
         );
     }
     if (session_status() === PHP_SESSION_ACTIVE) {
@@ -82,22 +93,26 @@ function auth_logout() {
     }
 }
 
-function auth_user() {
+function auth_user()
+{
     init_session();
     return $_SESSION['auth'] ?? null;
 }
 
-function is_logged_in() {
+function is_logged_in()
+{
     init_session();
     return !empty($_SESSION['auth']['logged_in']);
 }
 
-function has_role($role) {
+function has_role($role)
+{
     init_session();
     return is_logged_in() && isset($_SESSION['auth']['role']) && $_SESSION['auth']['role'] === $role;
 }
 
-function require_auth($role = null) {
+function require_auth($role = null)
+{
     init_session();
     if (!is_logged_in()) {
         $loginRoute = ($role === 'school') ? '/login/school' : (($role === 'admin') ? '/login/admin' : '/login');
@@ -114,7 +129,8 @@ function require_auth($role = null) {
 // CSRF Protection Helpers
 // -------------------------------------------------------------------
 
-function csrf_token() {
+function csrf_token()
+{
     init_session();
     if (empty($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -122,12 +138,14 @@ function csrf_token() {
     return $_SESSION['csrf_token'];
 }
 
-function csrf_field() {
+function csrf_field()
+{
     $token = csrf_token();
     return '<input type="hidden" name="csrf_token" value="' . h($token) . '">';
 }
 
-function validate_csrf() {
+function validate_csrf()
+{
     init_session();
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $token = $_POST['csrf_token'] ?? '';
@@ -137,7 +155,8 @@ function validate_csrf() {
     }
 }
 
-function verify_csrf($token) {
+function verify_csrf($token)
+{
     init_session();
     if (empty($token) || empty($_SESSION['csrf_token'])) {
         return false;
@@ -149,20 +168,61 @@ function verify_csrf($token) {
 // Kenyan Geographic & Educational Metadata Helpers
 // -------------------------------------------------------------------
 
-function kenyan_counties() {
+function kenyan_counties()
+{
     return [
-        'Baringo', 'Bomet', 'Bungoma', 'Busia', 'Elgeyo Marakwet', 'Embu',
-        'Garissa', 'Homa Bay', 'Isiolo', 'Kajiado', 'Kakamega', 'Kericho',
-        'Kiambu', 'Kilifi', 'Kirinyaga', 'Kisii', 'Kisumu', 'Kitui',
-        'Kwale', 'Laikipia', 'Lamu', 'Machakos', 'Makueni', 'Mandera',
-        'Marsabit', 'Meru', 'Migori', 'Mombasa', 'Murang\'a', 'Nairobi',
-        'Nakuru', 'Nandi', 'Narok', 'Nyamira', 'Nyandarua', 'Nyeri',
-        'Samburu', 'Siaya', 'Taita Taveta', 'Tana River', 'Tharaka Nithi',
-        'Trans Nzoia', 'Turkana', 'Uasin Gishu', 'Vihiga', 'Wajir', 'West Pokot'
+        'Baringo',
+        'Bomet',
+        'Bungoma',
+        'Busia',
+        'Elgeyo Marakwet',
+        'Embu',
+        'Garissa',
+        'Homa Bay',
+        'Isiolo',
+        'Kajiado',
+        'Kakamega',
+        'Kericho',
+        'Kiambu',
+        'Kilifi',
+        'Kirinyaga',
+        'Kisii',
+        'Kisumu',
+        'Kitui',
+        'Kwale',
+        'Laikipia',
+        'Lamu',
+        'Machakos',
+        'Makueni',
+        'Mandera',
+        'Marsabit',
+        'Meru',
+        'Migori',
+        'Mombasa',
+        'Murang\'a',
+        'Nairobi',
+        'Nakuru',
+        'Nandi',
+        'Narok',
+        'Nyamira',
+        'Nyandarua',
+        'Nyeri',
+        'Samburu',
+        'Siaya',
+        'Taita Taveta',
+        'Tana River',
+        'Tharaka Nithi',
+        'Trans Nzoia',
+        'Turkana',
+        'Uasin Gishu',
+        'Vihiga',
+        'Wajir',
+        'West Pokot'
     ];
 }
 
-function kenyan_grade_levels() {
+function kenyan_grade_levels()
+{
     return [
         'ECDE / Kindergarten / Pre-Primary',
         'Primary School (CBC Grade 1 - 6)',
@@ -174,7 +234,8 @@ function kenyan_grade_levels() {
     ];
 }
 
-function kenyan_school_categories() {
+function kenyan_school_categories()
+{
     return [
         'Private Primary & Kindergarten',
         'Private Secondary School',
@@ -187,7 +248,8 @@ function kenyan_school_categories() {
     ];
 }
 
-function normalize_kenyan_phone($phone) {
+function normalize_kenyan_phone($phone)
+{
     $cleaned = preg_replace('/[^0-9]/', '', $phone);
     if (str_starts_with($cleaned, '0') && (strlen($cleaned) === 10)) {
         return '254' . substr($cleaned, 1);
@@ -201,8 +263,9 @@ function normalize_kenyan_phone($phone) {
     return null; // Invalid format
 }
 
-function validate_tsc_number($tsc) {
-    $tsc = trim((string)$tsc);
+function validate_tsc_number($tsc)
+{
+    $tsc = trim((string) $tsc);
     if (empty($tsc)) {
         return ['valid' => true, 'formatted' => null, 'is_registered' => false];
     }
@@ -222,7 +285,8 @@ function validate_tsc_number($tsc) {
  * - Strips any embedded executable signatures / double extensions
  * - Generates cryptographically safe random filename
  */
-function secure_validate_and_upload($fileArray, $targetDirRelative = 'uploads/documents/', $allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png'], $maxBytes = 5242880) {
+function secure_validate_and_upload($fileArray, $targetDirRelative = 'uploads/documents/', $allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png'], $maxBytes = 5242880)
+{
     if (!isset($fileArray['error']) || is_array($fileArray['error'])) {
         return ['success' => false, 'error' => 'Invalid file upload parameters.'];
     }
@@ -259,10 +323,10 @@ function secure_validate_and_upload($fileArray, $targetDirRelative = 'uploads/do
 
     // 3. MIME Type & Magic Bytes Verification (File Content Inspection)
     $allowedMimes = [
-        'pdf'  => ['application/pdf', 'application/x-pdf'],
-        'jpg'  => ['image/jpeg', 'image/pjpeg'],
+        'pdf' => ['application/pdf', 'application/x-pdf'],
+        'jpg' => ['image/jpeg', 'image/pjpeg'],
         'jpeg' => ['image/jpeg', 'image/pjpeg'],
-        'png'  => ['image/png', 'image/x-png']
+        'png' => ['image/png', 'image/x-png']
     ];
 
     if (function_exists('finfo_open')) {
@@ -313,8 +377,10 @@ function secure_validate_and_upload($fileArray, $targetDirRelative = 'uploads/do
 /**
  * Send official platform email notification via Resend API or SMTP
  */
-function send_system_email($toEmail, $toName, $subject, $htmlBody, $replyToEmail = null, $replyToName = null) {
-    if (empty($toEmail)) return false;
+function send_system_email($toEmail, $toName, $subject, $htmlBody, $replyToEmail = null, $replyToName = null)
+{
+    if (empty($toEmail))
+        return false;
 
     $resendApiKey = env('RESEND_API_KEY');
     $fromAddress = env('MAIL_FROM_ADDRESS', 'onboarding@resend.dev');
@@ -431,8 +497,10 @@ function send_system_email($toEmail, $toName, $subject, $htmlBody, $replyToEmail
 /**
  * Dispatch automatic, beautifully-styled email notification to teacher when background verification status updates
  */
-function send_verification_status_email($teacher, $status, $notes = '') {
-    if (empty($teacher->email)) return false;
+function send_verification_status_email($teacher, $status, $notes = '')
+{
+    if (empty($teacher->email))
+        return false;
 
     $appUrl = env('APP_URL', 'http://localhost:8000');
     $profileUrl = rtrim($appUrl, '/') . '/teacher/profile?id=' . $teacher->id;
@@ -532,8 +600,10 @@ function send_verification_status_email($teacher, $status, $notes = '') {
 /**
  * Dispatch notification email to school when an educator applies for a job
  */
-function send_job_application_notification_email($school, $job, $teacher, $application) {
-    if (empty($school->email)) return false;
+function send_job_application_notification_email($school, $job, $teacher, $application)
+{
+    if (empty($school->email))
+        return false;
 
     $appUrl = rtrim(env('APP_URL', 'http://localhost:8000'), '/');
     $applicantsUrl = "{$appUrl}/school/applicants?job_id=" . ($job->id ?? 0);
@@ -547,7 +617,7 @@ function send_job_application_notification_email($school, $job, $teacher, $appli
     $badgeColor = $isVerified ? '#166534' : '#854d0e';
     $badgeBg = $isVerified ? '#dcfce7' : '#fef9c3';
 
-    $pitchHtml = !empty($application->cover_note) 
+    $pitchHtml = !empty($application->cover_note)
         ? "<div style=\"background: #f8fafc; border-left: 4px solid #0f766e; padding: 12px 16px; margin: 16px 0; border-radius: 4px; font-style: italic; color: #334155; font-size: 0.9rem;\">
             \"" . nl2br(htmlspecialchars($application->cover_note)) . "\"
            </div>"
@@ -613,8 +683,10 @@ function send_job_application_notification_email($school, $job, $teacher, $appli
 /**
  * Dispatch notification email to teacher when a school sends a message or schedules an interview
  */
-function send_interview_invite_email($teacher, $school, $job, $messageContent, $interviewDate = null, $interviewLocation = null, $interviewFormat = 'in_person', $interviewVirtualLink = null) {
-    if (empty($teacher->email)) return false;
+function send_interview_invite_email($teacher, $school, $job, $messageContent, $interviewDate = null, $interviewLocation = null, $interviewFormat = 'in_person', $interviewVirtualLink = null)
+{
+    if (empty($teacher->email))
+        return false;
 
     $appUrl = rtrim(env('APP_URL', 'http://localhost:8000'), '/');
     $applicationsUrl = "{$appUrl}/teacher/applications";
@@ -625,7 +697,7 @@ function send_interview_invite_email($teacher, $school, $job, $messageContent, $
     $interviewScheduleHtml = "";
     if (!empty($interviewDate)) {
         $formattedDate = date('D, M d, Y \a\t h:i A', strtotime($interviewDate));
-        
+
         if ($interviewFormat === 'virtual' && !empty($interviewVirtualLink)) {
             $venueSection = "
             <p style=\"margin: 0 0 6px; font-size: 0.88rem; color: #1e3a8a;\"><strong>Mode:</strong> 🌐 Virtual / Online Meeting</p>
@@ -689,8 +761,10 @@ function send_interview_invite_email($teacher, $school, $job, $messageContent, $
 /**
  * Dispatch respectful regret notification email to applicant
  */
-function send_application_regret_email($teacher, $school, $job, $customMessage = null) {
-    if (empty($teacher->email)) return false;
+function send_application_regret_email($teacher, $school, $job, $customMessage = null)
+{
+    if (empty($teacher->email))
+        return false;
 
     $appUrl = rtrim(env('APP_URL', 'http://localhost:8000'), '/');
     $teacherName = $teacher->name ?: 'Educator';
@@ -732,8 +806,10 @@ function send_application_regret_email($teacher, $school, $job, $customMessage =
 /**
  * Dispatch notification email to school when an applicant replies to a message
  */
-function send_teacher_reply_email($school, $teacher, $job, $replyContent) {
-    if (empty($school->email)) return false;
+function send_teacher_reply_email($school, $teacher, $job, $replyContent)
+{
+    if (empty($school->email))
+        return false;
 
     $appUrl = rtrim(env('APP_URL', 'http://localhost:8000'), '/');
     $applicantsUrl = "{$appUrl}/school/applicants?job_id=" . ($job->id ?? 0);
@@ -777,8 +853,10 @@ function send_teacher_reply_email($school, $teacher, $job, $replyContent) {
 /**
  * Dispatch faculty appointment invitation email to teacher
  */
-function send_staff_invitation_email($school, $recipientEmail, $roleTitle, $employmentType, $token, $isExistingUser = false) {
-    if (empty($recipientEmail)) return false;
+function send_staff_invitation_email($school, $recipientEmail, $roleTitle, $employmentType, $token, $isExistingUser = false)
+{
+    if (empty($recipientEmail))
+        return false;
 
     $appUrl = rtrim(env('APP_URL', 'http://localhost:8000'), '/');
     $schoolName = $school->name ?: 'School Administration';
@@ -847,9 +925,11 @@ function send_staff_invitation_email($school, $recipientEmail, $roleTitle, $empl
  * @param string $notes
  * @return bool
  */
-function log_admin_audit($category, $actionType, $targetType, $targetId, $targetName, $details, $notes = '') {
+function log_admin_audit($category, $actionType, $targetType, $targetId, $targetName, $details, $notes = '')
+{
     try {
-        if (!class_exists('R')) return false;
+        if (!class_exists('R'))
+            return false;
         $user = auth_user();
         $actorEmail = $user['email'] ?? 'System / Automated Engine';
         $actorRole = $user['role'] ?? 'system';
@@ -860,9 +940,9 @@ function log_admin_audit($category, $actionType, $targetType, $targetId, $target
         $audit->action_type = $actionType;
         $audit->target_type = $targetType;
         $audit->target_id = intval($targetId);
-        $audit->target_name = (string)$targetName;
-        $audit->details = (string)$details;
-        $audit->notes = (string)$notes;
+        $audit->target_name = (string) $targetName;
+        $audit->details = (string) $details;
+        $audit->notes = (string) $notes;
         $audit->actor_email = $actorEmail;
         $audit->actor_role = $actorRole;
         $audit->ip_address = $ip;
@@ -873,6 +953,258 @@ function log_admin_audit($category, $actionType, $targetType, $targetId, $target
         return false;
     }
 }
+
+// -------------------------------------------------------------------
+// System Settings & Commercial Pricing Engine
+// -------------------------------------------------------------------
+
+$GLOBALS['_MWALIMU_SETTINGS_CACHE'] = [];
+
+/**
+ * Retrieve a system setting from database with in-memory caching and safe fallback default.
+ *
+ * @param string $key
+ * @param mixed $default
+ * @return mixed
+ */
+function get_setting($key, $default = null)
+{
+    global $_MWALIMU_SETTINGS_CACHE;
+    $key = trim((string) $key);
+    if (isset($_MWALIMU_SETTINGS_CACHE[$key])) {
+        return $_MWALIMU_SETTINGS_CACHE[$key];
+    }
+
+    try {
+        if (class_exists('R') && R::testConnection()) {
+            $setting = R::findOne('systemsetting', 'setting_key = ?', [$key]);
+            if ($setting && $setting->id && $setting->setting_value !== null) {
+                $_MWALIMU_SETTINGS_CACHE[$key] = $setting->setting_value;
+                return $setting->setting_value;
+            }
+        }
+    } catch (\Throwable $e) {
+        // Fallback to default
+    }
+
+    $_MWALIMU_SETTINGS_CACHE[$key] = $default;
+    return $default;
+}
+
+/**
+ * Set or update a system setting in the database with audit logging.
+ *
+ * @param string $key
+ * @param mixed $value
+ * @param string $description
+ * @param string|null $updatedBy
+ * @return bool
+ */
+function set_setting($key, $value, $description = '', $updatedBy = null)
+{
+    global $_MWALIMU_SETTINGS_CACHE;
+    $key = trim((string) $key);
+    $value = (string) $value;
+
+    try {
+        if (!class_exists('R') || !R::testConnection())
+            return false;
+
+        $setting = R::findOne('systemsetting', 'setting_key = ?', [$key]);
+        $oldValue = $setting ? $setting->setting_value : null;
+
+        if (!$setting) {
+            $setting = R::dispense('systemsetting');
+            $setting->setting_key = $key;
+            $setting->created_at = date('Y-m-d H:i:s');
+        }
+
+        $setting->setting_value = $value;
+        if (!empty($description)) {
+            $setting->description = $description;
+        }
+        $setting->updated_at = date('Y-m-d H:i:s');
+        $setting->updated_by = $updatedBy ?: (auth_user()['email'] ?? 'system');
+        R::store($setting);
+
+        $_MWALIMU_SETTINGS_CACHE[$key] = $value;
+
+        // Log setting change in admin audit log
+        if ($oldValue !== $value) {
+            log_admin_audit(
+                'pricing',
+                'SETTING_UPDATED',
+                'system',
+                $setting->id,
+                $key,
+                "Updated setting '{$key}' from '{$oldValue}' to '{$value}'",
+                $description
+            );
+        }
+
+        return true;
+    } catch (\Exception $e) {
+        error_log("Failed to set system setting '{$key}': " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Check if the currently authenticated user (or provided user) has active 1-year access to private & international school directories.
+ *
+ * @param array|null $user
+ * @return bool
+ */
+function has_directory_access($user = null)
+{
+    if ($user === null) {
+        $user = auth_user();
+    }
+    if (empty($user) || empty($user['logged_in'])) {
+        return false;
+    }
+
+    // 1. System administrators have full access
+    if (($user['role'] ?? '') === 'admin') {
+        return true;
+    }
+
+    // 2. School with an active pro subscription has full directory access
+    if (($user['role'] ?? '') === 'school') {
+        try {
+            if (class_exists('R')) {
+                $school = R::load('school', intval($user['user_id']));
+                if ($school->id && !empty($school->subscription_expiry)) {
+                    $expiry = new DateTime($school->subscription_expiry);
+                    if ($school->status === 'active' && $expiry >= new DateTime()) {
+                        return true;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // fallback
+        }
+    }
+
+    // 3. Check directoryaccess table
+    try {
+        if (class_exists('R')) {
+            $userId = intval($user['user_id'] ?? 0);
+            $userRole = (string) ($user['role'] ?? '');
+            $userEmail = strtolower(trim((string) ($user['email'] ?? '')));
+
+            $now = date('Y-m-d H:i:s');
+            $access = R::findOne(
+                'directoryaccess',
+                '((user_id = ? AND user_type = ?) OR (email = ? AND email != "")) AND status = "active" AND expires_at >= ?',
+                [$userId, $userRole, $userEmail, $now]
+            );
+
+            if ($access && $access->id) {
+                return true;
+            }
+        }
+    } catch (\Exception $e) {
+        error_log("Directory access check failed: " . $e->getMessage());
+    }
+
+    return false;
+}
+
+/**
+ * Grant or renew directory access for a user with dynamic duration.
+ *
+ * @param int $userId
+ * @param string $userType 'teacher'|'school'|'guest'
+ * @param string $email
+ * @param float $amount
+ * @param string $paymentRef
+ * @return bool
+ */
+function grant_directory_access($userId, $userType, $email, $amount = null, $paymentRef = '')
+{
+    try {
+        if (!class_exists('R'))
+            return false;
+
+        $userId = intval($userId);
+        $userType = trim($userType);
+        $email = strtolower(trim($email));
+        $effectiveAmount = $amount !== null ? floatval($amount) : floatval(get_setting('directory_fee', 100));
+
+        $access = R::findOne('directoryaccess', '(user_id = ? AND user_type = ?) OR (email = ? AND email != "")', [$userId, $userType, $email]);
+        if (!$access) {
+            $access = R::dispense('directoryaccess');
+            $access->user_id = $userId;
+            $access->user_type = $userType;
+            $access->email = $email;
+            $access->created_at = date('Y-m-d H:i:s');
+        }
+
+        // Extend or start expiry based on dynamic system setting
+        $durationMonths = intval(get_setting('directory_access_months', 12));
+        if ($durationMonths <= 0) {
+            $durationMonths = 12;
+        }
+
+        $now = new DateTime();
+        $startDate = $now;
+        if (!empty($access->expires_at)) {
+            try {
+                $currentExpiry = new DateTime($access->expires_at);
+                if ($currentExpiry > $now) {
+                    $startDate = $currentExpiry;
+                }
+            } catch (\Exception $e) {
+            }
+        }
+
+        $startDate->add(new DateInterval('P' . $durationMonths . 'M'));
+        $access->expires_at = $startDate->format('Y-m-d H:i:s');
+        $access->status = 'active';
+        $access->last_amount = $effectiveAmount;
+        $access->last_payment_ref = (string) $paymentRef;
+        $access->updated_at = date('Y-m-d H:i:s');
+
+        R::store($access);
+
+        log_admin_audit('payment', 'DIRECTORY_ACCESS_ACTIVATED', $userType, $userId, $email, "Unlocked {$durationMonths}-Month Directory Access via IntaSend (KES {$effectiveAmount}, Ref: {$paymentRef})");
+
+        return true;
+    } catch (\Exception $e) {
+        error_log("Failed to grant directory access: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Enforce directory access gating on a page.
+ * If guest: redirects to login/register with notice and redirect return URL.
+ * If logged in but unpaid: redirects to /schools/pay with target redirect.
+ *
+ * @param string|null $targetRedirect
+ */
+function require_directory_access($targetRedirect = null)
+{
+    init_session();
+
+    if (empty($targetRedirect)) {
+        $targetRedirect = $_SERVER['REQUEST_URI'] ?? '/schools/private';
+    }
+
+    if (!is_logged_in()) {
+        $loginUrl = '/login?redirect=' . urlencode($targetRedirect) . '&notice=auth_required';
+        header("Location: $loginUrl");
+        exit();
+    }
+
+    if (!has_directory_access()) {
+        $payUrl = '/schools/pay?redirect=' . urlencode($targetRedirect);
+        header("Location: $payUrl");
+        exit();
+    }
+}
+
 
 
 

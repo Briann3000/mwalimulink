@@ -1,5 +1,7 @@
 <?php
 // views/international_school_details.php - Transparent Discovery & Interactive Inquiry
+require_directory_access();
+
 $authUser = auth_user();
 
 $id = intval($_GET['id'] ?? 0);
@@ -66,10 +68,12 @@ $officialWebsiteUrl = !empty($rec->website) ? $rec->website : ('https://www.goog
 <div class="workspace-wrapper">
     <?php include __DIR__ . '/partials/sidebar.php'; ?>
 
-    <main class="content-pane" style="max-width: 1400px; width: 100%; margin: 0 auto; padding: 2rem 1.5rem; box-sizing: border-box;">
-        
+    <main class="content-pane"
+        style="max-width: 1400px; width: 100%; margin: 0 auto; padding: 2rem 1.5rem; box-sizing: border-box;">
+
         <!-- Breadcrumb & Top Actions -->
-        <div style="margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div
+            style="margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 8px; font-size: 0.84rem; color: #64748b;">
                 <a href="/schools/international" style="color: #0f766e; text-decoration: none; font-weight: 600;">
                     <i class="fa fa-arrow-left"></i> Back to International Schools
@@ -77,15 +81,17 @@ $officialWebsiteUrl = !empty($rec->website) ? $rec->website : ('https://www.goog
                 <span>/</span>
                 <span style="color: #94a3b8;"><?= h($rec->country ?: 'Global') ?></span>
             </div>
-            
+
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <!-- External Website Link -->
-                <a href="<?= h($officialWebsiteUrl) ?>" target="_blank" rel="noopener noreferrer" style="margin: 0 !important; height: 36px !important; padding: 0 14px !important; background: #ffffff !important; color: #0f766e !important; font-size: 0.82rem !important; font-weight: 600 !important; border-radius: 6px !important; text-decoration: none !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; border: 1px solid #cbd5e1 !important; box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important; box-sizing: border-box !important; line-height: 1 !important;">
+                <a href="<?= h($officialWebsiteUrl) ?>" target="_blank" rel="noopener noreferrer"
+                    style="margin: 0 !important; height: 36px !important; padding: 0 14px !important; background: #ffffff !important; color: #0f766e !important; font-size: 0.82rem !important; font-weight: 600 !important; border-radius: 6px !important; text-decoration: none !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; border: 1px solid #cbd5e1 !important; box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important; box-sizing: border-box !important; line-height: 1 !important;">
                     <i class="fa fa-external-link-alt" style="font-size: 0.75rem;"></i> Visit Official Website ↗
                 </a>
 
                 <!-- On-Page Inquiry Trigger -->
-                <button type="button" onclick="openInquiryModal()" style="margin: 0 !important; height: 36px !important; padding: 0 16px !important; background: #0f766e !important; color: #ffffff !important; font-size: 0.82rem !important; font-weight: 600 !important; border-radius: 6px !important; border: 1px solid #0f766e !important; cursor: pointer !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; box-shadow: 0 1px 2px rgba(15,118,110,0.2) !important; box-sizing: border-box !important; line-height: 1 !important;">
+                <button type="button" onclick="openInquiryModal()"
+                    style="margin: 0 !important; height: 36px !important; padding: 0 16px !important; background: #0f766e !important; color: #ffffff !important; font-size: 0.82rem !important; font-weight: 600 !important; border-radius: 6px !important; border: 1px solid #0f766e !important; cursor: pointer !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; box-shadow: 0 1px 2px rgba(15,118,110,0.2) !important; box-sizing: border-box !important; line-height: 1 !important;">
                     <i class="fa fa-envelope"></i> Inquire with MwalimuLink
                 </button>
             </div>
@@ -139,26 +145,32 @@ $officialWebsiteUrl = !empty($rec->website) ? $rec->website : ('https://www.goog
 
 
         <!-- 3-Card Interactive Info Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; align-items: stretch;">
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; align-items: stretch;">
 
             <!-- Card 1: School Specifications Table Card -->
             <div class="mwalimu-table-card" style="margin-bottom: 0; display: flex; flex-direction: column;">
-                <div style="padding: 1rem 1.25rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: 700; font-size: 0.9rem; color: #0f172a;">
+                <div
+                    style="padding: 1rem 1.25rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: 700; font-size: 0.9rem; color: #0f172a;">
                     <i class="fa fa-info-circle" style="color: #0f766e; margin-right: 6px;"></i> Institution Details
                 </div>
                 <table class="mwalimu-table" style="flex: 1;">
                     <tbody>
                         <tr>
-                            <th style="width: 35%; background: white !important; color: #64748b !important;">Institution Name</th>
+                            <th style="width: 35%; background: white !important; color: #64748b !important;">Institution
+                                Name</th>
                             <td style="font-weight: 600; color: #0f172a !important;"><?= h($rec->name) ?></td>
                         </tr>
                         <tr>
                             <th style="background: white !important; color: #64748b !important;">Category</th>
-                            <td><span style="background: #ede9fe; color: #6d28d9; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.75rem;">INTERNATIONAL</span></td>
+                            <td><span
+                                    style="background: #ede9fe; color: #6d28d9; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.75rem;">INTERNATIONAL</span>
+                            </td>
                         </tr>
                         <tr>
                             <th style="background: white !important; color: #64748b !important;">Country</th>
-                            <td style="font-weight: 600; color: #0f172a !important;"><?= h($rec->country ?: 'N/A') ?></td>
+                            <td style="font-weight: 600; color: #0f172a !important;"><?= h($rec->country ?: 'N/A') ?>
+                            </td>
                         </tr>
                         <tr>
                             <th style="background: white !important; color: #64748b !important;">City / Town</th>
@@ -171,7 +183,8 @@ $officialWebsiteUrl = !empty($rec->website) ? $rec->website : ('https://www.goog
                         <?php if (!empty($rec->website)): ?>
                             <tr>
                                 <th style="background: white !important; color: #64748b !important;">Website</th>
-                                <td><a href="<?= h($rec->website) ?>" target="_blank" rel="noopener noreferrer" style="color: #0f766e; font-weight: 600;"><?= h($rec->website) ?> ↗</a></td>
+                                <td><a href="<?= h($rec->website) ?>" target="_blank" rel="noopener noreferrer"
+                                        style="color: #0f766e; font-weight: 600;"><?= h($rec->website) ?> ↗</a></td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -179,20 +192,25 @@ $officialWebsiteUrl = !empty($rec->website) ? $rec->website : ('https://www.goog
             </div>
 
             <!-- Card 2: Global Career Support Card -->
-            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between;">
+            <div
+                style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
                     <h4 style="margin: 0 0 8px; font-size: 1rem; font-weight: 700; color: #0f172a;">
-                        <i class="fa fa-plane-departure" style="color: #0f766e; margin-right: 6px;"></i> Overseas Teaching Preparation
+                        <i class="fa fa-plane-departure" style="color: #0f766e; margin-right: 6px;"></i> Overseas
+                        Teaching Preparation
                     </h4>
                     <p style="font-size: 0.85rem; color: #64748b; line-height: 1.5; margin: 0 0 1.25rem;">
-                        Learn about international curriculum pathways (IB, Cambridge IGCSE, British, American), visa prerequisites, TSC attestation, and documentation needed to teach abroad.
+                        Learn about international curriculum pathways (IB, Cambridge IGCSE, British, American), visa
+                        prerequisites, TSC attestation, and documentation needed to teach abroad.
                     </p>
                 </div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <a href="/faqs-overseas" style="background: #f1f5f9; color: #0f766e; font-weight: 600; font-size: 0.82rem; padding: 8px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #e2e8f0;">
+                    <a href="/faqs-overseas"
+                        style="background: #f1f5f9; color: #0f766e; font-weight: 600; font-size: 0.82rem; padding: 8px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #e2e8f0;">
                         <i class="fa fa-book"></i> Overseas FAQs
                     </a>
-                    <button type="button" onclick="openInquiryModal()" style="margin: 0 !important; background: #0f766e; color: white !important; font-size: 0.82rem; font-weight: 600; padding: 8px 14px; border-radius: 6px; border: 1px solid #0f766e; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 1px 2px rgba(15,118,110,0.2);">
+                    <button type="button" onclick="openInquiryModal()"
+                        style="margin: 0 !important; background: #0f766e; color: white !important; font-size: 0.82rem; font-weight: 600; padding: 8px 14px; border-radius: 6px; border: 1px solid #0f766e; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 1px 2px rgba(15,118,110,0.2);">
                         <i class="fa fa-paper-plane"></i> Request Advisory
                     </button>
                 </div>
@@ -200,10 +218,12 @@ $officialWebsiteUrl = !empty($rec->website) ? $rec->website : ('https://www.goog
 
             <!-- Card 3: Geographic Location & Interactive Map Card -->
             <?php
-                $mapSearchQuery = urlencode(trim(($rec->name ?? '') . ' ' . ($rec->city ?? '') . ' ' . ($rec->country ?? '')));
+            $mapSearchQuery = urlencode(trim(($rec->name ?? '') . ' ' . ($rec->city ?? '') . ' ' . ($rec->country ?? '')));
             ?>
-            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: flex; flex-direction: column; min-height: 280px;">
-                <div style="padding: 0.85rem 1.25rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+            <div
+                style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: flex; flex-direction: column; min-height: 280px;">
+                <div
+                    style="padding: 0.85rem 1.25rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <span style="font-weight: 700; font-size: 0.9rem; color: #0f172a;">
                         <i class="fa fa-map-marked-alt" style="color: #0f766e; margin-right: 6px;"></i> Map Location
                     </span>
@@ -212,13 +232,8 @@ $officialWebsiteUrl = !empty($rec->website) ? $rec->website : ('https://www.goog
                     </span>
                 </div>
                 <div style="position: relative; width: 100%; flex: 1; min-height: 220px; background: #f1f5f9;">
-                    <iframe 
-                        width="100%" 
-                        height="100%" 
-                        style="border:0; width: 100%; height: 100%; min-height: 220px;" 
-                        loading="lazy" 
-                        allowfullscreen 
-                        referrerpolicy="no-referrer-when-downgrade" 
+                    <iframe width="100%" height="100%" style="border:0; width: 100%; height: 100%; min-height: 220px;"
+                        loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"
                         src="https://maps.google.com/maps?q=<?= $mapSearchQuery ?>&t=&z=13&ie=UTF8&iwloc=&output=embed">
                     </iframe>
                 </div>
@@ -240,7 +255,8 @@ $officialWebsiteUrl = !empty($rec->website) ? $rec->website : ('https://www.goog
                 <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #0f172a;">Inquire with MwalimuLink
                 </h3>
                 <p style="margin: 2px 0 0; font-size: 0.78rem; color: #64748b;">Regarding:
-                    <strong><?= h($rec->name) ?></strong></p>
+                    <strong><?= h($rec->name) ?></strong>
+                </p>
             </div>
             <button type="button" onclick="closeInquiryModal()"
                 style="background: transparent; border: none; font-size: 1.25rem; color: #94a3b8; cursor: pointer; padding: 4px 8px;">&times;</button>

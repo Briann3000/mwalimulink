@@ -83,10 +83,16 @@ $isActive = function ($path) use ($currentUri) {
         <a href="/admin/jobs" class="sidebar-item-link <?= $isActive('admin/jobs') ?>">
             <i class="fa fa-briefcase"></i> <span>Job Vacancies</span>
         </a>
-        <a href="/admin/publications" class="sidebar-item-link <?= ($isActive('admin/publications') || $isActive('blog/admin')) ? 'active' : '' ?>">
+        <a href="/admin/publications"
+            class="sidebar-item-link <?= ($isActive('admin/publications') || $isActive('blog/admin')) ? 'active' : '' ?>">
             <i class="fa fa-book-open"></i> <span>Manage Publications</span>
         </a>
-        <a href="/admin/audit" class="sidebar-item-link <?= ($isActive('admin/audit') || $isActive('admin/audit-logs')) ? 'active' : '' ?>">
+        <a href="/admin/pricing"
+            class="sidebar-item-link <?= ($isActive('admin/pricing') || $isActive('admin/settings')) ? 'active' : '' ?>">
+            <i class="fa fa-tags"></i> <span>Pricing & Settings</span>
+        </a>
+        <a href="/admin/audit"
+            class="sidebar-item-link <?= ($isActive('admin/audit') || $isActive('admin/audit-logs')) ? 'active' : '' ?>">
             <i class="fa fa-clipboard-list"></i> <span>Audit Trail</span>
         </a>
     <?php endif; ?>
