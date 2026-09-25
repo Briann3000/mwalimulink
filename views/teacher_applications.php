@@ -178,7 +178,10 @@ function get_stepper_state($currentStatus) {
                 <?php foreach ($applications as $app): ?>
                     <?php
                         $job = R::load('job', $app->job_id);
-                        $school = R::load('school', $job->school_id);
+                        $isExternal = ($job->source_type === 'external');
+                        $school = !$isExternal ? R::load('school', $job->school_id) : null;
+                        $schoolName = $isExternal ? ($job->company_name ?: ($job->source_name ?: 'Education Partner')) : ($school->name ?? 'Registered School');
+                        $schoolLocation = $isExternal ? ($job->location_text ?: 'Kenya') : ($school->county ?? 'Kenya');
                         $currStatus = $app->status ?: 'applied';
                         $stepper = get_stepper_state($currStatus);
                         $thread = R::find('applicationmessage', 'application_id = ? ORDER BY id ASC', [$app->id]);
@@ -190,10 +193,15 @@ function get_stepper_state($currentStatus) {
                             <div>
                                 <h3 style="margin: 0 0 4px; font-size: 1.2rem; color: #0f172a; font-weight: 800;">
                                     <?= h($job->title ?: 'Teaching Position') ?>
+                                    <?php if ($isExternal): ?>
+                                        <span style="font-size: 0.72rem; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 12px; font-weight: 700; margin-left: 6px;">
+                                            <i class="fa fa-paper-plane"></i> Direct Dispatch
+                                        </span>
+                                    <?php endif; ?>
                                 </h3>
                                 <p style="margin: 0; font-size: 0.85rem; color: #64748b;">
-                                    <i class="fa fa-school" style="color: #0f766e;"></i> <strong><?= h($school->name ?: 'Registered Institution') ?></strong> &bull; 
-                                    <i class="fa fa-map-marker-alt" style="color: #0f766e;"></i> <?= h($school->county ?: 'Kenya') ?>
+                                    <i class="fa fa-school" style="color: #0f766e;"></i> <strong><?= h($schoolName) ?></strong> &bull; 
+                                    <i class="fa fa-map-marker-alt" style="color: #0f766e;"></i> <?= h($schoolLocation) ?>
                                 </p>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px;">

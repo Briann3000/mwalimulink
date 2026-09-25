@@ -681,6 +681,98 @@ function send_job_application_notification_email($school, $job, $teacher, $appli
 }
 
 /**
+ * Dispatch application package email directly to external employer / school HR
+ */
+function send_external_job_dispatch_email($targetEmail, $companyName, $job, $teacher, $application)
+{
+    if (empty($targetEmail))
+        return false;
+
+    $appUrl = rtrim(env('APP_URL', 'http://localhost:8000'), '/');
+    $teacherProfileUrl = "{$appUrl}/teacher/profile?teacher_id=" . ($teacher->id ?? 0);
+    $companyName = $companyName ?: ($job->company_name ?: 'Hiring Team');
+    $teacherName = $teacher->name ?: 'Educator';
+    $jobTitle = $job->title ?: 'Teaching Position';
+
+    $isVerified = ($teacher->verification_status === 'verified');
+    $badgeText = $isVerified ? '✓ Verified Educator (TSC & Background Authenticated)' : 'MwalimuLink Registered Educator';
+    $badgeColor = $isVerified ? '#166534' : '#0369a1';
+    $badgeBg = $isVerified ? '#dcfce7' : '#e0f2fe';
+
+    $pitchHtml = !empty($application->cover_note)
+        ? "<div style=\"background: #f8fafc; border-left: 4px solid #0f766e; padding: 14px 18px; margin: 16px 0; border-radius: 4px; font-style: italic; color: #334155; font-size: 0.92rem; line-height: 1.6;\">
+            \"" . nl2br(htmlspecialchars($application->cover_note)) . "\"
+           </div>"
+        : "";
+
+    $salaryHtml = !empty($application->expected_salary)
+        ? "<tr><td style=\"padding: 6px 0; color: #64748b; font-size: 0.85rem;\">Expected Salary:</td><td style=\"padding: 6px 0; font-weight: 600; color: #0f172a;\">KES " . number_format($application->expected_salary) . " / mo</td></tr>"
+        : "";
+
+    $availHtml = !empty($application->available_from)
+        ? "<tr><td style=\"padding: 6px 0; color: #64748b; font-size: 0.85rem;\">Availability:</td><td style=\"padding: 6px 0; font-weight: 600; color: #0f172a;\">" . htmlspecialchars($application->available_from) . "</td></tr>"
+        : "";
+
+    $attachmentHtml = !empty($application->attachment_doc)
+        ? "<div style=\"margin-top: 14px; padding: 10px 14px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; font-size: 0.86rem; color: #065f46;\">
+            📎 <strong>Candidate Custom CV Attached:</strong> <a href=\"{$appUrl}/" . htmlspecialchars($application->attachment_doc) . "\" target=\"_blank\" style=\"color: #0f766e; font-weight: 700; text-decoration: underline;\">Download Uploaded CV</a>
+           </div>"
+        : "";
+
+    $subject = "Application for {$jobTitle}: {$teacherName} (MwalimuLink Verified Educator)";
+    $htmlBody = "
+    <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;\">
+        <div style=\"background: #0f766e; padding: 22px 28px; text-align: center;\">
+            <h1 style=\"color: #ffffff; margin: 0; font-size: 1.35rem; font-weight: 700;\">MwalimuLink Educator Application</h1>
+            <p style=\"color: #ccfbf1; margin: 4px 0 0; font-size: 0.84rem;\">Candidate Dispatch & Direct Application</p>
+        </div>
+
+        <div style=\"padding: 28px;\">
+            <h2 style=\"color: #0f172a; font-size: 1.25rem; margin: 0 0 10px;\">New Application for {$jobTitle}</h2>
+            <p style=\"color: #475569; font-size: 0.92rem; line-height: 1.5; margin: 0 0 16px;\">
+                Dear <strong>" . htmlspecialchars($companyName) . " Hiring Team</strong>,<br>
+                Please find below an official educator application submitted by <strong>" . htmlspecialchars($teacherName) . "</strong> via MwalimuLink.
+            </p>
+
+            <div style=\"display: inline-block; background: {$badgeBg}; color: {$badgeColor}; font-size: 0.78rem; font-weight: 800; padding: 4px 10px; border-radius: 16px; margin-bottom: 16px;\">
+                {$badgeText}
+            </div>
+
+            <div style=\"background: #f1f5f9; border-radius: 8px; padding: 18px; margin: 12px 0 20px;\">
+                <h4 style=\"margin: 0 0 12px; color: #0f172a; font-size: 1rem;\">Candidate Profile Snapshot: " . htmlspecialchars($teacherName) . "</h4>
+                <table style=\"width: 100%; font-size: 0.88rem;\">
+                    <tr><td style=\"width: 38%; padding: 4px 0; color: #64748b;\">Teaching Specialization:</td><td style=\"padding: 4px 0; font-weight: 600; color: #0f172a;\">" . htmlspecialchars($teacher->teaching_subjects ?: 'General') . "</td></tr>
+                    <tr><td style=\"padding: 4px 0; color: #64748b;\">Years of Experience:</td><td style=\"padding: 4px 0; font-weight: 600; color: #0f172a;\">" . intval($teacher->years_of_experience) . " Years</td></tr>
+                    <tr><td style=\"padding: 4px 0; color: #64748b;\">County / Base:</td><td style=\"padding: 4px 0; font-weight: 600; color: #0f172a;\">" . htmlspecialchars($teacher->county ?: 'Kenya') . "</td></tr>
+                    <tr><td style=\"padding: 4px 0; color: #64748b;\">Candidate Direct Email:</td><td style=\"padding: 4px 0; font-weight: 600; color: #0f766e;\">" . htmlspecialchars($teacher->email) . "</td></tr>
+                    {$salaryHtml}
+                    {$availHtml}
+                </table>
+                {$pitchHtml}
+                {$attachmentHtml}
+            </div>
+
+            <div style=\"text-align: center; margin: 26px 0 18px;\">
+                <a href=\"{$teacherProfileUrl}\" style=\"display: inline-block; background: #0f766e; color: #ffffff !important; font-weight: 700; font-size: 0.92rem; padding: 12px 28px; border-radius: 6px; text-decoration: none; box-shadow: 0 2px 4px rgba(15,118,110,0.2);\">
+                    View Complete Verified Educator Profile & CV →
+                </a>
+            </div>
+
+            <p style=\"font-size: 0.82rem; color: #64748b; text-align: center; margin: 0; line-height: 1.5;\">
+                💡 <em>You can reply directly to this email to contact <strong>" . htmlspecialchars($teacherName) . "</strong> (" . htmlspecialchars($teacher->email) . ").</em>
+            </p>
+        </div>
+
+        <div style=\"background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px 28px; text-align: center; font-size: 0.75rem; color: #94a3b8;\">
+            <p style=\"margin: 0;\">MwalimuLink &bull; Kenya's #1 Educator Placement & Verification Platform &bull; Nairobi, Kenya</p>
+        </div>
+    </div>";
+
+    // Set Reply-To as the candidate teacher so HR replies directly to the educator
+    return send_system_email($targetEmail, $companyName, $subject, $htmlBody, $teacher->email, $teacher->name);
+}
+
+/**
  * Dispatch notification email to teacher when a school sends a message or schedules an interview
  */
 function send_interview_invite_email($teacher, $school, $job, $messageContent, $interviewDate = null, $interviewLocation = null, $interviewFormat = 'in_person', $interviewVirtualLink = null)

@@ -83,6 +83,9 @@ $isActive = function ($path) use ($currentUri) {
         <a href="/admin/jobs" class="sidebar-item-link <?= $isActive('admin/jobs') ?>">
             <i class="fa fa-briefcase"></i> <span>Job Vacancies</span>
         </a>
+        <a href="/admin/aggregation" class="sidebar-item-link <?= $isActive('admin/aggregation') ?>">
+            <i class="fa fa-satellite-dish"></i> <span>Job Aggregation</span>
+        </a>
         <a href="/admin/publications"
             class="sidebar-item-link <?= ($isActive('admin/publications') || $isActive('blog/admin')) ? 'active' : '' ?>">
             <i class="fa fa-book-open"></i> <span>Manage Publications</span>

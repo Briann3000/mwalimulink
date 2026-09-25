@@ -195,6 +195,7 @@ $modernRoutes = [
     'admin/teachers' => 'views/admin_teachers.php',
     'admin/schools' => 'views/admin_schools.php',
     'admin/jobs' => 'views/admin_jobs.php',
+    'admin/aggregation' => 'views/admin_job_aggregation.php',
     'admin/publications' => 'views/blog_admin.php',
     'admin/audit' => 'views/admin_audit.php',
     'admin/audit-logs' => 'views/admin_audit.php',

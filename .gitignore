@@ -23,6 +23,11 @@ uploads/*
 *.db-wal
 *.db-shm
 
+# Database dumps & SQL exports
+*.sql
+mwalimu_prod_dump.sql
+mwalimu_mysql_dump.sql
+
 # Server Logs & Errors
 error_log
 views/error_log

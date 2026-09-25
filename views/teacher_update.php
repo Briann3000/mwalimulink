@@ -94,7 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $teacher->profile_visibility = trim($_POST['profile_visibility'] ?? ($teacher->profile_visibility ?? 'schools_only'));
             $teacher->forum_alias = trim($_POST['forum_alias'] ?? ($teacher->forum_alias ?? ''));
             $teacher->allow_direct_messages = isset($_POST['allow_direct_messages']) ? 1 : 0;
-            $msg = "Privacy and communication settings updated successfully.";
+            $teacher->job_alerts_enabled = isset($_POST['job_alerts_enabled']) ? 1 : 0;
+            $msg = "Privacy, alert, and communication settings updated successfully.";
         }
 
         // 5. Safeguarding & Good Conduct
@@ -952,15 +953,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div
                             style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
                             <label
-                                style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; margin: 0;">
+                                style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; margin-bottom: 12px;">
                                 <input type="checkbox" name="allow_direct_messages" value="1"
                                     <?= (!isset($teacher->allow_direct_messages) || $teacher->allow_direct_messages) ? 'checked' : '' ?> style="margin-top: 2px;">
                                 <div>
                                     <strong style="font-size: 0.88rem; color: #0f172a; display: block;">Allow Direct
                                         Messages from Other Educators</strong>
                                     <span style="font-size: 0.8rem; color: #64748b; line-height: 1.4; display: block;">
-                                        Enables fellow teachers to message you securely via MwalimuLink internal inbox
-                                        (without revealing your phone or email).
+                                        Enables fellow teachers and verified schools to message you securely via MwalimuLink internal inbox.
+                                    </span>
+                                </div>
+                            </label>
+
+                            <label
+                                style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; margin: 0; padding-top: 10px; border-top: 1px solid #e2e8f0;">
+                                <input type="checkbox" name="job_alerts_enabled" value="1"
+                                    <?= (!isset($teacher->job_alerts_enabled) || $teacher->job_alerts_enabled) ? 'checked' : '' ?> style="margin-top: 2px;">
+                                <div>
+                                    <strong style="font-size: 0.88rem; color: #0f172a; display: block;">Instant Vacancy & Teaching Opportunity Alerts</strong>
+                                    <span style="font-size: 0.8rem; color: #64748b; line-height: 1.4; display: block;">
+                                        Automatically receive alerts when new vacancies or TP placement openings matching your subject specialization and county are posted.
                                     </span>
                                 </div>
                             </label>

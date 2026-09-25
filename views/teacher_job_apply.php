@@ -25,7 +25,11 @@ if (!$job->id) {
         }
     }
 
-    $school = R::load('school', $job->school_id);
+    $isExternal = ($job->source_type === 'external');
+    $school = !$isExternal ? R::load('school', $job->school_id) : null;
+    $schoolName = $isExternal ? ($job->company_name ?: ($job->source_name ?: 'Education Partner')) : ($school->name ?? 'Registered School');
+    $schoolLocation = $isExternal ? ($job->location_text ?: 'Kenya') : ($school->county ?? 'Kenya');
+
     $existingApplication = R::findOne('applications', 'teacher_id = ? AND job_id = ?', [$teacher_id, $job_id]);
     if ($existingApplication) {
         $applied = true;
@@ -73,13 +77,19 @@ if (!$job->id) {
             $appId = R::store($application);
 
             // Dispatch instant email alert to hiring school administration
-            if ($school && $school->email) {
-                @send_job_application_notification_email($school, $job, $teacher, $application);
+            if ($isExternal) {
+                $destEmail = !empty($job->application_email) ? $job->application_email : env('ADMIN_EMAIL', 'infomwalimulink@gmail.com');
+                @send_external_job_dispatch_email($destEmail, $schoolName, $job, $teacher, $application);
+                $msg = "Your application and verified credentials have been dispatched to {$schoolName}!";
+            } else {
+                if ($school && $school->email) {
+                    @send_job_application_notification_email($school, $job, $teacher, $application);
+                }
+                $msg = "Your application has been delivered to {$schoolName}!";
             }
 
             $applied = true;
             $existingApplication = $application;
-            $msg = "Your application has been delivered to {$school->name}!";
         }
     }
 }
@@ -145,7 +155,7 @@ if (!$job->id) {
                     </div>
                     <h3 style="margin: 0 0 6px; color: #0f172a; font-size: 1.3rem;">You Have Already Applied</h3>
                     <p style="margin: 0 0 1rem; font-size: 0.9rem; color: #64748b;">
-                        You submitted an application for <strong><?= h($job->title) ?></strong> at <strong><?= h($school->name) ?></strong> on <?= date('M d, Y', strtotime($existingApplication->application_date ?? 'now')) ?>.
+                        You submitted an application for <strong><?= h($job->title) ?></strong> at <strong><?= h($schoolName) ?></strong> on <?= date('M d, Y', strtotime($existingApplication->application_date ?? 'now')) ?>.
                     </p>
                     <div style="margin-bottom: 1.5rem;">
                         <span style="display: inline-block; background: <?= $cfg['bg'] ?>; color: <?= $cfg['color'] ?>; font-size: 0.85rem; font-weight: 700; padding: 6px 14px; border-radius: 20px;">
@@ -168,14 +178,14 @@ if (!$job->id) {
                     
                     <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
                         <span style="background: #ede9fe; color: #6d28d9; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; text-transform: uppercase;">
-                            1-Click Easy Apply
+                            <?= $isExternal ? 'MwalimuLink Direct Dispatch' : '1-Click Easy Apply' ?>
                         </span>
                         <h2 style="margin: 8px 0 4px; font-size: 1.35rem; color: #0f172a; font-weight: 800;">
                             Apply for <?= h($job->title) ?>
                         </h2>
                         <p style="margin: 0; font-size: 0.88rem; color: #64748b;">
-                            <i class="fa fa-school" style="color: #0f766e;"></i> <strong><?= h($school->name) ?></strong> &bull; 
-                            <i class="fa fa-map-marker-alt" style="color: #0f766e;"></i> <?= h($school->county ?: 'Kenya') ?>
+                            <i class="fa fa-school" style="color: #0f766e;"></i> <strong><?= h($schoolName) ?></strong> &bull; 
+                            <i class="fa fa-map-marker-alt" style="color: #0f766e;"></i> <?= h($schoolLocation) ?>
                             <?php if (!empty($job->salary)): ?>
                                 &bull; <span style="color: #166534; font-weight: 700;">KES <?= number_format($job->salary) ?> / mo</span>
                             <?php endif; ?>

@@ -27,9 +27,11 @@ $activeJobsCount = R::count('job');
 $publicSchoolsCount = R::count('public_school');
 $privateSchoolsCount = R::count('private_school');
 $totalSchools = $publicSchoolsCount + $privateSchoolsCount;
-$myApplicationsCount = R::count('applications', 'teacher_id = ?', [$teacher_id]);
+// Recent Job Alerts Matching Specialization
+$unreadAlerts = R::find('jobalert', 'teacher_id = ? ORDER BY id DESC LIMIT 5', [$teacher_id]);
+$unreadAlertsCount = R::count('jobalert', 'teacher_id = ? AND is_read = 0', [$teacher_id]);
 
-// Recommended Jobs (matching teacher's teaching subjects)
+// Recommended Jobs (matching teacher's teaching subjects or county)
 $teachingSubjects = (string)($teacher->teaching_subjects ?? '');
 $primarySubject = '';
 if (!empty($teachingSubjects)) {
@@ -38,12 +40,12 @@ if (!empty($teachingSubjects)) {
 }
 $recommendedJobs = [];
 if (!empty($primarySubject)) {
-    $recommendedJobs = R::find('job', 'title LIKE ? OR description LIKE ? OR requirements LIKE ? ORDER BY id DESC LIMIT 3', [
+    $recommendedJobs = R::find('job', '(title LIKE ? OR description LIKE ? OR requirements LIKE ?) AND (aggregation_status = "published" OR aggregation_status IS NULL OR source_type = "direct" OR source_type IS NULL) ORDER BY id DESC LIMIT 4', [
         "%$primarySubject%", "%$primarySubject%", "%$primarySubject%"
     ]);
 }
 if (empty($recommendedJobs)) {
-    $recommendedJobs = R::find('job', 'ORDER BY id DESC LIMIT 3');
+    $recommendedJobs = R::find('job', '(aggregation_status = "published" OR aggregation_status IS NULL OR source_type = "direct" OR source_type IS NULL) ORDER BY id DESC LIMIT 4');
 }
 
 // Handle AJAX or POST status change
@@ -199,30 +201,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         </div>
 
         <!-- Recommended Jobs Table / Section -->
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: #0f172a;">Recommended Vacancies For You</h4>
-                <a href="/teacher/jobs" style="font-size: 0.82rem; font-weight: 700;">View All Vacancies &rarr;</a>
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 8px;">
+                <div>
+                    <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa fa-briefcase" style="color: #0f766e;"></i> Matching Vacancies For You
+                    </h4>
+                    <p style="margin: 2px 0 0; font-size: 0.8rem; color: #64748b;">
+                        Live openings matching <?= !empty($primarySubject) ? '<strong>' . h($primarySubject) . '</strong>' : 'your profile' ?>
+                    </p>
+                </div>
+                <a href="/teacher/jobs" style="font-size: 0.82rem; font-weight: 700; color: #0f766e; text-decoration: none;">View All Vacancies &rarr;</a>
             </div>
 
             <?php if (!empty($recommendedJobs)): ?>
-                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
                     <?php foreach ($recommendedJobs as $job): 
-                        $schoolObj = R::load('school', $job->school_id);
+                        $isExt = ($job->source_type === 'external');
+                        $schoolObj = !$isExt ? R::load('school', $job->school_id) : null;
+                        $instName = $isExt ? ($job->company_name ?: ($job->source_name ?: 'Education Partner')) : ($schoolObj->name ?? 'Registered School');
+                        $instLoc = $isExt ? ($job->location_text ?: 'Kenya') : ($schoolObj->county ?? 'Kenya');
                     ?>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+                        <div style="display: flex; flex-direction: column; justify-content: space-between; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
                             <div>
-                                <h5 style="margin: 0 0 3px; font-size: 0.95rem; font-weight: 700;">
-                                    <a href="/teacher/apply?job_id=<?= $job->id ?>" style="color: #0f172a; text-decoration: none;"><?= h($job->title) ?></a>
-                                </h5>
-                                <p style="margin: 0; font-size: 0.8rem; color: #64748b;">
-                                    <i class="fa fa-school"></i> <?= h($schoolObj->name ?? 'School') ?> &bull; 
-                                    <i class="fa fa-map-marker-alt"></i> <?= h($schoolObj->county ?? 'Kenya') ?>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; margin-bottom: 4px;">
+                                    <h5 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: #0f172a; line-height: 1.3;">
+                                        <a href="/teacher/apply?job_id=<?= $job->id ?>" style="color: #0f172a; text-decoration: none;"><?= h($job->title) ?></a>
+                                    </h5>
+                                    <?php if (!empty($job->curriculum)): ?>
+                                        <span style="background: #e0f2fe; color: #0369a1; font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap;">
+                                            <?= h($job->curriculum) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                                <p style="margin: 0 0 10px; font-size: 0.8rem; color: #64748b;">
+                                    <i class="fa fa-school" style="color: #0f766e;"></i> <?= h($instName) ?> &bull; 
+                                    <i class="fa fa-map-marker-alt" style="color: #0f766e;"></i> <?= h($instLoc) ?>
                                 </p>
                             </div>
-                            <div>
-                                <a href="/teacher/apply?job_id=<?= $job->id ?>" style="background: #2271b1; color: white !important; font-size: 0.8rem; font-weight: 600; padding: 6px 14px; border-radius: 6px; text-decoration: none;">
-                                    Apply Now
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 8px;">
+                                <span style="font-size: 0.75rem; color: #94a3b8;">
+                                    <?= !empty($job->posted_date) ? date('M d', strtotime($job->posted_date)) : 'Active' ?>
+                                </span>
+                                <a href="/teacher/apply?job_id=<?= $job->id ?>" style="background: #0f766e; color: white !important; font-size: 0.78rem; font-weight: 700; padding: 5px 12px; border-radius: 6px; text-decoration: none;">
+                                    Easy Apply &rarr;
                                 </a>
                             </div>
                         </div>
