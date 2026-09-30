@@ -47,25 +47,47 @@ if (!function_exists('chat_msg_time')) {
 }
 ?>
 
+<style>
+    .workspace-wrapper:has(.forum-chat-main) .content-pane,
+    .content-pane:has(#forumChatLayout),
+    .forum-chat-main {
+        overflow: hidden !important;
+        height: calc(100vh - 65px) !important;
+        max-height: calc(100vh - 65px) !important;
+        padding: 0.5rem 0.75rem !important;
+    }
+</style>
+
 <div class="<?= $isLoggedIn ? 'workspace-wrapper' : 'container' ?>"
     style="<?= !$isLoggedIn ? 'max-width: 1200px; margin: 1.5rem auto; padding: 0 1rem;' : '' ?>">
     <?php if ($isLoggedIn)
         include __DIR__ . '/partials/sidebar.php'; ?>
 
-    <main class="<?= $isLoggedIn ? 'content-pane' : '' ?>"
-        style="width: 100%; height: <?= $isLoggedIn ? '100%' : 'calc(100vh - 120px)' ?>; box-sizing: border-box; padding: 0.75rem 1rem; display: flex; flex-direction: column; overflow: hidden;">
+    <main class="<?= $isLoggedIn ? 'content-pane forum-chat-main' : 'forum-chat-main' ?>"
+        style="width: 100%; height: <?= $isLoggedIn ? '100%' : 'calc(100vh - 120px)' ?>; box-sizing: border-box; padding: 0.5rem 0.75rem; display: flex; flex-direction: column; overflow: hidden;">
 
         <!-- Top Navigation & Channel Bar -->
         <div
             style="flex-shrink: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.6rem 1rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <h1
                     style="margin: 0; font-size: 1.15rem; color: #0f172a; font-weight: 800; display: flex; align-items: center; gap: 6px;">
                     <i class="fa fa-comments" style="color: #0f766e;"></i> Teachers Community Chat
                 </h1>
-                <span style="font-size: 0.8rem; color: #64748b;">
-                    &bull; <?= h($selectedCategory->name ?? 'General Chat') ?>
-                </span>
+
+                <!-- Quick Channel Switcher Dropdown -->
+                <div style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 0.8rem; color: #64748b;">Room:</span>
+                    <select
+                        onchange="if(this.value) window.location.href='/forum?category=' + encodeURIComponent(this.value);"
+                        style="padding: 4px 10px; font-size: 0.82rem; font-weight: 700; color: #0f766e; border: 1.5px solid #0f766e; border-radius: 6px; background: #f0fdfa; cursor: pointer; max-width: 220px;">
+                        <?php foreach ($categories as $cOpt): ?>
+                            <option value="<?= h($cOpt->slug) ?>" <?= ($selectedCategory && $selectedCategory->id == $cOpt->id) ? 'selected' : '' ?>>
+                                <?= h($cOpt->name) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
                 <?php if ($isLoggedIn): ?>
@@ -90,8 +112,8 @@ if (!function_exists('chat_msg_time')) {
         </div>
 
         <!-- 2-Column Responsive Chat Layout -->
-        <div
-            style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: grid; grid-template-columns: 240px 1fr; flex: 1; min-height: 0; overflow: hidden;">
+        <div id="forumChatLayout"
+            style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: grid; grid-template-columns: 240px 1fr; flex: 1; height: 100%; min-height: 0; overflow: hidden;">
 
             <!-- Left Pane: Channels / Rooms List -->
             <div id="chatChannelsPane"
@@ -133,7 +155,8 @@ if (!function_exists('chat_msg_time')) {
             </div>
 
             <!-- Right Pane: Sequential Message Stream & Persistent Chat Composer -->
-            <div id="chatFeedPane" style="display: flex; flex-direction: column; background: #fafafa;">
+            <div id="chatFeedPane"
+                style="display: flex; flex-direction: column; background: #fafafa; height: 100%; min-height: 0; overflow: hidden;">
 
                 <!-- Active Channel Top Header -->
                 <div
@@ -164,7 +187,7 @@ if (!function_exists('chat_msg_time')) {
 
                 <!-- Messages Feed Stream with Dedicated Scrollbar -->
                 <div id="chatStream"
-                    style="flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;">
+                    style="flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;">
                     <div id="chatSearchNoResults"
                         style="display: none; text-align: center; color: #64748b; font-size: 0.85rem; padding: 2rem;">
                         <i class="fa fa-search"
@@ -258,9 +281,11 @@ if (!function_exists('chat_msg_time')) {
                                                     <div style="min-width: 0; flex: 1;">
                                                         <div
                                                             style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">
-                                                            <?= h($m->attachment_name ?: 'Document') ?></div>
+                                                            <?= h($m->attachment_name ?: 'Document') ?>
+                                                        </div>
                                                         <div style="font-size: 0.7rem; color: <?= $isMine ? '#ccfbf1' : '#64748b' ?>;">
-                                                            <?= h($m->attachment_size ?: 'File') ?></div>
+                                                            <?= h($m->attachment_size ?: 'File') ?>
+                                                        </div>
                                                     </div>
                                                     <i class="fa fa-download"
                                                         style="font-size: 0.8rem; color: <?= $isMine ? '#ccfbf1' : '#64748b' ?>;"></i>
@@ -304,8 +329,8 @@ if (!function_exists('chat_msg_time')) {
                 </div>
 
                 <!-- Persistent Bottom Message Composer -->
-                <div
-                    style="position: relative; padding: 10px 14px; border-top: 1px solid #e2e8f0; background: #ffffff;">
+                <div id="chatComposerWrap"
+                    style="flex-shrink: 0; position: relative; padding: 10px 14px; border-top: 1px solid #e2e8f0; background: #ffffff;">
                     <?php if ($isLoggedIn): ?>
                         <!-- Hidden File Inputs -->
                         <input type="file" id="docFileInput" accept=".pdf,.doc,.docx,.pptx,.xlsx,.txt,.csv"
@@ -477,9 +502,15 @@ if (!function_exists('chat_msg_time')) {
     if (chatStream) {
         chatStream.scrollTop = chatStream.scrollHeight;
     }
+    const contentPaneEl = document.querySelector('.content-pane');
+    if (contentPaneEl) {
+        contentPaneEl.scrollTop = 0;
+    }
+    window.scrollTo(0, 0);
+
     const chatInput = document.getElementById('chatMessageInput');
     if (chatInput) {
-        chatInput.focus();
+        chatInput.focus({ preventScroll: true });
     }
 
     // Attachment Menu Handlers

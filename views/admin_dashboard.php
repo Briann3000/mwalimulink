@@ -8,13 +8,34 @@ $authUser = auth_user();
 $teacherCount = R::count('teacher');
 $verifiedTeacherCount = R::count('teacher', 'verification_status = ?', ['verified']);
 
+// Velocity: Last 30 Days Signups
+$thirtyDaysAgo = date('Y-m-d H:i:s', strtotime('-30 days'));
+$sevenDaysAgo = date('Y-m-d H:i:s', strtotime('-7 days'));
+$newTeachers30d = R::count('teacher', 'created_at >= ?', [$thirtyDaysAgo]);
+$newSchools30d = R::count('school', 'created_at >= ?', [$thirtyDaysAgo]);
+$newApps7d = R::count('application', 'created_at >= ?', [$sevenDaysAgo]);
+
+// Financial Metrics
+$totalRevRow = R::getRow("SELECT SUM(amount) as rev FROM payment WHERE state = 'COMPLETE'");
+$totalRevenue = floatval($totalRevRow['rev'] ?? 0);
+
+$monthlyRevRow = R::getRow("SELECT SUM(amount) as rev FROM payment WHERE state = 'COMPLETE' AND created_at >= ?", [$thirtyDaysAgo]);
+$monthlyRevenue = floatval($monthlyRevRow['rev'] ?? 0);
+
 // Queue items: Pending manual document audits + Unresolved automated TSC audits
 $pendingDocVerifications = R::count('teacher', "verification_status = 'pending' OR (good_conduct_doc IS NOT NULL AND (verification_status IS NULL OR verification_status = 'pending'))");
 $pendingTscAudits = R::count('tscverificationlog', 'is_resolved IS NULL OR is_resolved = 0');
 $pendingVerificationCount = $pendingDocVerifications + $pendingTscAudits;
 
+// Flagged Community Reports
+$pendingReportsCount = R::count('forumreport', 'status = ?', ['pending']);
+
 $schoolCount = R::count('school');
 $proSchoolCount = R::count('school', 'status = ? AND subscription_expiry >= NOW()', ['active']);
+
+// Radar: Expiring Pro Subscriptions in Next 14 Days
+$in14Days = date('Y-m-d H:i:s', strtotime('+14 days'));
+$expiringSchools = R::find('school', 'status = "active" AND subscription_expiry >= NOW() AND subscription_expiry <= ? ORDER BY subscription_expiry ASC LIMIT 5', [$in14Days]);
 
 $jobCount = R::count('job');
 $publicationCount = R::count('publications');
@@ -52,47 +73,52 @@ $recentSchools = R::find('school', 'ORDER BY id DESC LIMIT 5');
 
             <!-- KPI Metric Badges -->
             <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
 
                 <div class="metric-card" style="border-left: 4px solid #0f766e;">
-                    <div style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Total
-                        Educators</div>
+                    <div style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Educators</div>
                     <div style="font-size: 1.8rem; font-weight: 800; color: #0f172a; margin: 4px 0;">
-                        <?= number_format($teacherCount) ?></div>
+                        <?= number_format($teacherCount) ?>
+                    </div>
                     <div style="font-size: 0.78rem; color: #16a34a; font-weight: 600;">
-                        <i class="fa fa-check-circle"></i> <?= $verifiedTeacherCount ?> Verified
+                        <i class="fa fa-arrow-trend-up"></i> +<?= $newTeachers30d ?> in last 30 days &bull; <?= $verifiedTeacherCount ?> Verified
                     </div>
                 </div>
 
                 <div class="metric-card" style="border-left: 4px solid #2563eb;">
-                    <div style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase;">
-                        Registered Schools</div>
+                    <div style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Registered Schools</div>
                     <div style="font-size: 1.8rem; font-weight: 800; color: #0f172a; margin: 4px 0;">
-                        <?= number_format($schoolCount) ?></div>
+                        <?= number_format($schoolCount) ?>
+                    </div>
                     <div style="font-size: 0.78rem; color: #2563eb; font-weight: 600;">
-                        <i class="fa fa-crown"></i> <?= $proSchoolCount ?> Pro Subscribers
+                        <i class="fa fa-crown"></i> <?= $proSchoolCount ?> Pro Subscribers (+<?= $newSchools30d ?> this month)
                     </div>
                 </div>
 
-                <div class="metric-card" style="border-left: 4px solid #f59e0b;">
-                    <div style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase;">
-                        Pending Clearance Queue</div>
-                    <div style="font-size: 1.8rem; font-weight: 800; color: #0f172a; margin: 4px 0;">
-                        <?= $pendingVerificationCount ?></div>
-                    <div style="font-size: 0.78rem; color: #d97706; font-weight: 600;">
-                        <a href="/admin/verifications" style="color: #d97706; text-decoration: none;">
-                            <?= $pendingTscAudits ?> automated &bull; <?= $pendingDocVerifications ?> manual &rarr;
+                <div class="metric-card" style="border-left: 4px solid #16a34a;">
+                    <div style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Collected Revenue</div>
+                    <div style="font-size: 1.8rem; font-weight: 800; color: #16a34a; margin: 4px 0;">
+                        KES <?= number_format($totalRevenue) ?>
+                    </div>
+                    <div style="font-size: 0.78rem; color: #64748b; font-weight: 600;">
+                        <a href="/admin/transactions" style="color: #16a34a; text-decoration: none;">
+                            KES <?= number_format($monthlyRevenue) ?> past 30 days &rarr;
                         </a>
                     </div>
                 </div>
 
-                <div class="metric-card" style="border-left: 4px solid #8b5cf6;">
-                    <div style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Active
-                        Job Vacancies</div>
+                <div class="metric-card" style="border-left: 4px solid #f59e0b;">
+                    <div style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Clearance & Moderation</div>
                     <div style="font-size: 1.8rem; font-weight: 800; color: #0f172a; margin: 4px 0;">
-                        <?= number_format($jobCount) ?></div>
-                    <div style="font-size: 0.78rem; color: #64748b; font-weight: 600;">
-                        <a href="/admin/jobs" style="color: #8b5cf6; text-decoration: none;">Manage vacancies &rarr;</a>
+                        <?= $pendingVerificationCount + $pendingReportsCount ?>
+                    </div>
+                    <div style="font-size: 0.78rem; color: #d97706; font-weight: 600;">
+                        <a href="/admin/verifications" style="color: #d97706; text-decoration: none;">
+                            <?= $pendingVerificationCount ?> clearances
+                        </a> &bull;
+                        <a href="/admin/forum" style="color: #dc2626; text-decoration: none;">
+                            <?= $pendingReportsCount ?> flagged
+                        </a>
                     </div>
                 </div>
             </div>
@@ -139,6 +165,20 @@ $recentSchools = R::find('school', 'ORDER BY id DESC LIMIT 5');
                             (<?= $publicationCount ?>)</span>
                     </a>
 
+                    <a href="/admin/transactions" class="quick-action-tile">
+                        <div class="quick-action-icon" style="background: #f0fdf4; color: #166534;">
+                            <i class="fa fa-receipt"></i>
+                        </div>
+                        <span style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">Transactions & M-Pesa</span>
+                    </a>
+
+                    <a href="/admin/forum" class="quick-action-tile">
+                        <div class="quick-action-icon" style="background: #fef2f2; color: #dc2626;">
+                            <i class="fa fa-shield-halved"></i>
+                        </div>
+                        <span style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">Forum Moderation (<?= $pendingReportsCount ?>)</span>
+                    </a>
+
                     <a href="/admin/pricing" class="quick-action-tile">
                         <div class="quick-action-icon" style="background: #f0fdfa; color: #0f766e;">
                             <i class="fa fa-tags"></i>
@@ -147,13 +187,48 @@ $recentSchools = R::find('school', 'ORDER BY id DESC LIMIT 5');
                     </a>
 
                     <a href="/admin/audit" class="quick-action-tile">
-                        <div class="quick-action-icon" style="background: #f0fdf4; color: #166534;">
+                        <div class="quick-action-icon" style="background: #f8fafc; color: #475569;">
                             <i class="fa fa-clipboard-list"></i>
                         </div>
                         <span style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">Audit Trail</span>
                     </a>
                 </div>
             </div>
+
+            <!-- Expiring Subscriptions Radar Banner (If Any Expiring in 14 Days) -->
+            <?php if (!empty($expiringSchools)): ?>
+                <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 1.25rem 1.5rem; margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
+                        <h4 style="margin: 0; font-size: 0.98rem; font-weight: 700; color: #92400e; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa fa-triangle-exclamation"></i> Churn Radar: <?= count($expiringSchools) ?> Institutional Pro Subscription(s) Expiring Within 14 Days
+                        </h4>
+                        <a href="/admin/schools?plan=pro" style="font-size: 0.82rem; font-weight: 700; color: #b45309;">View All Pro Schools &rarr;</a>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px;">
+                        <?php foreach ($expiringSchools as $es): 
+                            $expDate = new DateTime($es->subscription_expiry);
+                            $diff = (new DateTime())->diff($expDate);
+                        ?>
+                            <div style="background: white; border: 1px solid #fef3c7; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong style="font-size: 0.88rem; color: #0f172a; display: block;"><?= h($es->name) ?></strong>
+                                    <span style="font-size: 0.76rem; color: #64748b;"><?= h($es->email) ?> &bull; <?= h($es->county ?: 'Kenya') ?></span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="background: #fee2e2; color: #991b1b; font-size: 0.72rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
+                                        <?= $diff->days ?> day<?= $diff->days !== 1 ? 's' : '' ?> left
+                                    </span>
+                                    <div style="margin-top: 4px;">
+                                        <a href="/admin/impersonate?type=school&id=<?= $es->id ?>" style="font-size: 0.72rem; color: #0f766e; font-weight: 600; text-decoration: none;">
+                                            Inspect &rarr;
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <!-- Two-Column Recent Activity Feeds -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.5rem;">

@@ -112,24 +112,60 @@ $statSuspended = R::count('teacher', 'status = ?', ['suspended']);
 $totalPages = ceil($totalTeachers / $limit);
 ?>
 
+<style>
+.admin-table-container {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+}
+.admin-table th, .admin-table td {
+    padding: 10px 12px;
+    vertical-align: middle;
+}
+@media (max-width: 768px) {
+    .admin-header-flex {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    .admin-filter-form {
+        flex-direction: column !important;
+    }
+    .admin-filter-form > div, .admin-filter-form button {
+        width: 100% !important;
+    }
+    .stat-grid-responsive {
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+        gap: 0.5rem !important;
+    }
+}
+</style>
+
 <div class="workspace-wrapper">
     <?php include __DIR__ . '/partials/sidebar.php'; ?>
 
-    <main class="content-pane">
-        <div style="max-width: 1200px; margin: 0 auto; padding-bottom: 3rem;">
+    <main class="content-pane" style="max-width: 1200px; margin: 0 auto; padding: 1.25rem 1rem;">
+        <div style="padding-bottom: 3rem;">
             
             <!-- Breadcrumb & Header -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <div class="admin-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
                 <div>
-                    <a href="/admin/dashboard" style="color: #64748b; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px; text-decoration: none;">
+                    <a href="/admin/dashboard" style="color: #64748b; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 4px; text-decoration: none;">
                         <i class="fa fa-arrow-left"></i> Back to Dashboard
                     </a>
-                    <h2 style="margin: 0; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                    <h2 style="margin: 0; color: #0f172a; font-size: 1.35rem; display: flex; align-items: center; gap: 8px;">
                         <i class="fa fa-chalkboard-user" style="color: #0f766e;"></i> Educator Operations & Profiles
                     </h2>
                 </div>
                 <div>
-                    <span style="background: #f1f5f9; color: #475569; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">
+                    <span style="background: #f1f5f9; color: #475569; padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">
                         Showing <?= count($teachers) ?> of <?= number_format($totalTeachers) ?> Teachers
                     </span>
                 </div>
@@ -148,46 +184,46 @@ $totalPages = ceil($totalTeachers / $limit);
             <?php endif; ?>
 
             <!-- Metric Summary Cards -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                    <div style="color: #64748b; font-size: 0.78rem; text-transform: uppercase; font-weight: 600;">Total Registered</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-top: 4px;"><?= number_format($statTotal) ?></div>
+            <div class="stat-grid-responsive" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.88rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="color: #64748b; font-size: 0.74rem; text-transform: uppercase; font-weight: 600;">Total Registered</div>
+                    <div style="font-size: 1.4rem; font-weight: 800; color: #0f172a; margin-top: 2px;"><?= number_format($statTotal) ?></div>
                 </div>
-                <div style="background: white; border: 1px solid #bbf7d0; border-radius: 8px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                    <div style="color: #166534; font-size: 0.78rem; text-transform: uppercase; font-weight: 600;">Verified Clearance</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #16a34a; margin-top: 4px;"><?= number_format($statVerified) ?></div>
+                <div style="background: white; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.88rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="color: #166534; font-size: 0.74rem; text-transform: uppercase; font-weight: 600;">Verified Clearance</div>
+                    <div style="font-size: 1.4rem; font-weight: 800; color: #16a34a; margin-top: 2px;"><?= number_format($statVerified) ?></div>
                 </div>
-                <div style="background: white; border: 1px solid #fef08a; border-radius: 8px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                    <div style="color: #854d0e; font-size: 0.78rem; text-transform: uppercase; font-weight: 600;">Pending Review</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #ca8a04; margin-top: 4px;"><?= number_format($statPending) ?></div>
+                <div style="background: white; border: 1px solid #fef08a; border-radius: 8px; padding: 0.88rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="color: #854d0e; font-size: 0.74rem; text-transform: uppercase; font-weight: 600;">Pending Review</div>
+                    <div style="font-size: 1.4rem; font-weight: 800; color: #ca8a04; margin-top: 2px;"><?= number_format($statPending) ?></div>
                 </div>
-                <div style="background: white; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                    <div style="color: #991b1b; font-size: 0.78rem; text-transform: uppercase; font-weight: 600;">Flagged / Action Req.</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #dc2626; margin-top: 4px;"><?= number_format($statFlagged) ?></div>
+                <div style="background: white; border: 1px solid #fecaca; border-radius: 8px; padding: 0.88rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="color: #991b1b; font-size: 0.74rem; text-transform: uppercase; font-weight: 600;">Flagged / Action</div>
+                    <div style="font-size: 1.4rem; font-weight: 800; color: #dc2626; margin-top: 2px;"><?= number_format($statFlagged) ?></div>
                 </div>
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                    <div style="color: #64748b; font-size: 0.78rem; text-transform: uppercase; font-weight: 600;">Suspended Accounts</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #64748b; margin-top: 4px;"><?= number_format($statSuspended) ?></div>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.88rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="color: #64748b; font-size: 0.74rem; text-transform: uppercase; font-weight: 600;">Suspended</div>
+                    <div style="font-size: 1.4rem; font-weight: 800; color: #64748b; margin-top: 2px;"><?= number_format($statSuspended) ?></div>
                 </div>
             </div>
 
             <!-- Filter & Search Controls -->
-            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                <form method="GET" action="/admin/teachers" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 0;">
-                    <div style="flex: 2; min-width: 220px;">
-                        <input type="text" name="q" value="<?= h($search) ?>" placeholder="Search by name, email, TSC, ID, phone..." style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem; box-sizing: border-box;">
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.88rem 1rem; margin-bottom: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                <form method="GET" action="/admin/teachers" class="admin-filter-form" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0;">
+                    <div style="flex: 2; min-width: 200px;">
+                        <input type="text" name="q" value="<?= h($search) ?>" placeholder="Search by name, email, TSC, ID, phone..." style="width: 100%; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.84rem; box-sizing: border-box;">
                     </div>
-                    <div style="flex: 1; min-width: 150px;">
-                        <select name="v_status" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem; background: white; box-sizing: border-box;">
+                    <div style="flex: 1; min-width: 140px;">
+                        <select name="v_status" style="width: 100%; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.84rem; background: white; box-sizing: border-box;">
                             <option value="all">All Clearance</option>
                             <option value="verified" <?= $vStatus === 'verified' ? 'selected' : '' ?>>Verified Only</option>
                             <option value="pending" <?= $vStatus === 'pending' ? 'selected' : '' ?>>Pending Review</option>
-                            <option value="failed" <?= $vStatus === 'failed' ? 'selected' : '' ?>>Flagged / Action Req.</option>
-                            <option value="none" <?= $vStatus === 'none' ? 'selected' : '' ?>>No Documents Submitted</option>
+                            <option value="failed" <?= $vStatus === 'failed' ? 'selected' : '' ?>>Flagged / Action</option>
+                            <option value="none" <?= $vStatus === 'none' ? 'selected' : '' ?>>No Documents</option>
                         </select>
                     </div>
-                    <div style="flex: 1; min-width: 140px;">
-                        <select name="acc_status" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem; background: white; box-sizing: border-box;">
+                    <div style="flex: 1; min-width: 130px;">
+                        <select name="acc_status" style="width: 100%; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.84rem; background: white; box-sizing: border-box;">
                             <option value="all">All Accounts</option>
                             <option value="available" <?= $accStatus === 'available' ? 'selected' : '' ?>>Active / Available</option>
                             <option value="placed" <?= $accStatus === 'placed' ? 'selected' : '' ?>>Placed / Employed</option>
@@ -195,28 +231,27 @@ $totalPages = ceil($totalTeachers / $limit);
                         </select>
                     </div>
                     <div>
-                        <button type="submit" style="background: #0f766e; color: white !important; padding: 8px 16px; border: none; border-radius: 6px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <button type="submit" style="background: #0f766e; color: white !important; padding: 7px 14px; border: none; border-radius: 6px; font-size: 0.84rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fa fa-filter"></i> Filter
                         </button>
                         <?php if ($search || $vStatus || $accStatus || $county): ?>
-                            <a href="/admin/teachers" style="margin-left: 6px; font-size: 0.84rem; color: #64748b; text-decoration: underline;">Reset</a>
+                            <a href="/admin/teachers" style="margin-left: 6px; font-size: 0.82rem; color: #64748b; text-decoration: underline;">Reset</a>
                         <?php endif; ?>
                     </div>
                 </form>
             </div>
 
             <!-- Teachers List Table -->
-            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); overflow: hidden;">
+            <div class="admin-table-container">
                 <?php if (empty($teachers)): ?>
                     <div style="padding: 3rem; text-align: center; color: #64748b;">
                         <i class="fa fa-user-slash" style="font-size: 2.5rem; color: #cbd5e1; margin-bottom: 10px;"></i>
                         <p style="margin: 0; font-size: 1rem;">No educators matched your search and filter criteria.</p>
                     </div>
                 <?php else: ?>
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
-                            <thead>
-                                <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left; color: #475569;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left; color: #475569; font-size: 0.76rem; text-transform: uppercase;">
                                     <th style="padding: 12px 14px;">Educator Details</th>
                                     <th style="padding: 12px 14px;">Credentials</th>
                                     <th style="padding: 12px 14px;">Subject / County</th>
@@ -317,6 +352,10 @@ $totalPages = ceil($totalTeachers / $limit);
                                                         
                                                         <a href="/teacher/profile?teacher_id=<?= $t->id ?>" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.82rem; color: #334155; text-decoration: none;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
                                                             <i class="fa fa-user" style="width: 16px; color: #64748b;"></i> View Profile
+                                                        </a>
+
+                                                        <a href="/admin/impersonate?type=teacher&id=<?= $t->id ?>" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.82rem; color: #0284c7; font-weight: 600; text-decoration: none;" onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background='transparent'">
+                                                            <i class="fa fa-user-secret" style="width: 16px;"></i> Log In As Teacher
                                                         </a>
 
                                                         <button type="submit" name="admin_action" value="approve" style="display: flex; align-items: center; gap: 8px; width: 100%; border: none; background: transparent; padding: 8px 14px; font-size: 0.82rem; color: #16a34a; font-weight: 600; cursor: pointer; text-align: left;" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='transparent'">

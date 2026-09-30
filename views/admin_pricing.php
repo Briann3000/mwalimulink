@@ -74,13 +74,59 @@ try {
 }
 ?>
 
+<style>
+    .admin-table-container {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.86rem;
+    }
+    .admin-table th {
+        background: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+        color: #475569;
+        font-weight: 700;
+        padding: 10px 12px;
+        text-align: left;
+        white-space: nowrap;
+    }
+    .admin-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .admin-table tr:hover td {
+        background: #f8fafc;
+    }
+    @media (max-width: 768px) {
+        .admin-header-flex {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+        }
+        .stat-grid-responsive {
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+            gap: 0.75rem !important;
+        }
+        .pricing-grid-responsive {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+
 <div class="workspace-wrapper">
     <?php include __DIR__ . '/partials/sidebar.php'; ?>
 
     <main class="content-pane" style="max-width: 1150px; margin: 0 auto; padding: 2rem 1.5rem;">
 
         <!-- Header -->
-        <div
+        <div class="admin-header-flex"
             style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
                 <h1 style="margin: 0; font-size: 1.5rem; color: #0f172a; font-weight: 800;">
@@ -116,7 +162,7 @@ try {
         <?php endif; ?>
 
         <!-- KPI Metric Cards -->
-        <div
+        <div class="stat-grid-responsive"
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
 
             <div class="metric-card"
@@ -157,7 +203,7 @@ try {
         </div>
 
         <!-- 2-Column Grid: Pricing Form & Audit Log -->
-        <div
+        <div class="pricing-grid-responsive"
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.75rem; align-items: start; margin-bottom: 2.5rem;">
 
             <!-- Left Card: Dynamic Pricing Edit Form -->
@@ -184,7 +230,7 @@ try {
                             school tables.
                         </p>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
                             <div>
                                 <label for="directory_fee"
                                     style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">
@@ -218,7 +264,7 @@ try {
                             schools.
                         </p>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
                             <div>
                                 <label for="school_pro_fee"
                                     style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">
@@ -309,24 +355,23 @@ try {
         </div>
 
         <!-- Recent Transactions Table -->
-        <div
-            style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <h3 style="margin: 0; font-size: 1.15rem; color: #0f172a; font-weight: 700;">Recent Payment Transactions
                 </h3>
                 <span style="font-size: 0.78rem; color: #64748b;">Latest 10 records</span>
             </div>
 
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
+            <div class="admin-table-container">
+                <table class="admin-table">
                     <thead>
-                        <tr style="border-bottom: 2px solid #e2e8f0; color: #475569;">
-                            <th style="padding: 10px 12px;">ID / Date</th>
-                            <th style="padding: 10px 12px;">User / Email</th>
-                            <th style="padding: 10px 12px;">Phone</th>
-                            <th style="padding: 10px 12px;">Purpose</th>
-                            <th style="padding: 10px 12px;">Amount</th>
-                            <th style="padding: 10px 12px;">Status</th>
+                        <tr>
+                            <th>ID / Date</th>
+                            <th>User / Email</th>
+                            <th>Phone</th>
+                            <th>Purpose</th>
+                            <th>Amount</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>

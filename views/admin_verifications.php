@@ -161,43 +161,73 @@ $pendingTeachers = R::find('teacher', "verification_status = 'pending' OR (good_
 $allTeachersWithDocs = R::find('teacher', "good_conduct_doc IS NOT NULL OR good_conduct_cert_no IS NOT NULL OR verification_status != 'none' ORDER BY id DESC LIMIT 50");
 ?>
 
+<style>
+.admin-table-container {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+}
+.admin-table th, .admin-table td {
+    padding: 10px 12px;
+    vertical-align: middle;
+}
+@media (max-width: 768px) {
+    .admin-header-flex {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    .admin-bulk-bar {
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+}
+</style>
+
 <div class="workspace-wrapper">
     <?php include __DIR__ . '/partials/sidebar.php'; ?>
 
-    <main class="content-pane">
-        <div style="max-width: 1150px; margin: 0 auto; padding-bottom: 3rem;">
+    <main class="content-pane" style="max-width: 1200px; margin: 0 auto; padding: 1.25rem 1rem;">
+        <div style="padding-bottom: 3rem;">
             
             <!-- Breadcrumb & Header -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <div class="admin-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
                 <div>
-                    <a href="/admin/dashboard" style="color: #64748b; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px; text-decoration: none;">
+                    <a href="/admin/dashboard" style="color: #64748b; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 4px; text-decoration: none;">
                         <i class="fa fa-arrow-left"></i> Back to Admin Dashboard
                     </a>
-                    <h2 style="margin: 0; color: #0f172a; display: flex; align-items: center; gap: 10px;">
-                        <i class="fa fa-shield-halved" style="color: #0f766e;"></i> Educator Clearance & Background Verification Queue
+                    <h2 style="margin: 0; color: #0f172a; font-size: 1.35rem; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa fa-shield-halved" style="color: #0f766e;"></i> Educator Clearance Queue
                     </h2>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <a href="/admin/audit" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <a href="/admin/audit" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                         <i class="fa fa-clipboard-list"></i> View Audit Trail
                     </a>
                 </div>
             </div>
 
             <?php if ($msg): ?>
-                <div style="background: #f0fdf4; border: 1px solid #86efac; color: #166534; padding: 12px 16px; border-radius: 8px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                <div style="background: #f0fdf4; border: 1px solid #86efac; color: #166534; padding: 10px 14px; border-radius: 8px; margin-bottom: 1.25rem; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
                     <i class="fa fa-circle-check"></i> <?= h($msg) ?>
                 </div>
             <?php endif; ?>
 
             <?php if ($error): ?>
-                <div style="background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                <div style="background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 10px 14px; border-radius: 8px; margin-bottom: 1.25rem; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
                     <i class="fa fa-circle-exclamation"></i> <?= h($error) ?>
                 </div>
             <?php endif; ?>
 
             <!-- Automated TSC Portal Verification Audits Table -->
-            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03); margin-bottom: 2rem;">
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03); margin-bottom: 1.5rem;">
                 
                 <form method="POST" action="/admin/verifications" id="bulk-tsc-form">
                     <?= csrf_field() ?>
@@ -237,10 +267,10 @@ $allTeachersWithDocs = R::find('teacher', "good_conduct_doc IS NOT NULL OR good_
                             </p>
                         </div>
                     <?php else: ?>
-                        <div style="overflow-x: auto;">
-                            <table style="width: 100%; border-collapse: collapse; font-size: 0.86rem;">
+                        <div class="admin-table-container">
+                            <table class="admin-table">
                                 <thead>
-                                    <tr style="border-bottom: 2px solid #e2e8f0; text-align: left; color: #64748b; background: #f8fafc;">
+                                    <tr style="border-bottom: 2px solid #e2e8f0; text-align: left; color: #64748b; background: #f8fafc; font-size: 0.76rem; text-transform: uppercase;">
                                         <th style="padding: 10px; width: 36px; text-align: center;">
                                             <input type="checkbox" id="select-all-tsc" onchange="toggleSelectAll('tsc-checkbox', this.checked, 'tsc-selected-count')" style="width: 16px; height: 16px; cursor: pointer;">
                                         </th>
@@ -361,10 +391,10 @@ $allTeachersWithDocs = R::find('teacher', "good_conduct_doc IS NOT NULL OR good_
                             </p>
                         </div>
                     <?php else: ?>
-                        <div style="overflow-x: auto;">
-                            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                        <div class="admin-table-container">
+                            <table class="admin-table">
                                 <thead>
-                                    <tr style="border-bottom: 2px solid #e2e8f0; text-align: left; color: #64748b; background: #f8fafc;">
+                                    <tr style="border-bottom: 2px solid #e2e8f0; text-align: left; color: #64748b; background: #f8fafc; font-size: 0.76rem; text-transform: uppercase;">
                                         <th style="padding: 10px; width: 36px; text-align: center;">
                                             <input type="checkbox" id="select-all-docs" onchange="toggleSelectAll('doc-checkbox', this.checked, 'doc-selected-count')" style="width: 16px; height: 16px; cursor: pointer;">
                                         </th>

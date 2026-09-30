@@ -116,6 +116,58 @@ $sourcesList = R::getCol("SELECT DISTINCT source_name FROM job WHERE source_type
 $totalPages = ceil($totalJobs / $limit);
 ?>
 
+<style>
+    .admin-table-container {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.86rem;
+    }
+    .admin-table th {
+        background: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+        color: #475569;
+        font-weight: 700;
+        padding: 10px 12px;
+        text-align: left;
+        white-space: nowrap;
+    }
+    .admin-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .admin-table tr:hover td {
+        background: #f8fafc;
+    }
+    @media (max-width: 768px) {
+        .admin-header-flex {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+        }
+        .admin-filter-form {
+            flex-direction: column !important;
+        }
+        .admin-filter-form > div,
+        .admin-filter-form button,
+        .admin-filter-form select,
+        .admin-filter-form input {
+            width: 100% !important;
+        }
+        .stat-grid-responsive {
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+            gap: 0.5rem !important;
+        }
+    }
+</style>
+
 <div class="workspace-wrapper">
     <?php include __DIR__ . '/partials/sidebar.php'; ?>
 
@@ -123,7 +175,7 @@ $totalPages = ceil($totalJobs / $limit);
         <div style="max-width: 1200px; margin: 0 auto; padding-bottom: 3rem;">
 
             <!-- Breadcrumb & Header -->
-            <div
+            <div class="admin-header-flex"
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                 <div>
                     <a href="/admin/dashboard"
@@ -183,7 +235,7 @@ $totalPages = ceil($totalJobs / $limit);
             <?php endif; ?>
 
             <!-- Metric Summary Cards -->
-            <div
+            <div class="stat-grid-responsive"
                 style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
                 <div
                     style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
@@ -218,7 +270,7 @@ $totalPages = ceil($totalJobs / $limit);
             <!-- Filter and Search Bar -->
             <div
                 style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                <form method="GET" action="/admin/aggregation"
+                <form method="GET" action="/admin/aggregation" class="admin-filter-form"
                     style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 0;">
                     <div style="flex: 2; min-width: 200px;">
                         <input type="text" name="q" value="<?= h($search) ?>"
@@ -234,7 +286,7 @@ $totalPages = ceil($totalJobs / $limit);
                             <option value="pending_review" <?= $statusFilter === 'pending_review' ? 'selected' : '' ?>>
                                 Pending Review</option>
                             <option value="rejected" <?= $statusFilter === 'rejected' ? 'selected' : '' ?>>Rejected
-                            </option>
+                                </option>
                             <option value="expired" <?= $statusFilter === 'expired' ? 'selected' : '' ?>>Expired</option>
                         </select>
                     </div>
@@ -273,8 +325,7 @@ $totalPages = ceil($totalJobs / $limit);
             </div>
 
             <!-- Ingested Jobs Table -->
-            <div
-                style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); overflow: hidden;">
+            <div class="admin-table-container">
                 <?php if (empty($jobs)): ?>
                     <div style="padding: 3.5rem 1.5rem; text-align: center; color: #64748b;">
                         <i class="fa fa-satellite-dish" style="font-size: 2.5rem; color: #cbd5e1; margin-bottom: 10px;"></i>
@@ -283,18 +334,16 @@ $totalPages = ceil($totalJobs / $limit);
                             the 'Ingest Now' button above.</p>
                     </div>
                 <?php else: ?>
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.86rem;">
-                            <thead>
-                                <tr
-                                    style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left; color: #475569;">
-                                    <th style="padding: 12px 14px;">Vacancy & Employer</th>
-                                    <th style="padding: 12px 14px;">Source & Category</th>
-                                    <th style="padding: 12px 14px;">Curriculum & County</th>
-                                    <th style="padding: 12px 14px;">Status</th>
-                                    <th style="padding: 12px 14px; text-align: right;">Moderation</th>
-                                </tr>
-                            </thead>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Vacancy & Employer</th>
+                                <th>Source & Category</th>
+                                <th>Curriculum & County</th>
+                                <th>Status</th>
+                                <th style="text-align: center; width: 60px;">Actions</th>
+                            </tr>
+                        </thead>
                             <tbody>
                                 <?php foreach ($jobs as $j): ?>
                                     <?php
@@ -355,47 +404,55 @@ $totalPages = ceil($totalJobs / $limit);
                                                 <?= $badge['label'] ?>
                                             </span>
                                         </td>
-                                        <td style="padding: 12px 14px; text-align: right;">
-                                            <div
-                                                style="display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
-                                                <?php if ($st !== 'published'): ?>
-                                                    <form method="POST" action="/admin/aggregation"
-                                                        style="margin: 0; display: inline;">
+                                        <td style="padding: 12px 14px; text-align: center; position: relative;">
+                                            <!-- 3-Dot Dropdown Menu -->
+                                            <div style="position: relative; display: inline-block;">
+                                                <button type="button" onclick="toggleAggregationMenu(event, <?= $j->id ?>)" style="background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 6px 10px; cursor: pointer; color: #64748b; font-size: 1rem; transition: all 0.15s;" onmouseover="this.style.background='#f1f5f9'; this.style.borderColor='#cbd5e1'" onmouseout="this.style.background='transparent'; this.style.borderColor='transparent'" title="Actions">
+                                                    <i class="fa fa-ellipsis-v"></i>
+                                                </button>
+
+                                                <div id="aggregation-menu-<?= $j->id ?>" class="aggregation-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; z-index: 100; min-width: 190px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); padding: 4px 0; text-align: left;">
+                                                    <?php if ($st !== 'published'): ?>
+                                                        <form method="POST" action="/admin/aggregation" style="margin: 0;">
+                                                            <?= csrf_field() ?>
+                                                            <input type="hidden" name="job_id" value="<?= $j->id ?>">
+                                                            <input type="hidden" name="admin_action" value="publish_job">
+                                                            <button type="submit" style="display: flex; align-items: center; gap: 8px; width: 100%; border: none; background: transparent; padding: 8px 14px; font-size: 0.82rem; color: #166534; font-weight: 600; cursor: pointer; text-align: left;" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='transparent'">
+                                                                <i class="fa fa-check" style="width: 16px;"></i> Approve & Publish Live
+                                                            </button>
+                                                        </form>
+                                                    <?php endif; ?>
+
+                                                    <?php if ($st !== 'rejected'): ?>
+                                                        <form method="POST" action="/admin/aggregation" style="margin: 0;">
+                                                            <?= csrf_field() ?>
+                                                            <input type="hidden" name="job_id" value="<?= $j->id ?>">
+                                                            <input type="hidden" name="admin_action" value="reject_job">
+                                                            <button type="submit" style="display: flex; align-items: center; gap: 8px; width: 100%; border: none; background: transparent; padding: 8px 14px; font-size: 0.82rem; color: #854d0e; cursor: pointer; text-align: left;" onmouseover="this.style.background='#fefce8'" onmouseout="this.style.background='transparent'">
+                                                                <i class="fa fa-eye-slash" style="width: 16px;"></i> Unlist / Reject
+                                                            </button>
+                                                        </form>
+                                                    <?php endif; ?>
+
+                                                    <?php if (!empty($j->source_url)): ?>
+                                                        <a href="<?= h($j->source_url) ?>" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.82rem; color: #0284c7; text-decoration: none;" onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background='transparent'">
+                                                            <i class="fa fa-arrow-up-right-from-square" style="width: 16px;"></i> View External Post
+                                                        </a>
+                                                    <?php endif; ?>
+
+                                                    <hr style="margin: 4px 0; border: none; border-top: 1px solid #f1f5f9;">
+
+                                                    <form method="POST" action="/admin/aggregation" style="margin: 0;">
                                                         <?= csrf_field() ?>
                                                         <input type="hidden" name="job_id" value="<?= $j->id ?>">
-                                                        <input type="hidden" name="admin_action" value="publish_job">
-                                                        <button type="submit" title="Publish live for teachers"
-                                                            style="background: #dcfce7; color: #166534; border: 1px solid #86efac; font-size: 0.74rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
-                                                            <i class="fa fa-check"></i> Approve
+                                                        <input type="hidden" name="admin_action" value="delete_aggregated_job">
+                                                        <button type="submit"
+                                                            onclick="return confirm('Permanently delete this aggregated job?')"
+                                                            style="display: flex; align-items: center; gap: 8px; width: 100%; border: none; background: transparent; padding: 8px 14px; font-size: 0.82rem; color: #dc2626; cursor: pointer; text-align: left;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+                                                            <i class="fa fa-trash" style="width: 16px;"></i> Delete Permanently
                                                         </button>
                                                     </form>
-                                                <?php endif; ?>
-
-                                                <?php if ($st !== 'rejected'): ?>
-                                                    <form method="POST" action="/admin/aggregation"
-                                                        style="margin: 0; display: inline;">
-                                                        <?= csrf_field() ?>
-                                                        <input type="hidden" name="job_id" value="<?= $j->id ?>">
-                                                        <input type="hidden" name="admin_action" value="reject_job">
-                                                        <button type="submit" title="Unlist this vacancy"
-                                                            style="background: #fef08a; color: #854d0e; border: 1px solid #fde047; font-size: 0.74rem; font-weight: 600; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
-                                                            <i class="fa fa-eye-slash"></i> Unlist
-                                                        </button>
-                                                    </form>
-                                                <?php endif; ?>
-
-                                                <form method="POST" action="/admin/aggregation"
-                                                    style="margin: 0; display: inline;">
-                                                    <?= csrf_field() ?>
-                                                    <input type="hidden" name="job_id" value="<?= $j->id ?>">
-                                                    <input type="hidden" name="admin_action" value="delete_aggregated_job">
-                                                    <button type="submit"
-                                                        onclick="return confirm('Permanently delete this aggregated job?')"
-                                                        title="Delete permanently"
-                                                        style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; font-size: 0.74rem; font-weight: 600; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
-                                                        <i class="fa fa-trash"></i>
-                                                    </button>
-                                                </form>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -432,3 +489,29 @@ $totalPages = ceil($totalJobs / $limit);
         </div>
     </main>
 </div>
+
+<script>
+function toggleAggregationMenu(event, jobId) {
+    event.stopPropagation();
+    var targetMenu = document.getElementById('aggregation-menu-' + jobId);
+    var isVisible = targetMenu && targetMenu.style.display === 'block';
+
+    // Close all open aggregation menus first
+    document.querySelectorAll('.aggregation-dropdown-menu').forEach(function(menu) {
+        menu.style.display = 'none';
+    });
+
+    if (targetMenu && !isVisible) {
+        targetMenu.style.display = 'block';
+    }
+}
+
+// Global click-outside listener
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.aggregation-dropdown-menu') && !event.target.closest('button')) {
+        document.querySelectorAll('.aggregation-dropdown-menu').forEach(function(menu) {
+            menu.style.display = 'none';
+        });
+    }
+});
+</script>

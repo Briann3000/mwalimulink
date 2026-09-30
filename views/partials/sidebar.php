@@ -94,6 +94,10 @@ $isActive = function ($path) use ($currentUri) {
             class="sidebar-item-link <?= ($isActive('admin/pricing') || $isActive('admin/settings')) ? 'active' : '' ?>">
             <i class="fa fa-tags"></i> <span>Pricing & Settings</span>
         </a>
+        <a href="/admin/transactions"
+            class="sidebar-item-link <?= $isActive('admin/transactions') ?>">
+            <i class="fa fa-receipt"></i> <span>Transactions & Ledger</span>
+        </a>
         <a href="/admin/audit"
             class="sidebar-item-link <?= ($isActive('admin/audit') || $isActive('admin/audit-logs')) ? 'active' : '' ?>">
             <i class="fa fa-clipboard-list"></i> <span>Audit Trail</span>

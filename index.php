@@ -110,6 +110,15 @@ if (str_ends_with($requestUri, 'index.php')) {
 $action = $_GET['action'] ?? null;
 $isApiRoute = str_starts_with($requestUri, 'api/') || (!empty($action) && str_starts_with($action, 'api/'));
 
+// Stop impersonation shortcut before rendering any HTML
+if ($requestUri === 'admin/stop-impersonate' || ($action === 'admin/stop-impersonate') || ($action === 'stop' && str_contains($requestUri, 'impersonate'))) {
+    if (function_exists('admin_stop_impersonation')) {
+        admin_stop_impersonation();
+    }
+    header("Location: /admin/dashboard");
+    exit();
+}
+
 if (!$isApiRoute) {
     require 'header.php';
 }
@@ -201,6 +210,9 @@ $modernRoutes = [
     'admin/audit-logs' => 'views/admin_audit.php',
     'admin/pricing' => 'views/admin_pricing.php',
     'admin/settings' => 'views/admin_pricing.php',
+    'admin/transactions' => 'views/admin_transactions.php',
+    'admin/impersonate' => 'views/admin_impersonate.php',
+    'admin/stop-impersonate' => 'views/admin_impersonate.php',
 
     // School Directories
     'schools/public' => 'views/public_school_search.php',

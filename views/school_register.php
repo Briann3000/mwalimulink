@@ -48,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $school->status = 'active';
             $school->plan = 'free';
             $school->subscription_expiry = null;
+            $school->created_at = date('Y-m-d H:i:s');
 
             $school_id = R::store($school);
             auth_login($school, 'school');

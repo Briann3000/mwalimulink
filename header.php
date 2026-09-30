@@ -1459,3 +1459,19 @@ if (function_exists('init_session')) {
   </script>
 
   <main style="padding: 0px; margin: 0px; width:100%;">
+  <?php if (function_exists('is_being_impersonated') && is_being_impersonated()): 
+      $impUser = auth_user();
+      $adminEmail = $_SESSION['_admin_impersonator']['original_auth']['email'] ?? 'Admin';
+  ?>
+    <div style="background: #991b1b; color: white; padding: 10px 20px; font-size: 0.88rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; z-index: 9999; position: sticky; top: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <i class="fa fa-user-secret" style="font-size: 1.1rem; color: #fca5a5;"></i>
+        <span>Viewing system as <strong><?= h($impUser['role']) ?>: <?= h($impUser['name'] ?: $impUser['email']) ?></strong> (Admin: <?= h($adminEmail) ?>)</span>
+      </div>
+      <div>
+        <a href="/admin/stop-impersonate" style="background: white; color: #991b1b !important; padding: 5px 14px; border-radius: 4px; text-decoration: none; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+          <i class="fa fa-arrow-right-from-bracket"></i> Exit Impersonation & Return to Admin
+        </a>
+      </div>
+    </div>
+  <?php endif; ?>

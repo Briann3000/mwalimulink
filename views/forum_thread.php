@@ -383,8 +383,8 @@ if (!function_exists('forum_detail_time')) {
 </div>
 
 <script>
-    // Asynchronous Like Thread
-    function toggleThreadLike(threadId) {
+    // Define functions on global window object immediately
+    window.toggleThreadLike = function(threadId) {
         <?php if (!$isLoggedIn): ?>
             window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
             return;
@@ -398,63 +398,94 @@ if (!function_exists('forum_detail_time')) {
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    document.getElementById('likeThreadCount').innerText = data.likes_count;
+                    const countEl = document.getElementById('likeThreadCount');
+                    if (countEl) countEl.innerText = data.likes_count;
                     const btn = document.getElementById('likeThreadBtn');
-                    if (data.user_has_liked) {
-                        btn.style.background = '#f0fdfa';
-                        btn.style.borderColor = '#0f766e';
-                        btn.style.color = '#0f766e';
-                    } else {
-                        btn.style.background = '#f8fafc';
-                        btn.style.borderColor = '#cbd5e1';
-                        btn.style.color = '#475569';
+                    if (btn) {
+                        if (data.user_has_liked) {
+                            btn.style.background = '#f0fdfa';
+                            btn.style.borderColor = '#0f766e';
+                            btn.style.color = '#0f766e';
+                        } else {
+                            btn.style.background = '#f8fafc';
+                            btn.style.borderColor = '#cbd5e1';
+                            btn.style.color = '#475569';
+                        }
                     }
                 }
             })
             .catch(e => console.error(e));
-    }
+    };
+
+    // Toggle Reply Like
+    window.toggleReplyLike = function(replyId, btn) {
+        <?php if (!$isLoggedIn): ?>
+            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+            return;
+        <?php endif; ?>
+
+        fetch('/api/forum?action=like_reply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reply_id: replyId })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && btn) {
+                    const span = btn.querySelector('span');
+                    if (span) span.innerText = data.likes_count;
+                    btn.style.color = data.user_has_liked ? '#0f766e' : '#64748b';
+                }
+            })
+            .catch(e => console.error(e));
+    };
 
     // Asynchronous Reply Submission
-    function submitReply(e) {
+    window.submitReply = function(e) {
         e.preventDefault();
         const input = document.getElementById('replyContentInput');
-        const content = input.value.trim();
+        const content = input ? input.value.trim() : '';
         const btn = document.getElementById('submitReplyBtn');
 
         if (!content) return;
 
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Submitting...';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Submitting...';
+        }
 
         fetch('/api/forum?action=submit_reply', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                thread_id: <?= $thread->id ?>,
+                thread_id: <?= (int)$thread->id ?>,
                 content: content
             })
         })
             .then(r => r.json())
             .then(data => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa fa-paper-plane"></i> Submit Response';
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa fa-paper-plane"></i> Submit Response';
+                }
                 if (data.success) {
-                    input.value = '';
-                    // Reload to display formatted reply or append
+                    if (input) input.value = '';
                     window.location.reload();
                 } else {
                     alert(data.message || 'Failed to post reply.');
                 }
             })
             .catch(err => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa fa-paper-plane"></i> Submit Response';
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa fa-paper-plane"></i> Submit Response';
+                }
                 alert('Network error. Please try again.');
             });
-    }
+    };
 
     // Moderate Thread (Pin / Lock)
-    function moderateThread(threadId, action) {
+    window.moderateThread = function(threadId, action) {
         if (!confirm('Apply this moderation change?')) return;
         fetch('/api/forum?action=moderate', {
             method: 'POST',
@@ -465,11 +496,12 @@ if (!function_exists('forum_detail_time')) {
             .then(data => {
                 if (data.success) window.location.reload();
                 else alert(data.message || 'Action failed.');
-            });
-    }
+            })
+            .catch(e => alert('Network error.'));
+    };
 
     // Delete Thread
-    function deleteThread(threadId) {
+    window.deleteThread = function(threadId) {
         if (!confirm('Are you sure you want to delete this discussion topic? This cannot be undone.')) return;
         fetch('/api/forum?action=delete_thread', {
             method: 'POST',
@@ -480,11 +512,12 @@ if (!function_exists('forum_detail_time')) {
             .then(data => {
                 if (data.success) window.location.href = '/forum';
                 else alert(data.message || 'Failed to delete.');
-            });
-    }
+            })
+            .catch(e => alert('Network error deleting topic.'));
+    };
 
     // Delete Reply
-    function deleteReply(replyId) {
+    window.deleteReply = function(replyId) {
         if (!confirm('Delete this response?')) return;
         fetch('/api/forum?action=delete_reply', {
             method: 'POST',
@@ -495,11 +528,12 @@ if (!function_exists('forum_detail_time')) {
             .then(data => {
                 if (data.success) window.location.reload();
                 else alert(data.message || 'Failed to delete response.');
-            });
-    }
+            })
+            .catch(e => alert('Network error deleting response.'));
+    };
 
     // Report Item
-    function openReportModal(threadId, replyId) {
+    window.openReportModal = function(threadId, replyId) {
         const reason = prompt('Please specify why you are reporting this content:');
         if (!reason || !reason.trim()) return;
 
@@ -516,6 +550,7 @@ if (!function_exists('forum_detail_time')) {
             .then(data => {
                 if (data.success) alert('Thank you. This topic has been flagged for admin review.');
                 else alert(data.message || 'Report failed.');
-            });
-    }
+            })
+            .catch(e => alert('Network error submitting report.'));
+    };
 </script>

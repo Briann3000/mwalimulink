@@ -93,6 +93,71 @@ function auth_logout()
     }
 }
 
+/**
+ * Start impersonating a teacher or school user from the admin console.
+ */
+function admin_start_impersonation($targetRole, $targetId)
+{
+    init_session();
+    $current = auth_user();
+    if (empty($current) || ($current['role'] ?? '') !== 'admin') {
+        return false;
+    }
+
+    $targetId = intval($targetId);
+    $targetBean = null;
+    if ($targetRole === 'teacher') {
+        $targetBean = R::load('teacher', $targetId);
+    } elseif ($targetRole === 'school') {
+        $targetBean = R::load('school', $targetId);
+    }
+
+    if (!$targetBean || !$targetBean->id) {
+        return false;
+    }
+
+    // Save previous admin identity
+    $_SESSION['_admin_impersonator'] = [
+        'original_auth' => $_SESSION['auth'],
+        'started_at' => time()
+    ];
+
+    // Log impersonation event in audit trail
+    log_admin_audit('admin_action', 'IMPERSONATION_STARTED', $targetRole, $targetId, $targetBean->name ?? 'User', "Admin {$current['email']} started impersonating {$targetRole} #{$targetId}");
+
+    // Log in as target user
+    auth_login($targetBean, $targetRole);
+    return true;
+}
+
+/**
+ * Revert impersonation session back to the administrator.
+ */
+function admin_stop_impersonation()
+{
+    init_session();
+    if (!empty($_SESSION['_admin_impersonator']['original_auth'])) {
+        $adminAuth = $_SESSION['_admin_impersonator']['original_auth'];
+        $impersonated = $_SESSION['auth'] ?? [];
+        
+        log_admin_audit('admin_action', 'IMPERSONATION_ENDED', $impersonated['role'] ?? 'unknown', $impersonated['user_id'] ?? 0, $impersonated['name'] ?? 'User', "Admin {$adminAuth['email']} ended impersonation session");
+
+        $_SESSION['auth'] = $adminAuth;
+        unset($_SESSION['_admin_impersonator']);
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Check if the current session is being impersonated by an administrator.
+ */
+function is_being_impersonated()
+{
+    init_session();
+    return !empty($_SESSION['_admin_impersonator']);
+}
+
 function auth_user()
 {
     init_session();
@@ -1566,63 +1631,75 @@ function init_forum_and_messaging_schema()
             }
         }
 
-        // Check if categories need seeding
-        $categoryCount = (int) R::getCell("SELECT COUNT(*) FROM forumcategory");
-        if ($categoryCount === 0) {
-            $defaultCategories = [
-                [
-                    'name' => 'General Chat',
-                    'slug' => 'general-chat',
-                    'description' => 'General educator discussions, daily advice, wellness, and community networking.',
-                    'icon' => 'fa-comments',
-                    'sort_order' => 1
-                ],
-                [
-                    'name' => 'TSC Swaps & Transfers',
-                    'slug' => 'tsc-swaps',
-                    'description' => 'Transfer swap requests across counties, replacement stations, and relocation matching.',
-                    'icon' => 'fa-landmark',
-                    'sort_order' => 2
-                ],
-                [
-                    'name' => 'Teaching Practice & Internships',
-                    'slug' => 'tp-internships',
-                    'description' => 'Guidance, TP letters, university placement coordination, and mentoring.',
-                    'icon' => 'fa-graduation-cap',
-                    'sort_order' => 3
-                ],
-                [
-                    'name' => 'CBC & Curriculum Exchange',
-                    'slug' => 'cbc-curriculum',
-                    'description' => 'Schemes of work, lesson plans, assessment materials, and pedagogical methodologies.',
-                    'icon' => 'fa-book-open',
-                    'sort_order' => 4
-                ],
-                [
-                    'name' => 'Job Opportunities & Interviews',
-                    'slug' => 'job-opportunities',
-                    'description' => 'Private school hiring insights, BOM openings, interview preparation, and salary guidance.',
-                    'icon' => 'fa-briefcase',
-                    'sort_order' => 5
-                ]
-            ];
+        // Add school created_at column if missing and backfill
+        try {
+            R::exec("ALTER TABLE school ADD COLUMN created_at DATETIME NULL");
+        } catch (\Throwable $ignored) {
+        }
+        try {
+            R::exec("UPDATE school SET created_at = NOW() WHERE created_at IS NULL OR created_at = '0000-00-00 00:00:00' OR created_at = ''");
+        } catch (\Throwable $ignored) {
+        }
 
-            foreach ($defaultCategories as $catData) {
-                R::exec("INSERT INTO forumcategory (name, slug, description, icon, sort_order, threads_count, replies_count, created_at) VALUES (?, ?, ?, ?, ?, 0, 0, ?)", [
-                    $catData['name'],
-                    $catData['slug'],
-                    $catData['description'],
-                    $catData['icon'],
-                    $catData['sort_order'],
-                    date('Y-m-d H:i:s')
-                ]);
+        // Guarantee all default forum categories exist
+        $defaultCategories = [
+            [
+                'name' => 'General Chat',
+                'slug' => 'general-chat',
+                'description' => 'General educator discussions, daily advice, wellness, and community networking.',
+                'icon' => 'fa-comments',
+                'sort_order' => 1
+            ],
+            [
+                'name' => 'TSC Swaps & Transfers',
+                'slug' => 'tsc-swaps',
+                'description' => 'Transfer swap requests across counties, replacement stations, and relocation matching.',
+                'icon' => 'fa-landmark',
+                'sort_order' => 2
+            ],
+            [
+                'name' => 'Teaching Practice & Internships',
+                'slug' => 'tp-internships',
+                'description' => 'Guidance, TP letters, university placement coordination, and mentoring.',
+                'icon' => 'fa-graduation-cap',
+                'sort_order' => 3
+            ],
+            [
+                'name' => 'CBC & Curriculum Exchange',
+                'slug' => 'cbc-curriculum',
+                'description' => 'Schemes of work, lesson plans, assessment materials, and pedagogical methodologies.',
+                'icon' => 'fa-book-open',
+                'sort_order' => 4
+            ],
+            [
+                'name' => 'Job Opportunities & Interviews',
+                'slug' => 'job-opportunities',
+                'description' => 'Private school hiring insights, BOM openings, interview preparation, and salary guidance.',
+                'icon' => 'fa-briefcase',
+                'sort_order' => 5
+            ]
+        ];
+
+        foreach ($defaultCategories as $catData) {
+            $existing = R::findOne('forumcategory', 'slug = ?', [$catData['slug']]);
+            if (!$existing) {
+                $newCat = R::dispense('forumcategory');
+                $newCat->name = $catData['name'];
+                $newCat->slug = $catData['slug'];
+                $newCat->description = $catData['description'];
+                $newCat->icon = $catData['icon'];
+                $newCat->sort_order = $catData['sort_order'];
+                $newCat->threads_count = 0;
+                $newCat->replies_count = 0;
+                $newCat->created_at = date('Y-m-d H:i:s');
+                R::store($newCat);
             }
-        } else {
-            // Migrate Staffroom Lounge to General Chat if it exists
-            try {
-                R::exec("UPDATE forumcategory SET name = 'General Chat', slug = 'general-chat', description = 'General educator discussions, daily advice, wellness, and community networking.' WHERE slug = 'staffroom-lounge'");
-            } catch (\Throwable $ignored) {
-            }
+        }
+
+        // Migrate legacy category slug if present
+        try {
+            R::exec("UPDATE forumcategory SET name = 'General Chat', slug = 'general-chat', description = 'General educator discussions, daily advice, wellness, and community networking.' WHERE slug = 'staffroom-lounge'");
+        } catch (\Throwable $ignored) {
         }
     } catch (\Throwable $e) {
         error_log("init_forum_and_messaging_schema error: " . $e->getMessage());
