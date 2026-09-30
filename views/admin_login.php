@@ -11,14 +11,19 @@ if (is_logged_in() && has_role('admin')) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     validate_csrf();
     
-    $admin_email = env('ADMIN_EMAIL', 'admin@mwalimu.info');
+    $admin_email = strtolower(env('ADMIN_EMAIL', 'admin@mwalimu.info'));
     $admin_password = env('ADMIN_PASSWORD', 'Kenya@254');
 
-    $email = trim($_POST['email'] ?? '');
+    $email = strtolower(trim($_POST['email'] ?? ''));
     $password = $_POST['password'] ?? '';
 
-    // Validate login credentials
-    if ($email === $admin_email && $password === $admin_password) {
+    $rateCheck = check_login_rate_limit($email);
+    if (!$rateCheck['allowed']) {
+        $error_message = "Too many failed login attempts. Please wait {$rateCheck['retry_after']} minute(s) before trying again.";
+    } elseif (empty($email) || empty($password)) {
+        $error_message = "Please enter both your email address and password.";
+    } elseif (hash_equals($admin_email, $email) && hash_equals($admin_password, $password)) {
+        clear_login_rate_limit($email);
         $adminObj = (object)[
             'id' => 1,
             'name' => 'Administrator',
@@ -28,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: /admin/dashboard');
         exit();
     } else {
+        record_failed_login($email);
         $error_message = "Invalid email or password.";
     }
 }

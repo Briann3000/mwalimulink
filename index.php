@@ -144,7 +144,7 @@ $modernRoutes = [
     'blog/admin' => 'views/blog_admin.php',
 
     // Authentication & Registration
-    'login' => 'views/dual_login.php',
+    'login' => (isset($_GET['role']) && $_GET['role'] === 'school') ? 'views/school_login.php' : 'views/teacher_login.php',
     'login/teacher' => 'views/teacher_login.php',
     'login/school' => 'views/school_login.php',
     'login/admin' => 'views/admin_login.php',

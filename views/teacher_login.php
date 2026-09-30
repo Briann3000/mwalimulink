@@ -1,5 +1,5 @@
 <?php
-// views/teacher_login.php
+// views/teacher_login.php - Dedicated Educator Sign In Portal
 
 $error_message = null;
 $redirect = trim($_GET['redirect'] ?? ($_POST['redirect'] ?? ''));
@@ -19,94 +19,115 @@ if (is_logged_in() && has_role('teacher')) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     validate_csrf();
 
-    $email = trim($_POST['email'] ?? '');
+    $email = strtolower(trim($_POST['email'] ?? ''));
     $password = $_POST['password'] ?? '';
 
-    $teacher = R::findOne('teacher', 'email = ?', [$email]);
-
-    if ($teacher && password_verify($password, $teacher->password)) {
-        auth_login($teacher, 'teacher');
-        $dest = !empty($redirect) ? $redirect : '/teacher/dashboard';
-        header("Location: $dest");
-        exit();
+    $rateCheck = check_login_rate_limit($email);
+    if (!$rateCheck['allowed']) {
+        $error_message = "Too many failed login attempts. Please wait {$rateCheck['retry_after']} minute(s) before trying again.";
+    } elseif (empty($email) || empty($password)) {
+        $error_message = "Please enter both your email address and password.";
     } else {
-        $error_message = "Invalid email or password.";
+        $teacher = R::findOne('teacher', 'email = ?', [$email]);
+
+        if ($teacher && password_verify($password, $teacher->password)) {
+            if ($teacher->status === 'suspended') {
+                record_failed_login($email);
+                $error_message = "This educator account has been temporarily suspended by administration. Please contact support.";
+            } else {
+                clear_login_rate_limit($email);
+                auth_login($teacher, 'teacher');
+                $dest = !empty($redirect) ? $redirect : '/teacher/dashboard';
+                header("Location: $dest");
+                exit();
+            }
+        } else {
+            record_failed_login($email);
+            $error_message = "Invalid educator email or password.";
+        }
     }
 }
 ?>
 
-<article class="card" style="max-width: 80%; margin: 2rem auto;">
-    <header>
-        <h2 style="text-align: center;">Teacher Login</h2>
-    </header>
-
-    <?php if ($notice === 'auth_required'): ?>
-        <div
-            style="background: #f0fdfa; border: 1px solid #99f6e4; color: #0f766e; padding: 12px 16px; border-radius: 6px; margin: 1rem; font-size: 0.88rem;">
-            <strong>Access Private & International Schools:</strong> Please sign in to your Teacher account to unlock
-            directory access.
+<div class="container" style="max-width: 460px; margin: 3rem auto 4rem; padding: 0 1rem;">
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2.25rem; box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
+        
+        <div style="text-align: center; margin-bottom: 1.75rem;">
+            <div style="width: 54px; height: 54px; border-radius: 50%; background: #f0fdfa; color: #0f766e; display: inline-flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 0.75rem; border: 1px solid #ccfbf1;">
+                <i class="fa fa-graduation-cap"></i>
+            </div>
+            <h2 style="margin: 0 0 6px; font-size: 1.45rem; color: #0f172a; font-weight: 800;">Teacher Sign In</h2>
+            <p style="margin: 0; font-size: 0.88rem; color: #64748b;">Access your teacher profile, CV builder, and job applications.</p>
         </div>
-    <?php endif; ?>
 
-    <?php if (isset($error_message)): ?>
-        <div class="alert alert-error">
-            <h4><?php echo htmlspecialchars($error_message); ?></h4>
-        </div>
-    <?php endif; ?>
-
-    <form method="POST" style="padding: 1rem;">
-        <?= csrf_field() ?>
-        <?php if (!empty($redirect)): ?>
-            <input type="hidden" name="redirect" value="<?= h($redirect) ?>">
+        <?php if ($notice === 'auth_required'): ?>
+            <div style="background: #f0fdfa; border: 1px solid #99f6e4; color: #0f766e; padding: 12px 14px; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.86rem; display: flex; align-items: flex-start; gap: 8px;">
+                <i class="fa fa-lock" style="margin-top: 2px;"></i>
+                <div>
+                    <strong>Educator Access Required:</strong> Please sign in to view complete school directories and apply for vacancies.
+                </div>
+            </div>
         <?php endif; ?>
-        <label for="email">Email:</label>
-        <input type="email" name="email" id="email" required>
 
-        <label for="password">Password:</label>
-        <div class="password-input">
-            <input type="password" name="password" id="password" required>
-            <span class="password-toggle" onclick="togglePassword()">👁</span>
+        <?php if (isset($error_message)): ?>
+            <div style="background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px 14px; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.88rem; display: flex; align-items: center; gap: 8px;">
+                <i class="fa fa-exclamation-circle"></i> <?= h($error_message) ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" action="/login/teacher" style="margin: 0;">
+            <?= csrf_field() ?>
+            <?php if (!empty($redirect)): ?>
+                <input type="hidden" name="redirect" value="<?= h($redirect) ?>">
+            <?php endif; ?>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label for="email" style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Email Address</label>
+                <input type="email" name="email" id="email" value="<?= h($_POST['email'] ?? '') ?>" placeholder="e.g. teacher@gmail.com" required style="width: 100%; box-sizing: border-box; height: 44px; margin: 0; background: #ffffff; padding: 0 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.92rem;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label for="password" style="font-size: 0.82rem; font-weight: 700; color: #334155; margin: 0;">Password</label>
+                    <a href="/reset-password/teacher" style="font-size: 0.78rem; color: #0f766e; font-weight: 600; text-decoration: none;">Forgot Password?</a>
+                </div>
+                <div style="position: relative; display: flex; align-items: center;">
+                    <input type="password" name="password" id="password" placeholder="Enter your password" required style="width: 100%; box-sizing: border-box; height: 44px; margin: 0 !important; margin-bottom: 0 !important; background: #ffffff; padding: 0 42px 0 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.92rem;">
+                    <span role="button" tabindex="0" onclick="togglePasswordVisibility('password', 'toggleEyeIcon')" class="password-eye-toggle" title="Show/Hide Password">
+                        <i class="fa fa-eye" id="toggleEyeIcon"></i>
+                    </span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; height: 46px; font-size: 0.95rem; font-weight: 700; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fa fa-sign-in-alt"></i> Sign In as Teacher
+            </button>
+        </form>
+
+        <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid #f1f5f9; text-align: center; font-size: 0.85rem; color: #64748b;">
+            Don't have an educator account? <a href="/register/teacher<?= !empty($redirect) ? '?redirect=' . urlencode($redirect) : '' ?>" style="color: #0f766e; font-weight: 700;">Join for Free &rarr;</a>
         </div>
 
-        <button type="submit" class="primary" style="width: 100%;">Login</button>
-    </form>
-
-    <div style="display: flex; justify-content: space-between; padding: 0 1rem 1rem;">
-        <p>Don't have an account? <a
-                href="/register/teacher<?= !empty($redirect) ? '?redirect=' . urlencode($redirect) : '' ?>">Register
-                here</a></p>
-        <p><a href="/reset-password/teacher" style="color: #666;">Forgot password?</a></p>
+        <div style="margin-top: 1rem; text-align: center; font-size: 0.82rem; color: #64748b; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #f1f5f9;">
+            <i class="fa fa-school" style="color: #0f766e; margin-right: 4px;"></i> Hiring for a School? <a href="/login/school<?= !empty($redirect) ? '?redirect=' . urlencode($redirect) : '' ?>" style="color: #0f766e; font-weight: 700;">Institutional Login &rarr;</a>
+        </div>
     </div>
+</div>
 
-    <style>
-        .password-input {
-            position: relative;
-            display: flex;
-            align-items: center;
+<script>
+    function togglePasswordVisibility(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input && icon) {
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
         }
-
-        .password-input input[type="password"],
-        .password-input input[type="text"] {
-            padding-right: 30px;
-            /* Space for the eye icon */
-            width: 100%;
-        }
-
-        .password-toggle {
-            position: absolute;
-            right: 5px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            user-select: none;
-        }
-    </style>
-
-    <script>
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-        }
-    </script>
-</article>
+    }
+</script>

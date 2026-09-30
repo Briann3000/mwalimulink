@@ -310,25 +310,63 @@ if (function_exists('init_session')) {
       border-color: #0f766e !important;
     }
 
-    /* Public Hamburger Menu Button (Visible on < 992px) */
+    /* Public Hamburger Menu Button (Strictly hidden on desktop > 900px) */
     .public-mobile-toggle {
-      display: none;
-      background: #1e293b;
-      border: 1px solid #475569;
-      color: #ffffff;
-      width: 38px;
-      height: 38px;
-      border-radius: 8px;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 1.15rem;
-      transition: all 0.2s ease;
+      display: none !important;
+      background: #1e293b !important;
+      border: 1px solid #475569 !important;
+      color: #ffffff !important;
+      width: 38px !important;
+      height: 38px !important;
+      border-radius: 8px !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      font-size: 1.15rem !important;
+      transition: all 0.2s ease !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
 
     .public-mobile-toggle:hover {
-      background: #0f766e;
-      border-color: #0f766e;
+      background: #0f766e !important;
+      border-color: #0f766e !important;
+    }
+
+    /* Universal Password Reveal Eye Toggle Reset */
+    .password-eye-toggle,
+    span.password-eye-toggle,
+    .btn-reveal-eye {
+      background: transparent !important;
+      background-color: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      width: auto !important;
+      height: auto !important;
+      margin: 0 !important;
+      padding: 4px !important;
+      color: #64748b !important;
+      outline: none !important;
+      cursor: pointer !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      position: absolute !important;
+      right: 12px !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      z-index: 10 !important;
+      user-select: none !important;
+    }
+
+    .password-eye-toggle:hover,
+    span.password-eye-toggle:hover,
+    .btn-reveal-eye:hover {
+      color: #0f766e !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      transform: translateY(-50%) scale(1.1) !important;
     }
 
     /* ==========================================================================
@@ -1219,26 +1257,21 @@ if (function_exists('init_session')) {
         <!-- Public Desktop Nav -->
         <ul class="topbar-nav public-nav-desktop">
           <li><a href="/"><i class="fa fa-home"></i> Home</a></li>
-          <li><a href="/forum"><i class="fa fa-comments"></i> Forum</a></li>
-          <li><a href="/about"><i class="fa fa-info-circle"></i> About</a></li>
-          <li><a href="/publications"><i class="fa fa-file-lines"></i> Publications</a></li>
-          <li><a href="/contacts"><i class="fa fa-envelope"></i> Contact</a></li>
 
           <li class="top-dropdown">
-            <a href="#"><i class="fa fa-school"></i> Schools <i class="fa fa-chevron-down"
-                style="font-size: 10px;"></i></a>
+            <a href="#"><i class="fa fa-school"></i> Schools <i class="fa fa-chevron-down" style="font-size: 10px;"></i></a>
             <div class="top-dropdown-menu">
               <a href="/schools/public"><i class="fa fa-landmark"></i> Public Schools</a>
               <a href="/schools/private"><i class="fa fa-building"></i> Private Academies</a>
               <a href="/schools/international"><i class="fa fa-globe"></i> International Schools</a>
+              <div style="border-top: 1px solid #334155; margin: 4px 0;"></div>
               <a href="/register/school"><i class="fa fa-plus-circle"></i> Register Institution</a>
               <a href="/login/school"><i class="fa fa-sign-in-alt"></i> School Login</a>
             </div>
           </li>
 
           <li class="top-dropdown">
-            <a href="#"><i class="fa fa-graduation-cap"></i> Teachers <i class="fa fa-chevron-down"
-                style="font-size: 10px;"></i></a>
+            <a href="#"><i class="fa fa-graduation-cap"></i> Teachers <i class="fa fa-chevron-down" style="font-size: 10px;"></i></a>
             <div class="top-dropdown-menu">
               <a href="/register/teacher"><i class="fa fa-user-plus"></i> Register Free</a>
               <a href="/login/teacher"><i class="fa fa-sign-in-alt"></i> Teacher Login</a>
@@ -1246,9 +1279,11 @@ if (function_exists('init_session')) {
             </div>
           </li>
 
+          <li><a href="/forum"><i class="fa fa-comments"></i> Forum</a></li>
+          <li><a href="/publications"><i class="fa fa-file-lines"></i> Publications</a></li>
+
           <li class="top-dropdown">
-            <a href="#"><i class="fa fa-book-open"></i> Resources <i class="fa fa-chevron-down"
-                style="font-size: 10px;"></i></a>
+            <a href="#"><i class="fa fa-book-open"></i> Resources <i class="fa fa-chevron-down" style="font-size: 10px;"></i></a>
             <div class="top-dropdown-menu">
               <a href="/faqs"><i class="fa fa-question-circle"></i> Educator FAQs</a>
               <a href="/faqs-overseas"><i class="fa fa-plane"></i> Teaching Overseas FAQ</a>
@@ -1257,11 +1292,8 @@ if (function_exists('init_session')) {
             </div>
           </li>
 
-          <li>
-            <a href="/login" style="background: #0f766e; color: white !important; font-weight: 700; border-radius: 6px;">
-              <i class="fa fa-sign-in-alt"></i> Login
-            </a>
-          </li>
+          <li><a href="/about"><i class="fa fa-info-circle"></i> About</a></li>
+          <li><a href="/contacts"><i class="fa fa-envelope"></i> Contact</a></li>
         </ul>
 
         <!-- Public Mobile Hamburger Toggle -->
@@ -1295,12 +1327,6 @@ if (function_exists('init_session')) {
 
       <div class="public-drawer-section">
         <a href="/" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-home"></i> Home</a>
-        <a href="/about" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-info-circle"></i>
-          About MwalimuLink</a>
-        <a href="/publications" class="public-drawer-link" onclick="closePublicMobileNav()"><i
-            class="fa fa-file-lines"></i> Publications Hub</a>
-        <a href="/contacts" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-envelope"></i>
-          Contact Us</a>
       </div>
 
       <div class="public-drawer-section">
@@ -1312,7 +1338,9 @@ if (function_exists('init_session')) {
         <a href="/schools/international" class="public-drawer-link" onclick="closePublicMobileNav()"><i
             class="fa fa-globe"></i> International Schools</a>
         <a href="/register/school" class="public-drawer-link" onclick="closePublicMobileNav()"><i
-            class="fa fa-school"></i> Register Institution</a>
+            class="fa fa-plus-circle"></i> Register Institution</a>
+        <a href="/login/school" class="public-drawer-link" onclick="closePublicMobileNav()"><i
+            class="fa fa-school"></i> School Login</a>
       </div>
 
       <div class="public-drawer-section">
@@ -1323,6 +1351,13 @@ if (function_exists('init_session')) {
             class="fa fa-graduation-cap"></i> Teacher Login</a>
         <a href="/tp-hub" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-award"></i> Teaching
           Practice (TP) Hub</a>
+      </div>
+
+      <div class="public-drawer-section">
+        <div class="public-drawer-title">Community & Knowledge</div>
+        <a href="/forum" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-comments"></i> Forum</a>
+        <a href="/publications" class="public-drawer-link" onclick="closePublicMobileNav()"><i
+            class="fa fa-file-lines"></i> Publications Hub</a>
       </div>
 
       <div class="public-drawer-section">
@@ -1337,10 +1372,22 @@ if (function_exists('init_session')) {
           Terms of Service</a>
       </div>
 
+      <div class="public-drawer-section">
+        <div class="public-drawer-title">Company</div>
+        <a href="/about" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-info-circle"></i>
+          About MwalimuLink</a>
+        <a href="/contacts" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-envelope"></i>
+          Contact Us</a>
+      </div>
+
       <div style="border-top: 1px solid #1e293b; padding-top: 1rem; display: flex; flex-direction: column; gap: 8px;">
-        <a href="/login" class="btn-primary"
-          style="width: 100%; text-align: center; justify-content: center; padding: 10px; font-weight: 700;">
-          <i class="fa fa-sign-in-alt"></i> Member Sign In
+        <a href="/login/teacher" class="btn-primary"
+          style="width: 100%; text-align: center; justify-content: center; padding: 10px; font-weight: 700; box-sizing: border-box;">
+          <i class="fa fa-graduation-cap"></i> Teacher Login
+        </a>
+        <a href="/login/school" class="btn-outline"
+          style="width: 100%; text-align: center; justify-content: center; padding: 10px; font-weight: 700; background: #1e293b !important; color: #ffffff !important; border: 1px solid #334155 !important; box-sizing: border-box;">
+          <i class="fa fa-school"></i> School Login
         </a>
       </div>
     </div>

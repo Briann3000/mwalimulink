@@ -24,7 +24,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Validate & normalize phone number
             $normalizedPhone = normalize_kenyan_phone($_POST['mobile'] ?? '');
-            if (!$normalizedPhone) {
+            $pass = $_POST['password'] ?? '';
+            $passConfirm = $_POST['password_confirm'] ?? '';
+
+            if (strlen($pass) < 8) {
+                $message = "Password must be at least 8 characters long.";
+                $showForm = true;
+            } elseif ($pass !== $passConfirm) {
+                $message = "Passwords do not match. Please re-enter your password.";
+                $showForm = true;
+            } elseif (!$normalizedPhone) {
                 $message = "Please enter a valid Kenyan phone number (e.g. 0712345678 or 0112345678).";
                 $showForm = true;
             } else {
@@ -41,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $teacher->year_of_birth = intval($_POST['year_of_birth'] ?? 0);
                     $teacher->mobile = $normalizedPhone;
                     $teacher->email = $email;
-                    $teacher->password = password_hash($_POST['password'] ?? '', PASSWORD_DEFAULT);
+                    $teacher->password = password_hash($pass, PASSWORD_DEFAULT);
                     $teacher->tsc_number = $tscCheck['formatted']; // Saved formatted digits or null
                     $teacher->years_of_experience = intval($_POST['years_of_experience'] ?? 0);
 
@@ -194,22 +203,42 @@ $prefilledEmail = trim($_GET['email'] ?? ($_POST['email'] ?? ''));
 
                 <div class="grid">
                     <label for="password">Create Password <span style="color: red;">*</span>
-                        <div class="password-input">
-                            <input type="password" id="password" placeholder="At least 8 characters" name="password"
-                                minlength="8" required>
-                            <span class="password-toggle" onclick="togglePassword('password')">👁</span>
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <input type="password" id="password" placeholder="At least 8 characters" name="password" minlength="8" required style="width: 100%; box-sizing: border-box; padding-right: 42px; margin: 0 !important; margin-bottom: 0 !important;" oninput="onPasswordInput(this.value)">
+                            <span role="button" tabindex="0" onclick="togglePasswordVisibility('password', 'eye_pass')" class="password-eye-toggle" title="Show/Hide Password">
+                                <i class="fa fa-eye" id="eye_pass"></i>
+                            </span>
                         </div>
-                        <small id="err_password" class="field-error" style="color: #dc3545; display: none;">Password must be
-                            at least 8 characters.</small>
+                        <!-- Password Strength Bar & Hints -->
+                        <div id="passStrengthContainer" style="margin-top: 6px; display: none;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 0.76rem;">
+                                <span style="color: #64748b;">Strength:</span>
+                                <span id="passStrengthLabel" style="font-weight: 700; color: #dc3545;">Too Weak</span>
+                            </div>
+                            <div style="height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+                                <div id="passStrengthBar" style="height: 100%; width: 0%; background: #dc3545; transition: all 0.3s ease;"></div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 0.74rem; color: #64748b;">
+                                <div id="rule_len"><i class="fa fa-circle-xmark" style="color: #cbd5e1;"></i> 8+ Characters</div>
+                                <div id="rule_upper"><i class="fa fa-circle-xmark" style="color: #cbd5e1;"></i> Uppercase Letter</div>
+                                <div id="rule_lower"><i class="fa fa-circle-xmark" style="color: #cbd5e1;"></i> Lowercase Letter</div>
+                                <div id="rule_num"><i class="fa fa-circle-xmark" style="color: #cbd5e1;"></i> Number / Symbol</div>
+                            </div>
+                        </div>
+                        <small id="err_password" class="field-error" style="color: #dc3545; display: none;">Password must be at least 8 characters.</small>
                     </label>
 
                     <label for="password_confirm">Confirm Password <span style="color: red;">*</span>
-                        <div class="password-input">
-                            <input type="password" id="password_confirm" name="password_confirm" minlength="8" required>
-                            <span class="password-toggle" onclick="togglePassword('password_confirm')">👁</span>
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <input type="password" id="password_confirm" placeholder="Re-enter password" name="password_confirm" minlength="8" required style="width: 100%; box-sizing: border-box; padding-right: 42px; margin: 0 !important; margin-bottom: 0 !important;" oninput="onPasswordConfirmInput(this.value)">
+                            <span role="button" tabindex="0" onclick="togglePasswordVisibility('password_confirm', 'eye_pass_confirm')" class="password-eye-toggle" title="Show/Hide Password">
+                                <i class="fa fa-eye" id="eye_pass_confirm"></i>
+                            </span>
                         </div>
-                        <small id="err_password_confirm" class="field-error"
-                            style="color: #dc3545; display: none;">Passwords do not match.</small>
+                        <div id="passMatchFeedback" style="margin-top: 6px; font-size: 0.76rem; display: none;">
+                            <span id="passMatchIcon"><i class="fa fa-check-circle" style="color: #10b981;"></i></span> <span id="passMatchText" style="color: #10b981; font-weight: 600;">Passwords match</span>
+                        </div>
+                        <small id="err_password_confirm" class="field-error" style="color: #dc3545; display: none;">Passwords do not match.</small>
                     </label>
                 </div>
 
@@ -592,10 +621,112 @@ $prefilledEmail = trim($_GET['email'] ?? ($_POST['email'] ?? ''));
     </div>
 
     <script>
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input && icon) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            }
+        }
+
+        function onPasswordInput(val) {
+            const container = document.getElementById('passStrengthContainer');
+            const bar = document.getElementById('passStrengthBar');
+            const label = document.getElementById('passStrengthLabel');
+            if (!container || !bar || !label) return;
+
+            if (!val) {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'block';
+
+            const hasLen = val.length >= 8;
+            const hasUpper = /[A-Z]/.test(val);
+            const hasLower = /[a-z]/.test(val);
+            const hasNumOrSpec = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val);
+
+            // Update checklist icons
+            const updateRule = (id, valid) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.innerHTML = valid 
+                        ? '<i class="fa fa-check-circle" style="color: #10b981;"></i> ' + el.innerText.trim()
+                        : '<i class="fa fa-circle-xmark" style="color: #cbd5e1;"></i> ' + el.innerText.trim();
+                    el.style.color = valid ? '#0f766e' : '#64748b';
+                }
+            };
+            updateRule('rule_len', hasLen);
+            updateRule('rule_upper', hasUpper);
+            updateRule('rule_lower', hasLower);
+            updateRule('rule_num', hasNumOrSpec);
+
+            // Score calculation
+            let score = 0;
+            if (hasLen) score += 25;
+            if (hasUpper) score += 25;
+            if (hasLower) score += 25;
+            if (hasNumOrSpec) score += 25;
+
+            if (score <= 25) {
+                bar.style.width = '25%';
+                bar.style.background = '#dc3545';
+                label.innerText = 'Weak';
+                label.style.color = '#dc3545';
+            } else if (score <= 50) {
+                bar.style.width = '50%';
+                bar.style.background = '#f59e0b';
+                label.innerText = 'Fair';
+                label.style.color = '#f59e0b';
+            } else if (score <= 75) {
+                bar.style.width = '75%';
+                bar.style.background = '#0ea5e9';
+                label.innerText = 'Good';
+                label.style.color = '#0ea5e9';
+            } else {
+                bar.style.width = '100%';
+                bar.style.background = '#10b981';
+                label.innerText = 'Strong & Secure';
+                label.style.color = '#10b981';
+            }
+
+            // Also revalidate confirmation if confirm has value
+            const passConfirm = document.getElementById('password_confirm');
+            if (passConfirm && passConfirm.value) {
+                onPasswordConfirmInput(passConfirm.value);
+            }
+        }
+
+        function onPasswordConfirmInput(val) {
+            const pass = document.getElementById('password');
+            const feedback = document.getElementById('passMatchFeedback');
+            const icon = document.getElementById('passMatchIcon');
+            const text = document.getElementById('passMatchText');
+            if (!feedback || !pass) return;
+
+            if (!val) {
+                feedback.style.display = 'none';
+                return;
+            }
+            feedback.style.display = 'block';
+
+            if (pass.value === val) {
+                icon.innerHTML = '<i class="fa fa-check-circle" style="color: #10b981;"></i>';
+                text.innerText = 'Passwords match';
+                text.style.color = '#10b981';
+            } else {
+                icon.innerHTML = '<i class="fa fa-times-circle" style="color: #dc3545;"></i>';
+                text.innerText = 'Passwords do not match';
+                text.style.color = '#dc3545';
+            }
         }
 
         // Modal Functions
@@ -608,13 +739,13 @@ $prefilledEmail = trim($_GET['email'] ?? ($_POST['email'] ?? ''));
         }
 
         // Event listeners for modal links
-        document.querySelector('a[href="#privacyPolicyModal"]').addEventListener('click', function (event) {
-            event.preventDefault(); // Prevent default link behavior
+        document.querySelector('a[href="#privacyPolicyModal"]')?.addEventListener('click', function (event) {
+            event.preventDefault();
             openModal('privacyPolicyModal');
         });
 
-        document.querySelector('a[href="#termsConditionsModal"]').addEventListener('click', function (event) {
-            event.preventDefault(); // Prevent default link behavior
+        document.querySelector('a[href="#termsConditionsModal"]')?.addEventListener('click', function (event) {
+            event.preventDefault();
             openModal('termsConditionsModal');
         });
 

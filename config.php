@@ -94,6 +94,65 @@ function auth_logout()
 }
 
 /**
+ * Check if login attempts have exceeded rate limits (5 attempts per 15 minutes per IP/email).
+ */
+function check_login_rate_limit($identifier = '')
+{
+    init_session();
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $key = 'rate_login_' . md5($ip . '_' . strtolower($identifier));
+    $now = time();
+    $window = 900; // 15 minutes
+    $maxAttempts = 5;
+
+    $record = $_SESSION[$key] ?? ['count' => 0, 'first_attempt' => $now];
+    if ($now - $record['first_attempt'] > $window) {
+        $record = ['count' => 0, 'first_attempt' => $now];
+        $_SESSION[$key] = $record;
+    }
+
+    if ($record['count'] >= $maxAttempts) {
+        $remainingMinutes = ceil(($record['first_attempt'] + $window - $now) / 60);
+        return [
+            'allowed' => false,
+            'retry_after' => max(1, $remainingMinutes)
+        ];
+    }
+
+    return ['allowed' => true];
+}
+
+/**
+ * Record a failed login attempt.
+ */
+function record_failed_login($identifier = '')
+{
+    init_session();
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $key = 'rate_login_' . md5($ip . '_' . strtolower($identifier));
+    $now = time();
+    $window = 900;
+
+    $record = $_SESSION[$key] ?? ['count' => 0, 'first_attempt' => $now];
+    if ($now - $record['first_attempt'] > $window) {
+        $record = ['count' => 0, 'first_attempt' => $now];
+    }
+    $record['count']++;
+    $_SESSION[$key] = $record;
+}
+
+/**
+ * Clear rate limit on successful authentication.
+ */
+function clear_login_rate_limit($identifier = '')
+{
+    init_session();
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $key = 'rate_login_' . md5($ip . '_' . strtolower($identifier));
+    unset($_SESSION[$key]);
+}
+
+/**
  * Start impersonating a teacher or school user from the admin console.
  */
 function admin_start_impersonation($targetRole, $targetId)
