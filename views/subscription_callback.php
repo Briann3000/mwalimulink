@@ -77,15 +77,19 @@ if (!empty($secretKey) && !empty($tracking_id)) {
 }
 
 if ($isVerified) {
-    // Payment verified: activate the Pro plan for 12 months
-    $school->plan = 'pro';
-    $school->status = 'active';
+    // Payment verified: activate the Pro plan dynamically and additively
+    grant_school_pro_subscription($school->id, null, (string) $tracking_id);
+    
+    // Also mark any matching pending payment as COMPLETE
+    $pendingPayment = R::findOne('payment', 'user_id = ? AND purpose = "school_subscription" ORDER BY id DESC', [$school->id]);
+    if ($pendingPayment && $pendingPayment->state !== 'COMPLETE') {
+        $pendingPayment->state = 'COMPLETE';
+        $pendingPayment->tracking_id = (string) $tracking_id;
+        $pendingPayment->updated_at = date('Y-m-d H:i:s');
+        R::store($pendingPayment);
+    }
 
-    $expiry_date = new DateTime();
-    $expiry_date->add(new DateInterval('P12M'));
-    $school->subscription_expiry = $expiry_date->format('Y-m-d H:i:s');
-
-    R::store($school);
+    $school = R::load('school', $school->id);
     auth_login($school, 'school');
 }
 ?>

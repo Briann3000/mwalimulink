@@ -8,18 +8,7 @@ $successMessage = '';
 $error = '';
 
 // Check subscription and existing jobs
-$now = new DateTime();
-$isPro = false;
-if (!empty($school->subscription_expiry)) {
-    try {
-        $expiryDate = new DateTime($school->subscription_expiry);
-        if ($school->status === 'active' && $expiryDate >= $now) {
-            $isPro = true;
-        }
-    } catch (Exception $e) {
-        $isPro = false;
-    }
-}
+$isPro = school_has_pro($school);
 
 $existingJobsCount = R::count('job', 'school_id = ?', [$school_id]);
 $canPost = $isPro || ($existingJobsCount < 1);

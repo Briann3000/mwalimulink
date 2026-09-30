@@ -18,6 +18,7 @@ if (!$teacher->id) {
 }
 
 $canViewFullProfile = teacher_can_view_profile($authUser, $teacher);
+$isSchoolPro = $isSchool ? school_has_pro($authUser['user_id']) : true;
 ?>
 
 <div class="workspace-wrapper">
@@ -45,23 +46,30 @@ $canViewFullProfile = teacher_can_view_profile($authUser, $teacher);
 
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <?php if ($isSchool): ?>
-                        <a href="mailto:<?= h($teacher->email) ?>?subject=<?= urlencode("Teaching Inquiry from MwalimuLink") ?>&body=<?= urlencode("Dear " . ($teacher->name ?: 'Teacher') . ",\n\nWe are contacting you from MwalimuLink regarding opportunities at our school.\n\nBest regards,\nAdministration") ?>"
-                            class="btn-primary"
-                            style="background: #0f766e; color: white !important; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                            <i class="fa fa-envelope"></i> Contact via Email
-                        </a>
-                        <a href="/messages?to_teacher=<?= $teacher->id ?>"
-                            style="background: #f8fafc; color: #0f766e !important; border: 1px solid #cbd5e1; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                            <i class="fa fa-comments"></i> Direct Message
-                        </a>
-                        <a href="/teacher/cv-preview?id=<?= $teacher->id ?>" target="_blank"
-                            style="background: #f0fdfa; color: #0f766e !important; border: 1.5px solid #0f766e; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                            <i class="fa fa-file-lines"></i> View Educator CV
-                        </a>
-                        <?php if (!empty($teacher->cv_file)): ?>
-                            <a href="/<?= h($teacher->cv_file) ?>" target="_blank"
-                                style="background: #f1f5f9; color: #334155 !important; border: 1px solid #cbd5e1; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                                <i class="fa fa-download"></i> Uploaded Document
+                        <?php if ($isSchoolPro): ?>
+                            <a href="mailto:<?= h($teacher->email) ?>?subject=<?= urlencode("Teaching Inquiry from MwalimuLink") ?>&body=<?= urlencode("Dear " . ($teacher->name ?: 'Teacher') . ",\n\nWe are contacting you from MwalimuLink regarding opportunities at our school.\n\nBest regards,\nAdministration") ?>"
+                                class="btn-primary"
+                                style="background: #0f766e; color: white !important; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa fa-envelope"></i> Contact via Email
+                            </a>
+                            <a href="/messages?to_teacher=<?= $teacher->id ?>"
+                                style="background: #f8fafc; color: #0f766e !important; border: 1px solid #cbd5e1; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa fa-comments"></i> Direct Message
+                            </a>
+                            <a href="/teacher/cv-preview?id=<?= $teacher->id ?>" target="_blank"
+                                style="background: #f0fdfa; color: #0f766e !important; border: 1.5px solid #0f766e; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa fa-file-lines"></i> View Educator CV
+                            </a>
+                            <?php if (!empty($teacher->cv_file)): ?>
+                                <a href="/<?= h($teacher->cv_file) ?>" target="_blank"
+                                    style="background: #f1f5f9; color: #334155 !important; border: 1px solid #cbd5e1; font-size: 0.85rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="fa fa-download"></i> Uploaded Document
+                                </a>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <a href="/school/subscription"
+                                style="background: #fef3c7; color: #92400e !important; border: 1px solid #fde68a; font-size: 0.85rem; font-weight: 700; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa fa-lock"></i> Upgrade to Pro to Contact & Download CV
                             </a>
                         <?php endif; ?>
                     <?php endif; ?>
@@ -218,14 +226,22 @@ $canViewFullProfile = teacher_can_view_profile($authUser, $teacher);
                                 <strong
                                     style="color: #64748b; font-size: 0.78rem; text-transform: uppercase; display: block;">Phone
                                     Number:</strong>
-                                <span style="color: #0f172a;"><?= h($teacher->mobile) ?></span>
+                                <?php if ($isSchool && !$isSchoolPro): ?>
+                                    <span style="color: #94a3b8; font-style: italic;"><i class="fa fa-lock" style="font-size: 0.75rem;"></i> Locked (Pro Feature)</span>
+                                <?php else: ?>
+                                    <span style="color: #0f172a;"><?= h($teacher->mobile) ?></span>
+                                <?php endif; ?>
                             </div>
                             <div>
                                 <strong
                                     style="color: #64748b; font-size: 0.78rem; text-transform: uppercase; display: block;">Email
                                     Address:</strong>
-                                <a href="mailto:<?= h($teacher->email) ?>"
-                                    style="color: #0f766e;"><?= h($teacher->email) ?></a>
+                                <?php if ($isSchool && !$isSchoolPro): ?>
+                                    <span style="color: #94a3b8; font-style: italic;"><i class="fa fa-lock" style="font-size: 0.75rem;"></i> Locked (Pro Feature)</span>
+                                <?php else: ?>
+                                    <a href="mailto:<?= h($teacher->email) ?>"
+                                        style="color: #0f766e;"><?= h($teacher->email) ?></a>
+                                <?php endif; ?>
                             </div>
                             <div>
                                 <strong
@@ -233,15 +249,24 @@ $canViewFullProfile = teacher_can_view_profile($authUser, $teacher);
                                     of Residence:</strong>
                                 <span style="color: #0f172a;"><?= h($teacher->county ?: 'Kenya') ?></span>
                             </div>
-                            <div style="margin-top: 6px; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
-                                <strong
-                                    style="color: #64748b; font-size: 0.75rem; text-transform: uppercase; display: block; margin-bottom: 4px;">Direct
-                                    Messaging:</strong>
-                                <a href="/messages?to_teacher=<?= $teacher->id ?>"
-                                    style="color: #0f766e; font-size: 0.84rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
-                                    <i class="fa fa-envelope"></i> Send Private Message via MwalimuLink
-                                </a>
-                            </div>
+                            <?php if ($isSchool && !$isSchoolPro): ?>
+                                <div style="margin-top: 10px; padding: 10px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; font-size: 0.82rem; color: #92400e;">
+                                    <i class="fa fa-lock"></i> Direct candidate phone, email, and CV download are available on the <strong>Pro Plan</strong>.
+                                    <div style="margin-top: 6px;">
+                                        <a href="/school/subscription" style="color: #b45309; font-weight: 700; text-decoration: underline;">Upgrade School Account &rarr;</a>
+                                    </div>
+                                </div>
+                            <?php else: ?>
+                                <div style="margin-top: 6px; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
+                                    <strong
+                                        style="color: #64748b; font-size: 0.75rem; text-transform: uppercase; display: block; margin-bottom: 4px;">Direct
+                                        Messaging:</strong>
+                                    <a href="/messages?to_teacher=<?= $teacher->id ?>"
+                                        style="color: #0f766e; font-size: 0.84rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                        <i class="fa fa-envelope"></i> Send Private Message via MwalimuLink
+                                    </a>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

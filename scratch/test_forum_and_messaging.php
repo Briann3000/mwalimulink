@@ -222,6 +222,27 @@ $thread->is_locked = 1;
 R::store($thread);
 assert_test("Thread is_locked is 1", (int) R::load('forumthread', $threadId)->is_locked === 1);
 
+// Clean up test data
+echo "\nCleaning up test data...\n";
+if (!empty($repId)) {
+    R::exec('DELETE FROM forumreport WHERE id = ?', [$repId]);
+}
+if (!empty($reaction) && !empty($reaction->id)) {
+    R::exec('DELETE FROM forumreaction WHERE id = ?', [$reaction->id]);
+}
+if (!empty($conv) && !empty($conv->id)) {
+    R::exec('DELETE FROM directmessage WHERE conversation_id = ?', [$conv->id]);
+    R::exec('DELETE FROM directconversation WHERE id = ?', [$conv->id]);
+}
+if (!empty($replyId)) {
+    R::exec('DELETE FROM forumreply WHERE id = ?', [$replyId]);
+}
+if (!empty($threadId)) {
+    R::exec('DELETE FROM forumthread WHERE id = ?', [$threadId]);
+}
+R::exec("DELETE FROM teacher WHERE email LIKE '%.forum.test@mwalimu.info'");
+echo "  [OK] Cleaned up mock teachers and forum test entries.\n";
+
 echo "\n============================================\n";
 echo "SUMMARY: Passed: {$passed}, Failed: {$failed}\n";
 echo "============================================\n";

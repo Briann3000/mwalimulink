@@ -7,19 +7,8 @@ $school_id = $authUser['user_id'];
 $school = R::load('school', $school_id);
 
 // Ensure active subscription
-$now = new DateTime();
-$isActive = false;
-if (!empty($school->subscription_expiry)) {
-    try {
-        $exp = new DateTime($school->subscription_expiry);
-        if ($school->status === 'active' && $exp >= $now) {
-            $isActive = true;
-        }
-    } catch (Exception $e) {
-        $isActive = false;
-    }
-}
-$isPro = $isActive;
+$isPro = school_has_pro($school);
+$isActive = $isPro;
 
 $successMsg = '';
 $errorMsg = '';

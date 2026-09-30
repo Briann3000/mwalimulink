@@ -23,6 +23,10 @@ uploads/*
 *.db-wal
 *.db-shm
 
+# Scratch & Local Test Harnesses (CRITICAL - Never deploy to production)
+scratch/
+_local_archive_do_not_upload/
+
 # Database dumps & SQL exports
 *.sql
 mwalimu_prod_dump.sql

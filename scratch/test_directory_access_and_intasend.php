@@ -216,6 +216,28 @@ $checkPayment = R::findOne('payment', 'api_ref = ?', [$apiRef]);
 $isAlreadyComplete = ($checkPayment->state === 'COMPLETE');
 assert_test("Idempotency guard detects already COMPLETE payment", $isAlreadyComplete === true);
 
+// --- CLEANUP TEST DATA ---
+echo "\nCleaning up test records...\n";
+if (!empty($unpaidTeacherId)) {
+    R::exec('DELETE FROM teacher WHERE id = ?', [$unpaidTeacherId]);
+}
+if (!empty($expiredTeacherId)) {
+    R::exec('DELETE FROM directoryaccess WHERE user_id = ? AND user_type = "teacher"', [$expiredTeacherId]);
+    R::exec('DELETE FROM teacher WHERE id = ?', [$expiredTeacherId]);
+}
+if (!empty($webhookTeacherId)) {
+    R::exec('DELETE FROM directoryaccess WHERE user_id = ? AND user_type = "teacher"', [$webhookTeacherId]);
+    R::exec('DELETE FROM teacher WHERE id = ?', [$webhookTeacherId]);
+}
+if (!empty($paymentId)) {
+    R::exec('DELETE FROM payment WHERE id = ?', [$paymentId]);
+}
+if (!empty($apiRef)) {
+    R::exec('DELETE FROM payment WHERE api_ref = ?', [$apiRef]);
+}
+R::exec("DELETE FROM teacher WHERE email LIKE 'test_unpaid_%@example.com' OR email LIKE 'test_expired_%@example.com' OR email LIKE 'webhook_teacher_%@example.com'");
+echo "  [OK] Test directory access and mock teacher entries purged.\n";
+
 // --- SUMMARY ---
 echo "\n============================================\n";
 echo "TEST RESULTS: {$passed} Passed, {$failed} Failed\n";

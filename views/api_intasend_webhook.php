@@ -98,15 +98,7 @@ if ($isVerified && in_array($state, ['COMPLETE', 'SUCCESS', 'PAID'])) {
         if ($payment->purpose === 'directory_access') {
             grant_directory_access($payment->user_id, $payment->user_type, $payment->email, $payment->amount, $apiRef);
         } elseif ($payment->purpose === 'school_subscription') {
-            $school = R::load('school', $payment->user_id);
-            if ($school->id) {
-                $school->plan = 'pro';
-                $school->status = 'active';
-                $expiry = new DateTime();
-                $expiry->add(new DateInterval('P12M'));
-                $school->subscription_expiry = $expiry->format('Y-m-d H:i:s');
-                R::store($school);
-            }
+            grant_school_pro_subscription($payment->user_id, $payment->amount, $apiRef);
         }
     } else {
         // Fallback for directory access or school subscription from api_ref
@@ -132,15 +124,7 @@ if ($isVerified && in_array($state, ['COMPLETE', 'SUCCESS', 'PAID'])) {
             foreach ($parts as $part) {
                 if (is_numeric($part)) {
                     $schoolId = (int) $part;
-                    $school = R::load('school', $schoolId);
-                    if ($school->id) {
-                        $school->plan = 'pro';
-                        $school->status = 'active';
-                        $expiry = new DateTime();
-                        $expiry->add(new DateInterval('P12M'));
-                        $school->subscription_expiry = $expiry->format('Y-m-d H:i:s');
-                        R::store($school);
-                    }
+                    grant_school_pro_subscription($schoolId, $value ?: 1000, $apiRef);
                     break;
                 }
             }

@@ -10,21 +10,17 @@ $school = R::load('school', $school_id);
 
 // Subscription expiry calculation
 $now = new DateTime();
-$isActive = false;
+$isActive = school_has_pro($school);
 $daysRemaining = 0;
 $expiryString = 'Inactive';
 
-if (!empty($school->subscription_expiry)) {
+if ($isActive && !empty($school->subscription_expiry)) {
     try {
         $expiryDate = new DateTime($school->subscription_expiry);
-        if ($school->status === 'active' && $expiryDate >= $now) {
-            $isActive = true;
-            $diff = $now->diff($expiryDate);
-            $daysRemaining = $diff->days;
-            $expiryString = $expiryDate->format('M d, Y') . " ({$daysRemaining} days left)";
-        }
+        $diff = $now->diff($expiryDate);
+        $daysRemaining = $diff->days;
+        $expiryString = $expiryDate->format('M d, Y') . " ({$daysRemaining} days left)";
     } catch (Exception $e) {
-        $isActive = false;
     }
 }
 

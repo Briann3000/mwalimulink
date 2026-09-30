@@ -12,18 +12,7 @@ if (!$school->id) {
     exit();
 }
 
-$now = new DateTime();
-$isPro = false;
-if (!empty($school->subscription_expiry)) {
-    try {
-        $expiryDate = new DateTime($school->subscription_expiry);
-        if ($school->status === 'active' && $expiryDate >= $now) {
-            $isPro = true;
-        }
-    } catch (Exception $e) {
-        $isPro = false;
-    }
-}
+$isPro = school_has_pro($school);
 
 $isTestMode = (strtolower((string) env('INTASEND_TEST_MODE', 'false')) === 'true' || env('INTASEND_TEST_MODE') === '1');
 $amount = (float) get_setting('school_pro_fee', 1000);
@@ -39,10 +28,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $publicKey = env('INTASEND_PUBLIC_KEY') ?: env('INTASEND_PUBLISHABLE_KEY');
         $appUrl = rtrim(env('APP_URL', 'http://localhost:8000'), '/');
         $redirect_url = $appUrl . "/school/callback";
-        $api_ref = "MwalimuLink_School_Subscription_" . $school->id . "_" . time();
+        $api_ref = "MwalimuLink_School_Subscription_" . $school->id . "_" . time() . "_" . bin2hex(random_bytes(3));
 
         // Sanitize school name
         $school_name = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $school->name ?: 'School');
+
+        // Pre-store pending payment record in DB for tracking and webhook reconciliation
+        try {
+            $payment = R::dispense('payment');
+            $payment->user_id = $school->id;
+            $payment->user_type = 'school';
+            $payment->email = $school->email ?? '';
+            $payment->phone = $school->phone_number ?? '';
+            $payment->amount = $amount;
+            $payment->currency = $currency;
+            $payment->purpose = 'school_subscription';
+            $payment->api_ref = $api_ref;
+            $payment->target_redirect = '/school/dashboard';
+            $payment->state = 'PENDING';
+            $payment->created_at = date('Y-m-d H:i:s');
+            $payment->updated_at = date('Y-m-d H:i:s');
+            R::store($payment);
+        } catch (\Throwable $e) {
+            error_log("Failed to create pending school subscription payment record: " . $e->getMessage());
+        }
 
         $data = [
             "public_key" => $publicKey,

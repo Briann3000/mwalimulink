@@ -3,19 +3,7 @@
 require_auth('school');
 
 $school = R::load('school', auth_user()['user_id']);
-
-$now = new DateTime();
-$isPro = false;
-if (!empty($school->subscription_expiry)) {
-    try {
-        $expiryDate = new DateTime($school->subscription_expiry);
-        if ($school->status === 'active' && $expiryDate >= $now) {
-            $isPro = true;
-        }
-    } catch (Exception $e) {
-        $isPro = false;
-    }
-}
+$isPro = school_has_pro($school);
 
 // Helper function to sanitize GET parameters
 function sanitize_input($data)

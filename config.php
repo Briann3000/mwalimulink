@@ -1142,6 +1142,131 @@ function set_setting($key, $value, $description = '', $updatedBy = null)
 }
 
 /**
+ * Check if a school has an active Institutional Pro subscription.
+ *
+ * @param int|object|array|null $school School ID, school RedBean bean, school user array, or null for current auth user.
+ * @return bool
+ */
+function school_has_pro($school = null)
+{
+    try {
+        if (!class_exists('R')) {
+            return false;
+        }
+
+        if ($school === null) {
+            $user = auth_user();
+            if (empty($user) || ($user['role'] ?? '') !== 'school') {
+                return false;
+            }
+            $schoolId = intval($user['user_id'] ?? 0);
+        } elseif (is_numeric($school)) {
+            $schoolId = intval($school);
+        } elseif (is_array($school)) {
+            if (($school['role'] ?? '') === 'admin') {
+                return true;
+            }
+            $schoolId = intval($school['user_id'] ?? ($school['id'] ?? 0));
+        } elseif (is_object($school) && isset($school->id)) {
+            if (!empty($school->subscription_expiry)) {
+                $now = new DateTime();
+                $expiry = new DateTime($school->subscription_expiry);
+                return (($school->status ?? '') === 'active' || ($school->plan ?? '') === 'pro') && $expiry >= $now;
+            }
+            return false;
+        } else {
+            return false;
+        }
+
+        if ($schoolId <= 0) {
+            return false;
+        }
+
+        $schoolBean = R::load('school', $schoolId);
+        if (!$schoolBean || !$schoolBean->id || empty($schoolBean->subscription_expiry)) {
+            return false;
+        }
+
+        $now = new DateTime();
+        $expiry = new DateTime($schoolBean->subscription_expiry);
+        return (($schoolBean->status ?? '') === 'active' || ($schoolBean->plan ?? '') === 'pro') && $expiry >= $now;
+    } catch (\Throwable $e) {
+        error_log("school_has_pro check failed: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Grant or extend Institutional Pro subscription for a school.
+ * Handles additive renewals and dynamic duration settings.
+ *
+ * @param int $schoolId
+ * @param float|null $amount
+ * @param string $paymentRef
+ * @return bool
+ */
+function grant_school_pro_subscription($schoolId, $amount = null, $paymentRef = '')
+{
+    try {
+        if (!class_exists('R')) {
+            return false;
+        }
+
+        $schoolId = intval($schoolId);
+        if ($schoolId <= 0) {
+            return false;
+        }
+
+        $school = R::load('school', $schoolId);
+        if (!$school || !$school->id) {
+            return false;
+        }
+
+        $durationMonths = (int) get_setting('school_pro_months', 12);
+        if ($durationMonths <= 0) {
+            $durationMonths = 12;
+        }
+
+        $effectiveAmount = $amount !== null ? floatval($amount) : floatval(get_setting('school_pro_fee', 1000));
+
+        // Additive renewal: if existing expiry is in the future, extend from that date
+        $now = new DateTime();
+        $startDate = $now;
+        if (!empty($school->subscription_expiry)) {
+            try {
+                $currentExpiry = new DateTime($school->subscription_expiry);
+                if ($currentExpiry > $now) {
+                    $startDate = $currentExpiry;
+                }
+            } catch (\Throwable $e) {
+                $startDate = $now;
+            }
+        }
+
+        $startDate->add(new DateInterval('P' . $durationMonths . 'M'));
+        $school->plan = 'pro';
+        $school->status = 'active';
+        $school->subscription_expiry = $startDate->format('Y-m-d H:i:s');
+        $school->last_pro_payment_ref = (string) $paymentRef;
+        $school->updated_at = date('Y-m-d H:i:s');
+        R::store($school);
+
+        // Keep active session updated if currently logged in
+        if (session_status() === PHP_SESSION_ACTIVE && isset($_SESSION['auth']) && intval($_SESSION['auth']['user_id'] ?? 0) === $schoolId && ($_SESSION['auth']['role'] ?? '') === 'school') {
+            $_SESSION['auth']['plan'] = 'pro';
+            $_SESSION['auth']['subscription_expiry'] = $school->subscription_expiry;
+        }
+
+        log_admin_audit('subscription', 'SCHOOL_PRO_ACTIVATED', 'school', $schoolId, $school->email ?? '', "Activated Institutional Pro ({$durationMonths} Months, KES {$effectiveAmount}, Ref: {$paymentRef})");
+
+        return true;
+    } catch (\Throwable $e) {
+        error_log("Failed to grant school pro subscription: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
  * Check if the currently authenticated user (or provided user) has active 1-year access to private & international school directories.
  *
  * @param array|null $user
@@ -1163,18 +1288,8 @@ function has_directory_access($user = null)
 
     // 2. School with an active pro subscription has full directory access
     if (($user['role'] ?? '') === 'school') {
-        try {
-            if (class_exists('R')) {
-                $school = R::load('school', intval($user['user_id']));
-                if ($school->id && !empty($school->subscription_expiry)) {
-                    $expiry = new DateTime($school->subscription_expiry);
-                    if ($school->status === 'active' && $expiry >= new DateTime()) {
-                        return true;
-                    }
-                }
-            }
-        } catch (\Exception $e) {
-            // fallback
+        if (school_has_pro(intval($user['user_id'] ?? 0))) {
+            return true;
         }
     }
 
