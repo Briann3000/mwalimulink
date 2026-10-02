@@ -12,6 +12,10 @@ campaign_tracker.json
 
 # Quarantined Drafts & Old Snapshots
 _archive/
+_archive*/
+_local_archive/
+_local_archive*/
+_local_archive_do_not_upload/
 
 # User Uploads (CVs, Resumes, Personal PDFs)
 uploads/*
@@ -22,13 +26,19 @@ uploads/*
 *.db-journal
 *.db-wal
 *.db-shm
+*.sqlite
 
 # Scratch & Local Test Harnesses (CRITICAL - Never deploy to production)
 scratch/
-_local_archive_do_not_upload/
+*.bak
+*.tmp
 
-# Database dumps & SQL exports
+# Database dumps & SQL exports / Archives
 *.sql
+*.zip
+*.tar
+*.tar.gz
+*.gz
 mwalimu_prod_dump.sql
 mwalimu_mysql_dump.sql
 

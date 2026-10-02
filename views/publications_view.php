@@ -229,23 +229,27 @@ $pdfSrc = $publication->pdf_url ?? ($publication->pdf_path ?? null);
   background: #115e59;
 }
 
+button.btn-reader-share,
 .btn-reader-share {
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #475569;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
+button.btn-reader-share:hover,
 .btn-reader-share:hover {
-  background: #f1f5f9;
-  color: #0f766e;
+  background: #f1f5f9 !important;
+  color: #0f766e !important;
 }
 
 /* Main Article Card */
@@ -559,23 +563,27 @@ $pdfSrc = $publication->pdf_url ?? ($publication->pdf_path ?? null);
   gap: 8px;
 }
 
+a.share-btn,
+button.share-btn,
 .share-btn {
-  padding: 7px 14px;
-  border-radius: 8px;
-  font-size: 0.84rem;
-  font-weight: 700;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  border: none;
+  padding: 8px 14px !important;
+  border-radius: 8px !important;
+  font-size: 0.84rem !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  border: none !important;
+  margin: 0 !important;
+  line-height: normal !important;
 }
 
-.share-wa { background: #dcfce7; color: #15803d; }
-.share-tw { background: #f1f5f9; color: #0f172a; }
-.share-in { background: #e0f2fe; color: #0369a1; }
-.share-copy { background: #f1f5f9; color: #475569; }
+.share-wa { background: #dcfce7 !important; color: #15803d !important; }
+.share-tw { background: #f1f5f9 !important; color: #0f172a !important; }
+.share-in { background: #e0f2fe !important; color: #0369a1 !important; }
+.share-copy { background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #cbd5e1 !important; }
 
 /* Related */
 .related-pubs-section h3 {

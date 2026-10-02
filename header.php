@@ -53,7 +53,6 @@ if (function_exists('init_session')) {
     .banner-left,
     .dark-card,
     .modal-header,
-    .pub-modal-header,
     dialog header,
     [style*="background: #0f766e"],
     [style*="background:#0f766e"],
@@ -128,10 +127,6 @@ if (function_exists('init_session')) {
     .modal-header h2,
     .modal-header h3,
     .modal-header h4,
-    .pub-modal-header h1,
-    .pub-modal-header h2,
-    .pub-modal-header h3,
-    .pub-modal-header h4,
     dialog header h1,
     dialog header h2,
     dialog header h3,
@@ -371,8 +366,7 @@ if (function_exists('init_session')) {
 
     dialog header,
     dialog .modal-header,
-    .modal-header,
-    .pub-modal-header {
+    .modal-header {
       background: #0f766e !important;
       color: #ffffff !important;
     }
