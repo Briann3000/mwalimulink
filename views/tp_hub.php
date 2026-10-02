@@ -125,40 +125,42 @@ if ($isTeacher) {
                 }
 
                 $tpLetterPath = null;
-                if (!empty($_FILES['tp_letter']['name']) && $_FILES['tp_letter']['error'] === UPLOAD_ERR_OK) {
-                    $uploadDir = __DIR__ . '/../uploads/tp_letters/';
-                    if (!is_dir($uploadDir)) {
-                        @mkdir($uploadDir, 0755, true);
-                    }
-                    $ext = strtolower(pathinfo($_FILES['tp_letter']['name'], PATHINFO_EXTENSION));
-                    if (in_array($ext, ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'])) {
-                        $newName = 'tp_letter_' . $teacher_id . '_' . time() . '.' . $ext;
-                        if (move_uploaded_file($_FILES['tp_letter']['tmp_name'], $uploadDir . $newName)) {
-                            $tpLetterPath = 'uploads/tp_letters/' . $newName;
-                        }
+                if (!empty($_FILES['tp_letter']['name'])) {
+                    $uploadRes = secure_validate_and_upload(
+                        $_FILES['tp_letter'],
+                        'uploads/tp_letters/',
+                        ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+                        5 * 1024 * 1024
+                    );
+                    if ($uploadRes['success']) {
+                        $tpLetterPath = $uploadRes['relative_path'];
+                    } else {
+                        $error = $uploadRes['error'];
                     }
                 }
 
-                $tpApp = R::dispense('tpapplication');
-                $tpApp->school_id = $targetSchoolId;
-                $tpApp->school_name = $schoolName;
-                $tpApp->placement_id = $placementId;
-                $tpApp->teacher_id = $teacher_id;
-                $tpApp->teacher_name = $teacher->name ?: 'Student Teacher';
-                $tpApp->teacher_email = $teacher->email;
-                $tpApp->teacher_phone = $teacher->mobile ?? '';
-                $tpApp->institution_name = $institutionName;
-                $tpApp->reg_number = $regNumber;
-                $tpApp->year_of_study = $yearOfStudy;
-                $tpApp->subjects = $appSubjects;
-                $tpApp->desired_term = $desiredTerm;
-                $tpApp->notes = $notes;
-                $tpApp->tp_letter_doc = $tpLetterPath;
-                $tpApp->status = 'pending';
-                $tpApp->created_at = date('Y-m-d H:i:s');
-                R::store($tpApp);
+                if (empty($error)) {
+                    $tpApp = R::dispense('tpapplication');
+                    $tpApp->school_id = $targetSchoolId;
+                    $tpApp->school_name = $schoolName;
+                    $tpApp->placement_id = $placementId;
+                    $tpApp->teacher_id = $teacher_id;
+                    $tpApp->teacher_name = $teacher->name ?: 'Student Teacher';
+                    $tpApp->teacher_email = $teacher->email;
+                    $tpApp->teacher_phone = $teacher->mobile ?? '';
+                    $tpApp->institution_name = $institutionName;
+                    $tpApp->reg_number = $regNumber;
+                    $tpApp->year_of_study = $yearOfStudy;
+                    $tpApp->subjects = $appSubjects;
+                    $tpApp->desired_term = $desiredTerm;
+                    $tpApp->notes = $notes;
+                    $tpApp->tp_letter_doc = $tpLetterPath;
+                    $tpApp->status = 'pending';
+                    $tpApp->created_at = date('Y-m-d H:i:s');
+                    R::store($tpApp);
 
-                $msg = "Your Teaching Practice application has been submitted to {$schoolName}!";
+                    $msg = "Your Teaching Practice application has been submitted to {$schoolName}!";
+                }
             }
         }
     }

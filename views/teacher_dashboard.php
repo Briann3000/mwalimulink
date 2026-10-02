@@ -27,6 +27,8 @@ $activeJobsCount = R::count('job');
 $publicSchoolsCount = R::count('public_school');
 $privateSchoolsCount = R::count('private_school');
 $totalSchools = $publicSchoolsCount + $privateSchoolsCount;
+$myApplicationsCount = R::count('applications', 'teacher_id = ?', [$teacher_id]);
+
 // Recent Job Alerts Matching Specialization
 $unreadAlerts = R::find('jobalert', 'teacher_id = ? ORDER BY id DESC LIMIT 5', [$teacher_id]);
 $unreadAlertsCount = R::count('jobalert', 'teacher_id = ? AND is_read = 0', [$teacher_id]);

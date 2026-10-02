@@ -450,7 +450,10 @@ function secure_validate_and_upload($fileArray, $targetDirRelative = 'uploads/do
         'pdf' => ['application/pdf', 'application/x-pdf'],
         'jpg' => ['image/jpeg', 'image/pjpeg'],
         'jpeg' => ['image/jpeg', 'image/pjpeg'],
-        'png' => ['image/png', 'image/x-png']
+        'png' => ['image/png', 'image/x-png'],
+        'webp' => ['image/webp'],
+        'doc' => ['application/msword', 'application/vnd.ms-office', 'application/octet-stream'],
+        'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip', 'application/octet-stream']
     ];
 
     if (function_exists('finfo_open')) {
@@ -464,8 +467,8 @@ function secure_validate_and_upload($fileArray, $targetDirRelative = 'uploads/do
         }
     }
 
-    // 4. For image types, ensure they pass image integrity checks
-    if (in_array($ext, ['jpg', 'jpeg', 'png'])) {
+    // 4. For raster image types, ensure they pass image integrity checks
+    if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
         $imgInfo = @getimagesize($fileArray['tmp_name']);
         if ($imgInfo === false) {
             return ['success' => false, 'error' => 'Corrupt or invalid image file.'];

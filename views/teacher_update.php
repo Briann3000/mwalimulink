@@ -29,8 +29,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_POST['year_of_birth'])) {
                 $teacher->year_of_birth = intval($_POST['year_of_birth']);
             }
-            $teacher->mobile = trim($_POST['mobile'] ?? $teacher->mobile);
-            $teacher->email = trim($_POST['email'] ?? $teacher->email);
+            if (isset($_POST['mobile'])) {
+                $rawMobile = trim($_POST['mobile']);
+                $teacher->mobile = function_exists('normalize_kenyan_phone') ? normalize_kenyan_phone($rawMobile) : $rawMobile;
+            }
+            $newEmail = trim($_POST['email'] ?? $teacher->email);
+            if (!empty($newEmail) && $newEmail !== $teacher->email) {
+                if (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+                    $error = "Please provide a valid email address.";
+                } else {
+                    $dupTeacher = R::findOne('teacher', 'email = ? AND id != ?', [$newEmail, $teacher->id]);
+                    $dupSchool = R::findOne('school', 'email = ?', [$newEmail]);
+                    if ($dupTeacher || $dupSchool) {
+                        $error = "This email is already associated with another account.";
+                    } else {
+                        $teacher->email = $newEmail;
+                    }
+                }
+            }
             $teacher->county = trim($_POST['county'] ?? $teacher->county);
             $teacher->country = trim($_POST['country'] ?? 'Kenya');
 
@@ -85,7 +101,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (in_array($section, ['all', 'security'])) {
             $teacher->status = trim($_POST['status'] ?? $teacher->status);
             if (!empty($_POST['password'])) {
-                $teacher->password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+                $newPass = $_POST['password'];
+                $confirmPass = $_POST['password_confirm'] ?? '';
+                if (strlen($newPass) < 8) {
+                    $error = "New password must be at least 8 characters long.";
+                } elseif ($newPass !== $confirmPass) {
+                    $error = "New password and password confirmation do not match.";
+                } else {
+                    $teacher->password = password_hash($newPass, PASSWORD_DEFAULT);
+                }
             }
         }
 
@@ -856,7 +880,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <div
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
                             <div>
                                 <label
                                     style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">Employment
@@ -873,11 +897,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             <div>
                                 <label
-                                    style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">Change
-                                    Account Password</label>
-                                <input type="password" name="password"
-                                    placeholder="Leave blank to keep current password"
-                                    style="width: 100%; box-sizing: border-box; margin: 0;">
+                                    style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">New
+                                    Password</label>
+                                <div style="position: relative; display: flex; align-items: center;">
+                                    <input type="password" id="teacher_update_password" name="password"
+                                        placeholder="Leave blank to keep current" minlength="8"
+                                        style="width: 100%; box-sizing: border-box; padding-right: 42px; margin: 0 !important;">
+                                    <span role="button" tabindex="0" onclick="togglePasswordVisibility('teacher_update_password', 'eye_update_pass')" class="password-eye-toggle" title="Show/Hide Password">
+                                        <i class="fa fa-eye" id="eye_update_pass"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label
+                                    style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">Confirm
+                                    New Password</label>
+                                <div style="position: relative; display: flex; align-items: center;">
+                                    <input type="password" id="teacher_update_password_confirm" name="password_confirm"
+                                        placeholder="Confirm new password" minlength="8"
+                                        style="width: 100%; box-sizing: border-box; padding-right: 42px; margin: 0 !important;">
+                                    <span role="button" tabindex="0" onclick="togglePasswordVisibility('teacher_update_password_confirm', 'eye_update_pass_confirm')" class="password-eye-toggle" title="Show/Hide Password">
+                                        <i class="fa fa-eye" id="eye_update_pass_confirm"></i>
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
@@ -1215,5 +1258,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     btn.innerHTML = '<i class="fa fa-rotate-left"></i> Reset';
                 }
             });
+    }
+
+    function togglePasswordVisibility(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input && icon) {
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
     }
 </script>

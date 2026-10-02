@@ -67,7 +67,7 @@ $isSchoolPro = $isSchool ? school_has_pro($authUser['user_id']) : true;
                                 </a>
                             <?php endif; ?>
                         <?php else: ?>
-                            <a href="/school/subscription"
+                            <a href="/school/subscribe"
                                 style="background: #fef3c7; color: #92400e !important; border: 1px solid #fde68a; font-size: 0.85rem; font-weight: 700; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                                 <i class="fa fa-lock"></i> Upgrade to Pro to Contact & Download CV
                             </a>

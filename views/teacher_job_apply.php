@@ -50,46 +50,48 @@ if (!$job->id) {
 
             // Optional tailored attachment
             $attachmentPath = null;
-            if (!empty($_FILES['custom_doc']['name']) && $_FILES['custom_doc']['error'] === UPLOAD_ERR_OK) {
-                $uploadDir = __DIR__ . '/../uploads/applications/';
-                if (!is_dir($uploadDir)) {
-                    @mkdir($uploadDir, 0755, true);
+            if (!empty($_FILES['custom_doc']['name'])) {
+                $uploadRes = secure_validate_and_upload(
+                    $_FILES['custom_doc'],
+                    'uploads/applications/',
+                    ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+                    5 * 1024 * 1024
+                );
+                if ($uploadRes['success']) {
+                    $attachmentPath = $uploadRes['relative_path'];
+                } else {
+                    $error = $uploadRes['error'];
                 }
-                $ext = strtolower(pathinfo($_FILES['custom_doc']['name'], PATHINFO_EXTENSION));
-                if (in_array($ext, ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'])) {
-                    $newName = 'app_' . $teacher_id . '_' . time() . '.' . $ext;
-                    if (move_uploaded_file($_FILES['custom_doc']['tmp_name'], $uploadDir . $newName)) {
-                        $attachmentPath = 'uploads/applications/' . $newName;
+            }
+
+            if (empty($error)) {
+                $application = R::dispense('applications');
+                $application->teacher_id = $teacher_id;
+                $application->job_id = $job_id;
+                $application->status = 'applied';
+                $application->cover_note = $coverNote;
+                $application->expected_salary = $expectedSalary;
+                $application->available_from = $availableFrom;
+                $application->attachment_doc = $attachmentPath;
+                $application->application_date = date('Y-m-d H:i:s');
+                $application->updated_at = date('Y-m-d H:i:s');
+                $appId = R::store($application);
+
+                // Dispatch instant email alert to hiring school administration
+                if ($isExternal) {
+                    $destEmail = !empty($job->application_email) ? $job->application_email : env('ADMIN_EMAIL', 'infomwalimulink@gmail.com');
+                    @send_external_job_dispatch_email($destEmail, $schoolName, $job, $teacher, $application);
+                    $msg = "Your application and verified credentials have been dispatched to {$schoolName}!";
+                } else {
+                    if ($school && $school->email) {
+                        @send_job_application_notification_email($school, $job, $teacher, $application);
                     }
+                    $msg = "Your application has been delivered to {$schoolName}!";
                 }
+
+                $applied = true;
+                $existingApplication = $application;
             }
-
-            $application = R::dispense('applications');
-            $application->teacher_id = $teacher_id;
-            $application->job_id = $job_id;
-            $application->status = 'applied';
-            $application->cover_note = $coverNote;
-            $application->expected_salary = $expectedSalary;
-            $application->available_from = $availableFrom;
-            $application->attachment_doc = $attachmentPath;
-            $application->application_date = date('Y-m-d H:i:s');
-            $application->updated_at = date('Y-m-d H:i:s');
-            $appId = R::store($application);
-
-            // Dispatch instant email alert to hiring school administration
-            if ($isExternal) {
-                $destEmail = !empty($job->application_email) ? $job->application_email : env('ADMIN_EMAIL', 'infomwalimulink@gmail.com');
-                @send_external_job_dispatch_email($destEmail, $schoolName, $job, $teacher, $application);
-                $msg = "Your application and verified credentials have been dispatched to {$schoolName}!";
-            } else {
-                if ($school && $school->email) {
-                    @send_job_application_notification_email($school, $job, $teacher, $application);
-                }
-                $msg = "Your application has been delivered to {$schoolName}!";
-            }
-
-            $applied = true;
-            $existingApplication = $application;
         }
     }
 }
