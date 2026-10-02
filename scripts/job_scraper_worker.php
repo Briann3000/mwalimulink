@@ -10,6 +10,8 @@ require_once __DIR__ . '/../services/JobIngestionService.php';
 require_once __DIR__ . '/scrapers/ReliefWebScraper.php';
 require_once __DIR__ . '/scrapers/MyJobMagScraper.php';
 require_once __DIR__ . '/scrapers/BrighterMondayScraper.php';
+require_once __DIR__ . '/scrapers/JobWebKenyaScraper.php';
+require_once __DIR__ . '/scrapers/CareerPointKenyaScraper.php';
 require_once __DIR__ . '/scrapers/TeachAwayScraper.php';
 
 class JobScraperWorker
@@ -26,9 +28,11 @@ class JobScraperWorker
         $dryRun = !empty($options['dry_run']);
 
         $scrapers = [
-            'reliefweb' => new ReliefWebScraper(),
+            'jobwebkenya' => new JobWebKenyaScraper(),
+            'careerpoint' => new CareerPointKenyaScraper(),
             'myjobmag' => new MyJobMagScraper(),
             'brightermonday' => new BrighterMondayScraper(),
+            'reliefweb' => new ReliefWebScraper(),
             'teachaway' => new TeachAwayScraper()
         ];
 
@@ -116,10 +120,14 @@ class JobScraperWorker
             $summary['details'][$key] = $sourceStats;
         }
 
-        // Clean up stale listings
+        // Clean up stale listings, heal legacy URLs & prune excessive international jobs automatically
         if (!$dryRun) {
             $expiredCount = JobIngestionService::expireStaleJobs(45);
             $summary['expired_cleaned'] = $expiredCount;
+            $repairedUrls = JobIngestionService::repairExistingDatabaseUrls();
+            $summary['urls_repaired'] = $repairedUrls;
+            $prunedIntl = JobIngestionService::pruneInternationalJobs(25);
+            $summary['international_pruned'] = $prunedIntl;
         }
 
         $summary['finished_at'] = date('Y-m-d H:i:s');
@@ -148,6 +156,8 @@ if (php_sapi_name() === 'cli' && isset($argv[0]) && realpath($argv[0]) === __FIL
     echo "Duplicates:       " . $results['total_skipped_duplicates'] . "\n";
     echo "Expired Skipped:  " . $results['total_skipped_expired'] . "\n";
     echo "Stale Cleaned:    " . ($results['expired_cleaned'] ?? 0) . "\n";
+    echo "URLs Repaired:    " . ($results['urls_repaired'] ?? 0) . "\n";
+    echo "Intl Pruned:      " . ($results['international_pruned'] ?? 0) . "\n";
     echo "Completed at:     " . $results['finished_at'] . "\n";
     echo "=======================================================\n";
 }

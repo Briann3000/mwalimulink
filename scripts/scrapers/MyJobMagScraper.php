@@ -7,7 +7,10 @@ class MyJobMagScraper extends BaseScraper
     protected string $sourceName = 'MyJobMag Kenya';
     protected array $searchUrls = [
         'https://www.myjobmag.co.ke/search/jobs?q=teacher',
-        'https://www.myjobmag.co.ke/search/jobs?q=teaching'
+        'https://www.myjobmag.co.ke/search/jobs?q=teaching',
+        'https://www.myjobmag.co.ke/search/jobs?q=tutor',
+        'https://www.myjobmag.co.ke/search/jobs?q=lecturer',
+        'https://www.myjobmag.co.ke/search/jobs?q=headteacher'
     ];
 
     public function fetchJobs(): array
@@ -48,7 +51,7 @@ class MyJobMagScraper extends BaseScraper
                 }
                 $seenHrefs[$href] = true;
 
-                $sourceUrl = str_starts_with($href, 'http') ? $href : 'https://www.myjobmag.co.ke' . ltrim($href, '/');
+                $sourceUrl = str_starts_with($href, 'http') ? $href : 'https://www.myjobmag.co.ke/' . ltrim($href, '/');
 
                 // Parse Title & Company Name (often formatted as "Title at Company")
                 $title = $rawTitle;

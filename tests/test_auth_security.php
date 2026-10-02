@@ -285,6 +285,32 @@ R::store($testTeacher);
 $dupSchoolCheck = R::findOne('teacher', 'email = ?', [$uniqueTeacherEmail]);
 assert_test("School registration collides with existing teacher account", $dupSchoolCheck !== null);
 
+// -------------------------------------------------------------
+// TEST 11: Scraper URL Auto-Healing & Ingestion Security
+// -------------------------------------------------------------
+echo "\n[11] Testing Job Ingestion URL Healing & Rate Balancing...\n";
+require_once __DIR__ . '/../services/JobIngestionService.php';
+
+// Missing slash repair
+$brokenUrl = 'https://www.teachaway.comteaching-jobs-abroad/computer-science-teacher-c4929b';
+$fixedUrl = JobIngestionService::sanitizeUrl($brokenUrl);
+assert_test("Malformed missing-slash external URL is auto-repaired", $fixedUrl === 'https://www.teachaway.com/teaching-jobs-abroad/computer-science-teacher-c4929b');
+
+// Kenyan TLD missing slash repair
+$brokenKeUrl = 'https://www.careerpointkenya.co.ke2026/02/teacher-job';
+$fixedKeUrl = JobIngestionService::sanitizeUrl($brokenKeUrl);
+assert_test("Kenyan .co.ke missing-slash URL is auto-repaired", $fixedKeUrl === 'https://www.careerpointkenya.co.ke/2026/02/teacher-job');
+
+// Dangerous protocol rejection
+$maliciousUrl = 'javascript:alert("XSS")';
+$rejectedUrl = JobIngestionService::sanitizeUrl($maliciousUrl);
+assert_test("Dangerous javascript: protocol URL strictly rejected", $rejectedUrl === '');
+
+// International quota pruning
+$pruneTestRes = JobIngestionService::pruneInternationalJobs(25);
+$activeIntl = R::count('job', "source_type = 'external' AND (source_name LIKE '%TeachAway%' OR location_text LIKE '%International%' OR location_text LIKE '%Abroad%') AND aggregation_status = 'published'");
+assert_test("Active international listings strictly adhere to maximum ceiling (<= 25)", $activeIntl <= 25);
+
 // Clean up test records
 try {
     R::trash($teacher);

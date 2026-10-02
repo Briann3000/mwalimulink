@@ -59,7 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
             $newCount = $runResults['total_inserted'] ?? 0;
             $dupCount = $runResults['total_skipped_duplicates'] ?? 0;
-            $msg = "Aggregation pipeline completed! {$newCount} new vacancies ingested, {$dupCount} duplicates skipped.";
+            $repaired = $runResults['urls_repaired'] ?? 0;
+            $pruned = $runResults['international_pruned'] ?? 0;
+            $msg = "Aggregation pipeline completed! {$newCount} new vacancies ingested, {$dupCount} duplicates skipped" . ($repaired > 0 ? ", {$repaired} URLs auto-healed" : "") . ($pruned > 0 ? ", {$pruned} excess international jobs pruned" : "") . ".";
         }
     }
 }
@@ -197,8 +199,11 @@ $totalPages = ceil($totalJobs / $limit);
                         <select name="scraper_source"
                             style="padding: 6px 10px; font-size: 0.82rem; border: 1px solid #cbd5e1; border-radius: 6px; background: white;">
                             <option value="">All Scrapers</option>
+                            <option value="jobwebkenya">JobWebKenya</option>
+                            <option value="careerpoint">Career Point Kenya</option>
                             <option value="myjobmag">MyJobMag Kenya</option>
                             <option value="brightermonday">BrighterMonday Kenya</option>
+                            <option value="reliefweb">ReliefWeb Kenya</option>
                             <option value="teachaway">TeachAway International</option>
                         </select>
                         <button type="submit"

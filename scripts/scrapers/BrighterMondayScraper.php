@@ -42,7 +42,7 @@ class BrighterMondayScraper extends BaseScraper
                     continue;
                 }
 
-                $sourceUrl = str_starts_with($href, 'http') ? $href : 'https://www.brightermonday.co.ke' . ltrim($href, '/');
+                $sourceUrl = str_starts_with($href, 'http') ? $href : 'https://www.brightermonday.co.ke/' . ltrim($href, '/');
                 if (isset($seenHrefs[$sourceUrl])) {
                     continue;
                 }

@@ -30,7 +30,16 @@ class TeachAwayScraper extends BaseScraper
             // Query job links on TeachAway
             $links = $xpath->query('//a[contains(@href, "/teaching-jobs-abroad/") and not(contains(@href, "/any-subject/")) and not(contains(@href, "/all-countries/"))]');
 
+            $isKenyaSpecific = str_contains($url, 'kenya');
+            $internationalCount = 0;
+            $maxInternationalPerRun = 5;
+
             foreach ($links as $link) {
+                // If scraping generic international jobs and hit quota, break
+                if (!$isKenyaSpecific && $internationalCount >= $maxInternationalPerRun) {
+                    break;
+                }
+
                 $href = $link->getAttribute('href');
                 $rawText = trim($link->textContent);
 
@@ -43,7 +52,7 @@ class TeachAwayScraper extends BaseScraper
                     continue;
                 }
 
-                $sourceUrl = str_starts_with($href, 'http') ? $href : 'https://www.teachaway.com' . ltrim($href, '/');
+                $sourceUrl = str_starts_with($href, 'http') ? $href : 'https://www.teachaway.com/' . ltrim($href, '/');
                 if (isset($seenHrefs[$sourceUrl])) {
                     continue;
                 }
@@ -64,6 +73,11 @@ class TeachAwayScraper extends BaseScraper
                     $title = trim($parts[0]);
                 }
 
+                $location = $isKenyaSpecific ? 'Kenya' : 'International (Abroad)';
+                if (!$isKenyaSpecific) {
+                    $internationalCount++;
+                }
+
                 $desc = "International teaching vacancy with {$company} on TeachAway. Curriculum requirements include international accreditation (IB / Cambridge / American). Click 'Apply on TeachAway' to review qualifications and submit your application.";
 
                 $jobs[] = [
@@ -76,8 +90,8 @@ class TeachAwayScraper extends BaseScraper
                     'salary' => null,
                     'deadline' => null,
                     'posted_date' => date('Y-m-d H:i:s'),
-                    'location' => 'International / Kenya',
-                    'curriculum' => 'IB',
+                    'location' => $location,
+                    'curriculum' => null, // Dynamic detection (IB / Cambridge / American / Other)
                     'subject_category' => null,
                     'application_url' => $sourceUrl,
                     'application_email' => null

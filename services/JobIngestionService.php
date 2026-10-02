@@ -279,7 +279,7 @@ class JobIngestionService
     }
 
     /**
-     * Validate and sanitize URL (Prevent javascript:, vbscript:, data:, SSRF).
+     * Validate, sanitize and auto-repair URL (Prevent javascript:, vbscript:, data:, SSRF and fix missing domain slashes).
      */
     public static function sanitizeUrl(?string $url): string
     {
@@ -292,6 +292,9 @@ class JobIngestionService
             return '';
         }
 
+        // Auto-fix missing forward slash between domain/TLD and path (e.g. teachaway.comteaching -> teachaway.com/teaching)
+        $url = preg_replace('#^(https?://(?:www\.)?[a-zA-Z0-9.\-]+(?:\.co\.ke|\.com|\.org|\.net|\.io|\.edu|\.ac\.ke))([a-zA-Z0-9_\-\?])#i', '$1/$2', $url);
+
         // Must be a valid URL with http or https protocol
         if (!preg_match('/^https?:\/\//i', $url)) {
             return '';
@@ -299,6 +302,75 @@ class JobIngestionService
 
         $filtered = filter_var($url, FILTER_VALIDATE_URL);
         return $filtered ? $filtered : '';
+    }
+
+    /**
+     * Auto-repair malformed external source & application URLs stored in database.
+     * Runs automatically on startup / worker invocation so no manual SQL migrations are needed.
+     */
+    public static function repairExistingDatabaseUrls(): int
+    {
+        self::ensureDb();
+        $repairedCount = 0;
+
+        try {
+            $externalJobs = R::find('job', "source_type = 'external' AND (source_url LIKE '%teachaway.comteaching%' OR source_url LIKE '%myjobmag.co.kejob%' OR source_url LIKE '%brightermonday.co.kelistings%' OR source_url LIKE '%careerpointkenya.co.ke202%')");
+
+            foreach ($externalJobs as $job) {
+                $origSource = $job->source_url;
+                $origApp = $job->application_url;
+
+                $newSource = self::sanitizeUrl($origSource);
+                $newApp = !empty($origApp) ? self::sanitizeUrl($origApp) : null;
+
+                if ($newSource !== $origSource || $newApp !== $origApp) {
+                    $job->source_url = $newSource;
+                    if (!empty($newApp)) {
+                        $job->application_url = $newApp;
+                    }
+                    R::store($job);
+                    $repairedCount++;
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Error repairing job URLs in DB: " . $e->getMessage());
+        }
+
+        return $repairedCount;
+    }
+
+    /**
+     * Automatically prune international/overseas vacancies so they never overwhelm local Kenyan jobs.
+     * Keeps the newest $maxToKeep active listings (default 25) and retires older ones.
+     */
+    public static function pruneInternationalJobs(int $maxToKeep = 25): int
+    {
+        self::ensureDb();
+        $prunedCount = 0;
+
+        try {
+            $intlJobs = R::find('job', "source_type = 'external' AND (source_name LIKE '%TeachAway%' OR location_text LIKE '%International%' OR location_text LIKE '%Abroad%') ORDER BY id DESC");
+
+            $index = 0;
+            foreach ($intlJobs as $job) {
+                $index++;
+                if ($index > $maxToKeep) {
+                    // Check if there are teacher applications attached
+                    $hasApps = R::count('applications', 'job_id = ?', [$job->id]);
+                    if ($hasApps > 0) {
+                        $job->aggregation_status = 'expired';
+                        R::store($job);
+                    } else {
+                        R::trash($job);
+                    }
+                    $prunedCount++;
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Error pruning international jobs in DB: " . $e->getMessage());
+        }
+
+        return $prunedCount;
     }
 
     /**
