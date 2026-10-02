@@ -1,26 +1,13 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.cyan.min.css">
-<style>
-    .container {
-        max-width: 800px;
-        margin: 2rem auto;
-        padding: 1rem;
-    }
-    article {
-        background: #fff;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-    small {
-        display: block;
-        margin-top: 0.5rem;
-        color: #666;
-    }
-</style>
-
-<div class="container">
-    <h2 style="text-align:center;">Mwalimu News & Updates</h2>
+<div class="news-page-container" style="max-width: 860px; margin: 2rem auto; padding: 0 1.25rem 3rem;">
+    <div style="text-align: center; margin-bottom: 2.5rem;">
+        <span style="background: #e0f2fe; color: #0369a1; font-size: 0.78rem; font-weight: 800; padding: 4px 12px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block; margin-bottom: 8px;">
+            Platform Updates
+        </span>
+        <h1 style="color: #0f172a; font-size: 1.85rem; font-weight: 800; margin: 0 0 8px;">MwalimuLink News & Announcements</h1>
+        <p style="color: #64748b; font-size: 0.95rem; margin: 0 auto; max-width: 520px;">
+            Stay informed on new features, educator verification policies, school partnerships, and platform improvements across Kenya.
+        </p>
+    </div>
 
     <article>
         <h3>Teacher Application Portal Now Live</h3>

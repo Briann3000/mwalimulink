@@ -1,6 +1,13 @@
 <?php
 // views/international_school_search.php - Modern International School Directory with Multi-Parameter Sorting
-require_directory_access();
+$hasAccess = has_directory_access();
+$directoryFee = (float) get_setting('directory_fee', 100);
+$currency = (string) get_setting('payment_currency', 'KES');
+if (empty($currency) || is_numeric($currency) || strlen(trim($currency)) < 2) {
+    $currency = 'KES';
+}
+$currency = trim($currency);
+$totalIntlInDb = R::count('international_school');
 
 $per_page = intval($_GET['per_page'] ?? 20);
 if (!in_array($per_page, [20, 50, 100]))
@@ -200,8 +207,9 @@ function intl_sort_link($colKey, $label, $currentSort)
             </div>
         </div>
 
-        <!-- Directory Table Card -->
-        <div class="mwalimu-table-card">
+        <!-- Directory Table Card with In-Situ Paywall Overlay -->
+        <div class="mwalimu-table-card"
+            style="<?= !$hasAccess ? 'position: relative; max-height: 540px; overflow: hidden;' : '' ?>">
             <div style="overflow-x: auto;">
                 <table class="mwalimu-table">
                     <thead>
@@ -215,13 +223,21 @@ function intl_sort_link($colKey, $label, $currentSort)
                     </thead>
                     <tbody>
                         <?php if (!empty($schools)): ?>
-                            <?php foreach ($schools as $school): ?>
-                                <tr>
+                            <?php $rowIndex = 0;
+                            foreach ($schools as $school):
+                                $isBlurred = (!$hasAccess && $rowIndex >= 3);
+                                $rowIndex++; ?>
+                                <tr
+                                    style="<?= $isBlurred ? 'filter: blur(4.5px); opacity: 0.35; pointer-events: none; user-select: none;' : '' ?>">
                                     <td style="font-weight: 600;">
-                                        <a href="/schools/international/detail?id=<?= $school->id ?>"
-                                            style="color: #0f172a; text-decoration: none; font-weight: 700;">
-                                            <?= h($school->name) ?>
-                                        </a>
+                                        <?php if ($isBlurred): ?>
+                                            <span style="color: #0f172a;"><?= h($school->name) ?></span>
+                                        <?php else: ?>
+                                            <a href="/schools/international/detail?id=<?= $school->id ?>"
+                                                style="color: #0f172a; text-decoration: none; font-weight: 700;">
+                                                <?= h($school->name) ?>
+                                            </a>
+                                        <?php endif; ?>
                                     </td>
                                     <td style="color: #475569;"><?= h($school->city ?: 'N/A') ?></td>
                                     <td>
@@ -232,12 +248,20 @@ function intl_sort_link($colKey, $label, $currentSort)
                                     </td>
                                     <td
                                         style="color: #64748b; font-size: 0.82rem; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                        <?= h($school->address ?: 'N/A') ?></td>
+                                        <?= h($school->address ?: 'N/A') ?>
+                                    </td>
                                     <td style="text-align: right;">
-                                        <a href="/schools/international/detail?id=<?= $school->id ?>"
-                                            style="color: #0f766e; font-weight: 700; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                                            View <i class="fa fa-arrow-right" style="font-size: 10px;"></i>
-                                        </a>
+                                        <?php if ($isBlurred): ?>
+                                            <span
+                                                style="color: #94a3b8; font-weight: 700; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 4px;">
+                                                <i class="fa fa-lock" style="font-size: 11px;"></i> Locked
+                                            </span>
+                                        <?php else: ?>
+                                            <a href="/schools/international/detail?id=<?= $school->id ?>"
+                                                style="color: #0f766e; font-weight: 700; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                                View <i class="fa fa-arrow-right" style="font-size: 10px;"></i>
+                                            </a>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -251,60 +275,97 @@ function intl_sort_link($colKey, $label, $currentSort)
                     </tbody>
                 </table>
             </div>
+
+            <?php if (!$hasAccess): ?>
+                <!-- True In-Situ Floating Table Overlay -->
+                <div
+                    style="position: absolute; bottom: 0; left: 0; right: 0; top: 160px; background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(248,250,252,0.92) 25%, #f8fafc 100%); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 1.5rem; z-index: 10;">
+                    <div
+                        style="background: white; border: 1px solid #cbd5e1; border-radius: 14px; padding: 2rem 2.5rem; max-width: 580px; width: 100%; box-shadow: 0 15px 35px rgba(15,23,42,0.12); text-align: center;">
+                        <div
+                            style="display: inline-flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: 50%; background: #f0fdfa; color: #0f766e; font-size: 1.3rem; margin-bottom: 1rem; border: 1px solid #ccfbf1;">
+                            <i class="fa fa-globe"></i>
+                        </div>
+                        <h3 style="margin: 0 0 0.5rem; font-size: 1.35rem; font-weight: 800; color: #0f172a;">
+                            Unlock All <?= number_format($totalIntlInDb) ?>+ International Institutions
+                        </h3>
+                        <p style="margin: 0 0 1.25rem; font-size: 0.88rem; color: #64748b; line-height: 1.5;">
+                            Gain full 1-year access to global accredited institutions, administration contacts, physical
+                            locations, and multi-country search tools.
+                        </p>
+                        <div
+                            style="display: flex; justify-content: center; align-items: baseline; gap: 6px; margin-bottom: 1.25rem;">
+                            <span style="font-size: 1.85rem; font-weight: 900; color: #0f766e;"><?= h($currency) ?>
+                                <?= number_format($directoryFee) ?></span>
+                            <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">/ 1 Year Access</span>
+                        </div>
+                        <a href="/schools/pay?redirect=<?= urlencode($_SERVER['REQUEST_URI'] ?? '/schools/international') ?>"
+                            class="btn-primary"
+                            style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px 20px; font-size: 0.95rem; font-weight: 800; border-radius: 8px; box-sizing: border-box; text-decoration: none;">
+                            <i class="fa fa-unlock"></i> Unlock Directory Access
+                        </a>
+                        <div style="margin-top: 8px; font-size: 0.74rem; color: #94a3b8;">
+                            Instant M-Pesa activation &bull; 100% Secure Checkout
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
 
-        <!-- Full Multi-Page Pagination Control -->
-        <?php if ($total_pages > 1): ?>
-            <?php
-            $start_page = max(1, $page - 2);
-            $end_page = min($total_pages, $page + 2);
-            ?>
-            <div
-                style="display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 2rem; flex-wrap: wrap;">
-                <?php if ($page > 1): ?>
-                    <a href="<?= $basePaginationUrl ?>page=1"
-                        style="padding: 7px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; color: #334155; text-decoration: none; font-weight: 600;">
-                        &laquo; First
-                    </a>
-                    <a href="<?= $basePaginationUrl ?>page=<?= $page - 1 ?>"
-                        style="padding: 7px 14px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; color: #334155; text-decoration: none; font-weight: 600;">
-                        &lsaquo; Prev
-                    </a>
-                <?php endif; ?>
-
-                <?php if ($start_page > 1): ?>
-                    <span style="padding: 7px 6px; color: #94a3b8;">...</span>
-                <?php endif; ?>
-
-                <?php for ($i = $start_page; $i <= $end_page; $i++): ?>
-                    <?php if ($i == $page): ?>
-                        <span
-                            style="padding: 7px 14px; background: #0f766e; color: white; border-radius: 6px; font-size: 0.82rem; font-weight: 800; border: 1px solid #0f766e;">
-                            <?= $i ?>
-                        </span>
-                    <?php else: ?>
-                        <a href="<?= $basePaginationUrl ?>page=<?= $i ?>"
+        <?php if ($hasAccess && $total_pages > 1): ?>
+            <!-- Full Multi-Page Pagination Control -->
+            <?php if ($total_pages > 1): ?>
+                <?php
+                $start_page = max(1, $page - 2);
+                $end_page = min($total_pages, $page + 2);
+                ?>
+                <div
+                    style="display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 2rem; flex-wrap: wrap;">
+                    <?php if ($page > 1): ?>
+                        <a href="<?= $basePaginationUrl ?>page=1"
+                            style="padding: 7px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; color: #334155; text-decoration: none; font-weight: 600;">
+                            &laquo; First
+                        </a>
+                        <a href="<?= $basePaginationUrl ?>page=<?= $page - 1 ?>"
                             style="padding: 7px 14px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; color: #334155; text-decoration: none; font-weight: 600;">
-                            <?= $i ?>
+                            &lsaquo; Prev
                         </a>
                     <?php endif; ?>
-                <?php endfor; ?>
 
-                <?php if ($end_page < $total_pages): ?>
-                    <span style="padding: 7px 6px; color: #94a3b8;">...</span>
-                <?php endif; ?>
+                    <?php if ($start_page > 1): ?>
+                        <span style="padding: 7px 6px; color: #94a3b8;">...</span>
+                    <?php endif; ?>
 
-                <?php if ($page < $total_pages): ?>
-                    <a href="<?= $basePaginationUrl ?>page=<?= $page + 1 ?>"
-                        style="padding: 7px 14px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; color: #334155; text-decoration: none; font-weight: 600;">
-                        Next &rsaquo;
-                    </a>
-                    <a href="<?= $basePaginationUrl ?>page=<?= $total_pages ?>"
-                        style="padding: 7px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; color: #334155; text-decoration: none; font-weight: 600;">
-                        Last &raquo;
-                    </a>
-                <?php endif; ?>
-            </div>
+                    <?php for ($i = $start_page; $i <= $end_page; $i++): ?>
+                        <?php if ($i == $page): ?>
+                            <span
+                                style="padding: 7px 14px; background: #0f766e; color: white; border-radius: 6px; font-size: 0.82rem; font-weight: 800; border: 1px solid #0f766e;">
+                                <?= $i ?>
+                            </span>
+                        <?php else: ?>
+                            <a href="<?= $basePaginationUrl ?>page=<?= $i ?>"
+                                style="padding: 7px 14px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; color: #334155; text-decoration: none; font-weight: 600;">
+                                <?= $i ?>
+                            </a>
+                        <?php endif; ?>
+                    <?php endfor; ?>
+
+                    <?php if ($end_page < $total_pages): ?>
+                        <span style="padding: 7px 6px; color: #94a3b8;">...</span>
+                    <?php endif; ?>
+
+                    <?php if ($page < $total_pages): ?>
+                        <a href="<?= $basePaginationUrl ?>page=<?= $page + 1 ?>"
+                            style="padding: 7px 14px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; color: #334155; text-decoration: none; font-weight: 600;">
+                            Next &rsaquo;
+                        </a>
+                        <a href="<?= $basePaginationUrl ?>page=<?= $total_pages ?>"
+                            style="padding: 7px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; color: #334155; text-decoration: none; font-weight: 600;">
+                            Last &raquo;
+                        </a>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
 
     </main>

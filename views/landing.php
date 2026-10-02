@@ -55,11 +55,91 @@ try {
       'level' => 'IGCSE / IB / American'
     ];
   }
+
+  // Fetch 4-6 random live teaching vacancies from DB
+  $landingJobs = [];
+  $jobWhere = "(status = 'active' OR status IS NULL OR status = '') AND (aggregation_status = 'published' OR aggregation_status IS NULL OR source_type = 'direct' OR source_type IS NULL)";
+  $totalActiveJobs = R::count('job', $jobWhere);
+  if ($totalActiveJobs > 0) {
+    $jobOffset = ($totalActiveJobs > 6) ? mt_rand(0, $totalActiveJobs - 6) : 0;
+    $rawLandingJobs = R::find('job', "{$jobWhere} LIMIT 6 OFFSET ?", [$jobOffset]);
+
+    if (empty($rawLandingJobs)) {
+      $rawLandingJobs = R::find('job', "{$jobWhere} LIMIT 6");
+    }
+
+    foreach ($rawLandingJobs as $jb) {
+      $schoolName = $jb->company_name ?: ($jb->source_name ?: 'Educational Institution');
+      $schoolObj = null;
+      if ($jb->source_type === 'direct' && $jb->school_id) {
+        $schoolObj = R::load('school', $jb->school_id);
+        if ($schoolObj && $schoolObj->id) {
+          $schoolName = $schoolObj->name;
+        }
+      }
+
+      $location = $jb->location_text ?: 'Kenya';
+      if ((empty($location) || $location === 'Kenya') && $jb->source_type === 'direct' && $schoolObj && !empty($schoolObj->county)) {
+        $location = $schoolObj->county . ' County';
+      }
+
+      $deadlineText = 'Open Application';
+      if (!empty($jb->deadline)) {
+        try {
+          $dDate = new DateTime($jb->deadline);
+          $tDate = new DateTime('today');
+          if ($dDate < $tDate) {
+            $deadlineText = 'Closed';
+          } else {
+            $diff = $tDate->diff($dDate)->days;
+            $deadlineText = ($diff === 0) ? 'Closing Today' : ($diff === 1 ? '1 Day Left' : "{$diff} Days Left");
+          }
+        } catch (\Throwable $e) {
+          $deadlineText = 'Open';
+        }
+      }
+
+      $jobType = $jb->job_type ?: ($jb->type ?: 'Full-Time');
+      $curriculum = $jb->curriculum ?: ($jb->level ?: 'CBC / 8-4-4');
+
+      $reqPills = [];
+      if (!empty($jb->teaching_subjects)) {
+        $reqPills[] = $jb->teaching_subjects;
+      }
+      if (!empty($jb->requirements)) {
+        $lines = explode("\n", strip_tags($jb->requirements));
+        foreach ($lines as $line) {
+          $line = trim($line, " \t\n\r\0\x0B-*•");
+          if (strlen($line) >= 3 && strlen($line) <= 35) {
+            $reqPills[] = $line;
+            if (count($reqPills) >= 3)
+              break;
+          }
+        }
+      }
+      if (empty($reqPills)) {
+        $reqPills = ['TSC Registered', 'Qualified Educator', $curriculum];
+      }
+
+      $landingJobs[] = [
+        'id' => $jb->id,
+        'title' => $jb->title,
+        'school_name' => $schoolName,
+        'location' => $location,
+        'curriculum' => $curriculum,
+        'job_type' => $jobType,
+        'deadline' => $deadlineText,
+        'req_pills' => array_slice($reqPills, 0, 3),
+        'apply_url' => is_logged_in() ? '/teacher/apply?job_id=' . $jb->id : '/login/teacher?redirect=' . urlencode('/teacher/apply?job_id=' . $jb->id)
+      ];
+    }
+  }
 } catch (Exception $e) {
   // Fallback numbers if database is unreachable
   $publicCount = 28900;
   $privateCount = 8790;
   $intlCount = 6180;
+  $landingJobs = [];
 }
 ?>
 
@@ -1336,108 +1416,86 @@ try {
       </div>
 
       <div class="jobs-grid">
-        <!-- Job 1 -->
-        <div class="job-card-item">
-          <div>
-            <div class="job-role-header">
-              <h4 class="job-role-title">Junior Secondary Mathematics & Integrated Science Teacher</h4>
-              <span class="job-type-pill">Full-Time</span>
+        <?php if (!empty($landingJobs)): ?>
+          <?php foreach ($landingJobs as $job): ?>
+            <div class="job-card-item">
+              <div>
+                <div class="job-role-header">
+                  <h4 class="job-role-title"><?= h($job['title']) ?></h4>
+                  <span class="job-type-pill"><?= h($job['job_type']) ?></span>
+                </div>
+                <div class="job-school-info">
+                  <span><i class="fa-solid fa-school"></i> <?= h($job['school_name']) ?></span>
+                  <span><i class="fa-solid fa-location-dot"></i> <?= h($job['location']) ?></span>
+                  <span><i class="fa-solid fa-award"></i> <?= h($job['curriculum']) ?></span>
+                </div>
+                <div class="job-req-pills">
+                  <?php foreach ($job['req_pills'] as $pill): ?>
+                    <span class="job-req-pill"><?= h($pill) ?></span>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+              <div class="job-card-bottom">
+                <span class="job-deadline"><i class="fa-regular fa-clock"></i> <?= h($job['deadline']) ?></span>
+                <a href="<?= h($job['apply_url']) ?>" class="job-apply-link">Login to Apply <i
+                    class="fa-solid fa-chevron-right"></i></a>
+              </div>
             </div>
-            <div class="job-school-info">
-              <span><i class="fa-solid fa-school"></i> St. Austin's Senior Academy</span>
-              <span><i class="fa-solid fa-location-dot"></i> Nairobi County</span>
-              <span><i class="fa-solid fa-award"></i> CBC Junior Secondary</span>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <!-- Fallback Cards if DB is empty -->
+          <div class="job-card-item">
+            <div>
+              <div class="job-role-header">
+                <h4 class="job-role-title">Junior Secondary Mathematics & Integrated Science Teacher</h4>
+                <span class="job-type-pill">Full-Time</span>
+              </div>
+              <div class="job-school-info">
+                <span><i class="fa-solid fa-school"></i> St. Austin's Senior Academy</span>
+                <span><i class="fa-solid fa-location-dot"></i> Nairobi County</span>
+                <span><i class="fa-solid fa-award"></i> CBC Junior Secondary</span>
+              </div>
+              <div class="job-req-pills">
+                <span class="job-req-pill">B.Ed / Dip. Ed</span>
+                <span class="job-req-pill">TSC Registered</span>
+                <span class="job-req-pill">Competency-Based Assessment</span>
+              </div>
             </div>
-            <div class="job-req-pills">
-              <span class="job-req-pill">B.Ed / Dip. Ed</span>
-              <span class="job-req-pill">TSC Registered</span>
-              <span class="job-req-pill">Competency-Based Assessment</span>
-            </div>
-          </div>
-          <div class="job-card-bottom">
-            <span class="job-deadline"><i class="fa-regular fa-clock"></i> Deadline: 14 Days Left</span>
-            <a href="/login/teacher" class="job-apply-link">Login to Apply <i class="fa-solid fa-chevron-right"></i></a>
-          </div>
-        </div>
-
-        <!-- Job 2 -->
-        <div class="job-card-item">
-          <div>
-            <div class="job-role-header">
-              <h4 class="job-role-title">CBC Lead Educator (Grade 4–6 English & Social Studies)</h4>
-              <span class="job-type-pill">Full-Time</span>
-            </div>
-            <div class="job-school-info">
-              <span><i class="fa-solid fa-school"></i> Riara Springs Primary</span>
-              <span><i class="fa-solid fa-location-dot"></i> Kiambu County</span>
-              <span><i class="fa-solid fa-award"></i> Senior Primary</span>
-            </div>
-            <div class="job-req-pills">
-              <span class="job-req-pill">P1 / B.Ed Primary</span>
-              <span class="job-req-pill">CBC Facilitator Trained</span>
-              <span class="job-req-pill">2+ Yrs Experience</span>
-            </div>
-          </div>
-          <div class="job-card-bottom">
-            <span class="job-deadline"><i class="fa-regular fa-clock"></i> Deadline: 9 Days Left</span>
-            <a href="/login/teacher" class="job-apply-link">Login to Apply <i class="fa-solid fa-chevron-right"></i></a>
-          </div>
-        </div>
-
-        <!-- Job 3 -->
-        <div class="job-card-item">
-          <div>
-            <div class="job-role-header">
-              <h4 class="job-role-title">Physics & Chemistry Senior High School Teacher</h4>
-              <span class="job-type-pill">Contract</span>
-            </div>
-            <div class="job-school-info">
-              <span><i class="fa-solid fa-school"></i> Pioneer Extra-County High School</span>
-              <span><i class="fa-solid fa-location-dot"></i> Murang'a County</span>
-              <span><i class="fa-solid fa-award"></i> 8-4-4 / KCSE Form 1-4</span>
-            </div>
-            <div class="job-req-pills">
-              <span class="job-req-pill">B.Ed Science</span>
-              <span class="job-req-pill">TSC Certified</span>
-              <span class="job-req-pill">Strong Practical Lab Track Record</span>
+            <div class="job-card-bottom">
+              <span class="job-deadline"><i class="fa-regular fa-clock"></i> Deadline: 14 Days Left</span>
+              <a href="/login/teacher" class="job-apply-link">Login to Apply <i class="fa-solid fa-chevron-right"></i></a>
             </div>
           </div>
-          <div class="job-card-bottom">
-            <span class="job-deadline"><i class="fa-regular fa-clock"></i> Deadline: 21 Days Left</span>
-            <a href="/login/teacher" class="job-apply-link">Login to Apply <i class="fa-solid fa-chevron-right"></i></a>
-          </div>
-        </div>
-
-        <!-- Job 4 -->
-        <div class="job-card-item">
-          <div>
-            <div class="job-role-header">
-              <h4 class="job-role-title">French & Humanities Specialist (IGCSE / British Curriculum)</h4>
-              <span class="job-type-pill">Full-Time</span>
+          <div class="job-card-item">
+            <div>
+              <div class="job-role-header">
+                <h4 class="job-role-title">CBC Lead Educator (Grade 4–6 English & Social Studies)</h4>
+                <span class="job-type-pill">Full-Time</span>
+              </div>
+              <div class="job-school-info">
+                <span><i class="fa-solid fa-school"></i> Riara Springs Primary</span>
+                <span><i class="fa-solid fa-location-dot"></i> Kiambu County</span>
+                <span><i class="fa-solid fa-award"></i> Senior Primary</span>
+              </div>
+              <div class="job-req-pills">
+                <span class="job-req-pill">P1 / B.Ed Primary</span>
+                <span class="job-req-pill">CBC Facilitator Trained</span>
+                <span class="job-req-pill">2+ Yrs Experience</span>
+              </div>
             </div>
-            <div class="job-school-info">
-              <span><i class="fa-solid fa-school"></i> Coast International Academy</span>
-              <span><i class="fa-solid fa-location-dot"></i> Mombasa County</span>
-              <span><i class="fa-solid fa-award"></i> Cambridge / IGCSE</span>
-            </div>
-            <div class="job-req-pills">
-              <span class="job-req-pill">DELF / DALF B2+</span>
-              <span class="job-req-pill">Cambridge Assessment Experience</span>
-              <span class="job-req-pill">International Schooling</span>
+            <div class="job-card-bottom">
+              <span class="job-deadline"><i class="fa-regular fa-clock"></i> Deadline: 9 Days Left</span>
+              <a href="/login/teacher" class="job-apply-link">Login to Apply <i class="fa-solid fa-chevron-right"></i></a>
             </div>
           </div>
-          <div class="job-card-bottom">
-            <span class="job-deadline"><i class="fa-regular fa-clock"></i> Deadline: 12 Days Left</span>
-            <a href="/login/teacher" class="job-apply-link">Login to Apply <i class="fa-solid fa-chevron-right"></i></a>
-          </div>
-        </div>
+        <?php endif; ?>
       </div>
 
       <div class="jobs-notice-box">
         <div class="jobs-notice-text">
           <i class="fa-solid fa-circle-info"></i>
-          <span>Sample vacancies shown. Register or sign in to your Educator account to view all live postings and apply
-            directly.</span>
+          <span>Live vacancies from our verified recruitment network. Register or sign in to your Educator account to
+            view all postings and apply directly.</span>
         </div>
         <div style="display: flex; gap: 0.75rem;">
           <a href="/login/teacher" class="btn-landing btn-landing-primary"

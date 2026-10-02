@@ -38,6 +38,10 @@ $isTestMode = (strtolower((string) env('INTASEND_TEST_MODE', 'false')) === 'true
 $amount = (float) get_setting('directory_fee', 100);
 $durationMonths = (int) get_setting('directory_access_months', 12);
 $currency = (string) get_setting('payment_currency', 'KES');
+if (empty($currency) || is_numeric($currency) || strlen(trim($currency)) < 2) {
+    $currency = 'KES';
+}
+$currency = trim($currency);
 $publicKey = env('INTASEND_PUBLIC_KEY') ?: env('INTASEND_PUBLISHABLE_KEY');
 $errorMessage = null;
 

@@ -37,7 +37,7 @@ if (function_exists('init_session')) {
 
   <style>
     /* ==========================================================================
-       Universal Typography & Contrast Reset (Neutralizes Pico CSS on dark banners)
+       Universal Typography & Contrast Reset (Neutralizes Pico CSS on dark banners & modals)
        ========================================================================== */
     .hero,
     .hero-content,
@@ -49,7 +49,24 @@ if (function_exists('init_session')) {
     .legal-hero,
     .landing-cta-banner,
     .faq-support-banner,
-    .cta-inner-card {
+    .cta-inner-card,
+    .banner-left,
+    .dark-card,
+    .modal-header,
+    .pub-modal-header,
+    dialog header,
+    [style*="background: #0f766e"],
+    [style*="background:#0f766e"],
+    [style*="background: #0f172a"],
+    [style*="background:#0f172a"],
+    [style*="background: #1e293b"],
+    [style*="background:#1e293b"],
+    [style*="background: #166534"],
+    [style*="background:#166534"],
+    [style*="background: #1d4ed8"],
+    [style*="background:#1d4ed8"],
+    [style*="background: #6d28d9"],
+    [style*="background:#6d28d9"] {
       color: #ffffff;
     }
 
@@ -102,7 +119,71 @@ if (function_exists('init_session')) {
     .banner-left h1,
     .banner-left h2,
     .banner-left h3,
-    .banner-left h4 {
+    .banner-left h4,
+    .dark-card h1,
+    .dark-card h2,
+    .dark-card h3,
+    .dark-card h4,
+    .modal-header h1,
+    .modal-header h2,
+    .modal-header h3,
+    .modal-header h4,
+    .pub-modal-header h1,
+    .pub-modal-header h2,
+    .pub-modal-header h3,
+    .pub-modal-header h4,
+    dialog header h1,
+    dialog header h2,
+    dialog header h3,
+    dialog header h4,
+    [style*="background: #0f766e"] h1,
+    [style*="background: #0f766e"] h2,
+    [style*="background: #0f766e"] h3,
+    [style*="background: #0f766e"] h4,
+    [style*="background:#0f766e"] h1,
+    [style*="background:#0f766e"] h2,
+    [style*="background:#0f766e"] h3,
+    [style*="background:#0f766e"] h4,
+    [style*="background: #0f172a"] h1,
+    [style*="background: #0f172a"] h2,
+    [style*="background: #0f172a"] h3,
+    [style*="background: #0f172a"] h4,
+    [style*="background:#0f172a"] h1,
+    [style*="background:#0f172a"] h2,
+    [style*="background:#0f172a"] h3,
+    [style*="background:#0f172a"] h4,
+    [style*="background: #1e293b"] h1,
+    [style*="background: #1e293b"] h2,
+    [style*="background: #1e293b"] h3,
+    [style*="background: #1e293b"] h4,
+    [style*="background:#1e293b"] h1,
+    [style*="background:#1e293b"] h2,
+    [style*="background:#1e293b"] h3,
+    [style*="background:#1e293b"] h4,
+    [style*="color: white"] h1,
+    [style*="color: white"] h2,
+    [style*="color: white"] h3,
+    [style*="color: white"] h4,
+    [style*="color:white"] h1,
+    [style*="color:white"] h2,
+    [style*="color:white"] h3,
+    [style*="color:white"] h4,
+    [style*="color: #ffffff"] h1,
+    [style*="color: #ffffff"] h2,
+    [style*="color: #ffffff"] h3,
+    [style*="color: #ffffff"] h4,
+    [style*="color:#ffffff"] h1,
+    [style*="color:#ffffff"] h2,
+    [style*="color:#ffffff"] h3,
+    [style*="color:#ffffff"] h4,
+    [style*="color: #fff"] h1,
+    [style*="color: #fff"] h2,
+    [style*="color: #fff"] h3,
+    [style*="color: #fff"] h4,
+    [style*="color:#fff"] h1,
+    [style*="color:#fff"] h2,
+    [style*="color:#fff"] h3,
+    [style*="color:#fff"] h4 {
       color: #ffffff !important;
     }
 
@@ -229,15 +310,16 @@ if (function_exists('init_session')) {
       color: #475569;
     }
 
+    /* Base Typography */
     h1,
     h2,
     h3,
     h4,
     h5,
     h6 {
-      font-family: 'Inter', sans-serif !important;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
       font-weight: 700 !important;
-      color: #0f172a !important;
+      color: #0f172a;
     }
 
     p,
@@ -257,6 +339,42 @@ if (function_exists('init_session')) {
 
     a:hover {
       color: #115e59;
+    }
+
+    /* Form Elements & Filter Toolbars (Overrides Pico 16px bottom margins in flex rows) */
+    .admin-filter-form input,
+    .admin-filter-form select,
+    .admin-filter-form button,
+    .search-input-wrapper input,
+    .filter-group input,
+    .filter-group select,
+    .toolbar-row input,
+    .toolbar-row select,
+    .toolbar-row button,
+    .btn-group button,
+    .btn-group a {
+      margin-bottom: 0 !important;
+    }
+
+    /* Modals & Dialog Universal Clean Reset */
+    dialog {
+      border: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      max-width: 92vw !important;
+    }
+
+    dialog::backdrop {
+      background: rgba(15, 23, 42, 0.65) !important;
+      backdrop-filter: blur(2px) !important;
+    }
+
+    dialog header,
+    dialog .modal-header,
+    .modal-header,
+    .pub-modal-header {
+      background: #0f766e !important;
+      color: #ffffff !important;
     }
 
     /* App Header Navbar (#0f172a / Slate 900 with High-Contrast White Text) */
@@ -369,14 +487,15 @@ if (function_exists('init_session')) {
       transform: translateY(-50%) scale(1.1) !important;
     }
 
-    /* ==========================================================================
-       TOPBAR NAVIGATION - 100% PURE WHITE TEXT & ICONS
-       ========================================================================== */
     .topbar-nav {
       display: flex !important;
       align-items: center !important;
-      gap: 0.4rem !important;
-      margin: 0 !important;
+      justify-content: flex-end !important;
+      margin-left: auto !important;
+      gap: 0.45rem !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      margin-right: 0 !important;
       padding: 0 !important;
       list-style: none !important;
       list-style-type: none !important;
@@ -391,6 +510,10 @@ if (function_exists('init_session')) {
       padding: 0 !important;
       flex-shrink: 0 !important;
       white-space: nowrap !important;
+    }
+
+    .topbar-nav .account-menu-item {
+      margin-left: 0.5rem !important;
     }
 
     .topbar-nav li::before,
@@ -1259,7 +1382,8 @@ if (function_exists('init_session')) {
           <li><a href="/"><i class="fa fa-home"></i> Home</a></li>
 
           <li class="top-dropdown">
-            <a href="#"><i class="fa fa-school"></i> Schools <i class="fa fa-chevron-down" style="font-size: 10px;"></i></a>
+            <a href="#"><i class="fa fa-school"></i> Schools <i class="fa fa-chevron-down"
+                style="font-size: 10px;"></i></a>
             <div class="top-dropdown-menu">
               <a href="/schools/public"><i class="fa fa-landmark"></i> Public Schools</a>
               <a href="/schools/private"><i class="fa fa-building"></i> Private Academies</a>
@@ -1271,7 +1395,8 @@ if (function_exists('init_session')) {
           </li>
 
           <li class="top-dropdown">
-            <a href="#"><i class="fa fa-graduation-cap"></i> Teachers <i class="fa fa-chevron-down" style="font-size: 10px;"></i></a>
+            <a href="#"><i class="fa fa-graduation-cap"></i> Teachers <i class="fa fa-chevron-down"
+                style="font-size: 10px;"></i></a>
             <div class="top-dropdown-menu">
               <a href="/register/teacher"><i class="fa fa-user-plus"></i> Register Free</a>
               <a href="/login/teacher"><i class="fa fa-sign-in-alt"></i> Teacher Login</a>
@@ -1283,7 +1408,8 @@ if (function_exists('init_session')) {
           <li><a href="/publications"><i class="fa fa-file-lines"></i> Publications</a></li>
 
           <li class="top-dropdown">
-            <a href="#"><i class="fa fa-book-open"></i> Resources <i class="fa fa-chevron-down" style="font-size: 10px;"></i></a>
+            <a href="#"><i class="fa fa-book-open"></i> Resources <i class="fa fa-chevron-down"
+                style="font-size: 10px;"></i></a>
             <div class="top-dropdown-menu">
               <a href="/faqs"><i class="fa fa-question-circle"></i> Educator FAQs</a>
               <a href="/faqs-overseas"><i class="fa fa-plane"></i> Teaching Overseas FAQ</a>
@@ -1339,8 +1465,8 @@ if (function_exists('init_session')) {
             class="fa fa-globe"></i> International Schools</a>
         <a href="/register/school" class="public-drawer-link" onclick="closePublicMobileNav()"><i
             class="fa fa-plus-circle"></i> Register Institution</a>
-        <a href="/login/school" class="public-drawer-link" onclick="closePublicMobileNav()"><i
-            class="fa fa-school"></i> School Login</a>
+        <a href="/login/school" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-school"></i>
+          School Login</a>
       </div>
 
       <div class="public-drawer-section">
@@ -1355,7 +1481,8 @@ if (function_exists('init_session')) {
 
       <div class="public-drawer-section">
         <div class="public-drawer-title">Community & Knowledge</div>
-        <a href="/forum" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-comments"></i> Forum</a>
+        <a href="/forum" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-comments"></i>
+          Forum</a>
         <a href="/publications" class="public-drawer-link" onclick="closePublicMobileNav()"><i
             class="fa fa-file-lines"></i> Publications Hub</a>
       </div>
@@ -1506,19 +1633,22 @@ if (function_exists('init_session')) {
   </script>
 
   <main style="padding: 0px; margin: 0px; width:100%;">
-  <?php if (function_exists('is_being_impersonated') && is_being_impersonated()): 
+    <?php if (function_exists('is_being_impersonated') && is_being_impersonated()):
       $impUser = auth_user();
       $adminEmail = $_SESSION['_admin_impersonator']['original_auth']['email'] ?? 'Admin';
-  ?>
-    <div style="background: #991b1b; color: white; padding: 10px 20px; font-size: 0.88rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; z-index: 9999; position: sticky; top: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <i class="fa fa-user-secret" style="font-size: 1.1rem; color: #fca5a5;"></i>
-        <span>Viewing system as <strong><?= h($impUser['role']) ?>: <?= h($impUser['name'] ?: $impUser['email']) ?></strong> (Admin: <?= h($adminEmail) ?>)</span>
+      ?>
+      <div
+        style="background: #991b1b; color: white; padding: 10px 20px; font-size: 0.88rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; z-index: 9999; position: sticky; top: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <i class="fa fa-user-secret" style="font-size: 1.1rem; color: #fca5a5;"></i>
+          <span>Viewing system as <strong><?= h($impUser['role']) ?>:
+              <?= h($impUser['name'] ?: $impUser['email']) ?></strong> (Admin: <?= h($adminEmail) ?>)</span>
+        </div>
+        <div>
+          <a href="/admin/stop-impersonate"
+            style="background: white; color: #991b1b !important; padding: 5px 14px; border-radius: 4px; text-decoration: none; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+            <i class="fa fa-arrow-right-from-bracket"></i> Exit Impersonation & Return to Admin
+          </a>
+        </div>
       </div>
-      <div>
-        <a href="/admin/stop-impersonate" style="background: white; color: #991b1b !important; padding: 5px 14px; border-radius: 4px; text-decoration: none; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
-          <i class="fa fa-arrow-right-from-bracket"></i> Exit Impersonation & Return to Admin
-        </a>
-      </div>
-    </div>
-  <?php endif; ?>
+    <?php endif; ?>

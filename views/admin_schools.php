@@ -18,9 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($action === 'grant_pro') {
                 $months = intval($_POST['pro_months'] ?? 1);
                 $months = max(1, min(24, $months));
-                // Set temporary override for duration
-                $_POST['school_pro_months'] = $months;
-                grant_school_pro_subscription($school->id, 0, 'admin_manual_grant');
+                grant_school_pro_subscription($school->id, 0, 'admin_manual_grant', $months);
                 $school = R::load('school', $school_id);
                 $msg = "Granted Pro Subscription ({$months} mo) to " . htmlspecialchars($school->name) . " until " . date('M d, Y', strtotime($school->subscription_expiry)) . ".";
             } elseif ($action === 'revoke_pro') {

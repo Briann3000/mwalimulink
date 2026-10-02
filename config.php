@@ -1330,9 +1330,10 @@ function school_has_pro($school = null)
  * @param int $schoolId
  * @param float|null $amount
  * @param string $paymentRef
+ * @param int|null $customMonths
  * @return bool
  */
-function grant_school_pro_subscription($schoolId, $amount = null, $paymentRef = '')
+function grant_school_pro_subscription($schoolId, $amount = null, $paymentRef = '', $customMonths = null)
 {
     try {
         if (!class_exists('R')) {
@@ -1349,7 +1350,9 @@ function grant_school_pro_subscription($schoolId, $amount = null, $paymentRef = 
             return false;
         }
 
-        $durationMonths = (int) get_setting('school_pro_months', 12);
+        $durationMonths = $customMonths !== null && intval($customMonths) > 0 
+            ? intval($customMonths) 
+            : (int) get_setting('school_pro_months', 12);
         if ($durationMonths <= 0) {
             $durationMonths = 12;
         }
