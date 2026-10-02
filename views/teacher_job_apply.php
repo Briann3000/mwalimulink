@@ -292,17 +292,133 @@ if (!$job->id) {
                             <input type="file" name="custom_doc" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="font-size: 0.85rem; color: #475569;">
                         </div>
 
-                        <div style="display: flex; gap: 10px; justify-content: flex-end; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 1.25rem;">
-                            <a href="/teacher/jobs" style="background: #f1f5f9; color: #475569; padding: 10px 18px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; text-decoration: none;">
-                                Cancel
-                            </a>
-                            <button type="submit" class="btn-primary" style="font-size: 0.9rem; padding: 10px 24px;">
-                                <i class="fa fa-paper-plane"></i> Submit Application Now
+                        <div style="display: flex; gap: 10px; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 1.25rem; flex-wrap: wrap;">
+                            <button type="button" onclick="openAppPreviewModal()" style="background: #f1f5f9; color: #0f766e; border: 1px solid #cbd5e1; padding: 10px 16px; border-radius: 6px; font-size: 0.88rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa fa-eye"></i> Preview Application Package
                             </button>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <a href="/teacher/jobs" style="background: #f1f5f9; color: #475569; padding: 10px 18px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; text-decoration: none;">
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn-primary" style="font-size: 0.9rem; padding: 10px 24px;">
+                                    <i class="fa fa-paper-plane"></i> Submit Application Now
+                                </button>
+                            </div>
                         </div>
                     </form>
 
                 </div>
+
+                <!-- Interactive Application Preview Modal (What School Sees) -->
+                <dialog id="appPreviewModal" style="padding: 0; border: none; border-radius: 12px; max-width: 680px; width: 92%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); background: white;">
+                    <div style="padding: 1.25rem 1.5rem; background: #0f766e; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa fa-eye"></i>
+                            <h3 style="margin: 0; font-size: 1.1rem; color: white; font-weight: 700;">What the Hiring School Sees</h3>
+                        </div>
+                        <button type="button" onclick="closeAppPreviewModal()" style="background: transparent; border: none; color: white; font-size: 1.3rem; cursor: pointer; line-height: 1; padding: 0;">&times;</button>
+                    </div>
+
+                    <div style="padding: 1.5rem; max-height: 75vh; overflow-y: auto;">
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem;">
+                            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 0.75rem;">
+                                <div style="width: 48px; height: 48px; border-radius: 50%; background: #0f766e; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem;">
+                                    <?= strtoupper(substr($teacher->name ?: 'T', 0, 1)) ?>
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0 0 2px; font-size: 1.05rem; color: #0f172a; font-weight: 800;">
+                                        <?= h($teacher->name) ?>
+                                        <?php if ($teacher->verification_status === 'verified'): ?>
+                                            <span style="background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 12px; margin-left: 6px;">
+                                                ✓ Verified Educator
+                                            </span>
+                                        <?php endif; ?>
+                                    </h4>
+                                    <p style="margin: 0; font-size: 0.82rem; color: #64748b;">
+                                        <i class="fa fa-envelope"></i> <?= h($teacher->email) ?> &bull; 
+                                        <i class="fa fa-phone"></i> <?= h($teacher->mobile) ?> &bull; 
+                                        <i class="fa fa-map-marker-alt"></i> <?= h($teacher->county ?: 'Kenya') ?>
+                                    </p>
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.82rem; color: #334155; border-top: 1px solid #e2e8f0; padding-top: 8px;">
+                                <div><strong>Subjects:</strong> <?= h($teacher->teaching_subjects ?: 'General') ?></div>
+                                <div><strong>Experience:</strong> <?= intval($teacher->years_of_experience) ?> Years</div>
+                                <div><strong>Qualification:</strong> <?= h($teacher->qualification ?: 'Teacher') ?></div>
+                                <div><strong>TSC Number:</strong> <?= h($teacher->tsc_number ?: 'Not specified') ?></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 1.25rem;">
+                            <h5 style="margin: 0 0 6px; font-size: 0.85rem; font-weight: 800; color: #0f172a; text-transform: uppercase;">
+                                Candidate Cover Pitch
+                            </h5>
+                            <div id="previewCoverPitch" style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; font-size: 0.88rem; color: #334155; line-height: 1.5; min-height: 60px; font-style: italic;">
+                                (No cover pitch entered yet)
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; font-size: 0.85rem;">
+                            <div style="background: #f1f5f9; padding: 10px; border-radius: 6px;">
+                                <span style="color: #64748b; display: block; font-size: 0.75rem;">Availability:</span>
+                                <strong id="previewAvailability" style="color: #0f172a;">Immediately</strong>
+                            </div>
+                            <div style="background: #f1f5f9; padding: 10px; border-radius: 6px;">
+                                <span style="color: #64748b; display: block; font-size: 0.75rem;">Expected Salary:</span>
+                                <strong id="previewSalary" style="color: #0f172a;">Open / Negotiable</strong>
+                            </div>
+                        </div>
+
+                        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: #1e40af;">
+                            <span><i class="fa fa-file-pdf"></i> Standardized MwalimuLink Educator CV will be attached</span>
+                            <a href="/teacher/cv/preview?id=<?= $teacher->id ?>" target="_blank" style="color: #1e40af; font-weight: 700; text-decoration: underline;">
+                                View Full CV &rarr;
+                            </a>
+                        </div>
+                    </div>
+
+                    <div style="padding: 1rem 1.5rem; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; border-radius: 0 0 12px 12px;">
+                        <button type="button" onclick="closeAppPreviewModal()" style="background: #e2e8f0; color: #334155; border: none; padding: 8px 18px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; cursor: pointer;">
+                            Close Preview
+                        </button>
+                    </div>
+                </dialog>
+
+                <script>
+                    function openAppPreviewModal() {
+                        const modal = document.getElementById('appPreviewModal');
+                        if (modal) {
+                            const pitch = document.querySelector('textarea[name="cover_note"]')?.value?.trim();
+                            const avail = document.getElementById('availableFromSelect')?.value;
+                            const salary = document.querySelector('input[name="expected_salary"]')?.value?.trim();
+
+                            const pitchBox = document.getElementById('previewCoverPitch');
+                            if (pitchBox) {
+                                pitchBox.textContent = pitch ? pitch : '(No custom pitch entered - your standard professional bio will be used)';
+                                pitchBox.style.fontStyle = pitch ? 'normal' : 'italic';
+                            }
+
+                            const availBox = document.getElementById('previewAvailability');
+                            if (availBox) {
+                                availBox.textContent = avail || 'Immediately';
+                            }
+
+                            const salaryBox = document.getElementById('previewSalary');
+                            if (salaryBox) {
+                                salaryBox.textContent = salary ? 'KES ' + Number(salary).toLocaleString() + ' / month' : 'Open / Negotiable';
+                            }
+
+                            modal.showModal();
+                        }
+                    }
+
+                    function closeAppPreviewModal() {
+                        const modal = document.getElementById('appPreviewModal');
+                        if (modal) {
+                            modal.close();
+                        }
+                    }
+                </script>
             <?php endif; ?>
 
         </div>

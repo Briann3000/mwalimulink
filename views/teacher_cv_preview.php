@@ -36,7 +36,7 @@ if ($isSchool && !school_has_pro($authUser['user_id'])) {
         <div style='font-size: 2.5rem; margin-bottom: 1rem;'>🔒</div>
         <h2 style='color: #9a3412; margin: 0 0 0.5rem;'>Institutional Pro Required</h2>
         <p style='color: #64748b; font-size: 0.95rem; line-height: 1.5; margin: 0 0 1.5rem;'>Access to full educator resumes, verified documents, and candidate CV downloads is an exclusive feature for Pro institutions.</p>
-        <a href='/school/subscription' style='display: inline-block; background: #0f766e; color: white; padding: 10px 22px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 0.95rem;'>Upgrade to Pro Account &rarr;</a>
+        <a href='/school/subscribe' style='display: inline-block; background: #0f766e; color: white; padding: 10px 22px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 0.95rem;'>Upgrade to Pro Account &rarr;</a>
     </div>";
     exit();
 }

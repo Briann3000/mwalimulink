@@ -164,6 +164,8 @@ $modernRoutes = [
     'teacher/applications' => 'views/teacher_applications.php',
     'teacher/cv-builder' => 'views/teacher_cv_builder.php',
     'teacher/cv-preview' => 'views/teacher_cv_preview.php',
+    'teacher/cv/preview' => 'views/teacher_cv_preview.php',
+    'teacher/cv' => 'views/teacher_cv_preview.php',
     'tp-hub' => 'views/tp_hub.php',
 
     'school/dashboard' => 'views/school_dashboard.php',

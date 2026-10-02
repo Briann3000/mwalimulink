@@ -4,6 +4,21 @@ require_auth('teacher');
 
 $authUser = auth_user();
 $teacher_id = $authUser['user_id'];
+$teacher = R::load('teacher', $teacher_id);
+
+// Extract teacher's specialization subjects for 1-click search
+$mySubjectsRaw = (string)($teacher->teaching_subjects ?? '');
+$mySubjectTokens = [];
+if (!empty($mySubjectsRaw)) {
+    $rawToks = preg_split('/[\/,\+;&|]|\band\b/i', $mySubjectsRaw);
+    foreach ($rawToks as $tok) {
+        $tok = trim($tok);
+        if (strlen($tok) >= 2) {
+            $mySubjectTokens[] = $tok;
+        }
+    }
+    $mySubjectTokens = array_values(array_unique($mySubjectTokens));
+}
 
 // Get teacher's existing applications indexed by job_id
 $myApps = R::find('applications', 'teacher_id = ?', [$teacher_id]);
@@ -161,6 +176,22 @@ $buildQueryUrl = function($newPage = null, $newPerPage = null, $newSort = null) 
         <!-- Filter & Search Toolbar -->
         <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
             <form method="GET" action="/teacher/jobs" style="margin: 0;">
+                <?php if (!empty($mySubjectTokens)): ?>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+                        <span style="font-size: 0.78rem; font-weight: 700; color: #64748b;">Quick Search by Specialization:</span>
+                        <?php foreach ($mySubjectTokens as $st): ?>
+                            <a href="/teacher/jobs?q=<?= urlencode($st) ?>" style="background: <?= ($keyword === $st) ? '#0f766e' : '#f0fdf4' ?>; color: <?= ($keyword === $st) ? '#ffffff' : '#166534' ?>; border: 1px solid #bbf7d0; font-size: 0.76rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                <i class="fa fa-tag" style="font-size: 0.68rem;"></i> <?= h($st) ?>
+                            </a>
+                        <?php endforeach; ?>
+                        <?php if (!empty($keyword) || !empty($countyFilter) || !empty($curriculumFilter) || !empty($sourceFilter)): ?>
+                            <a href="/teacher/jobs" style="font-size: 0.76rem; color: #dc2626; font-weight: 600; text-decoration: none; margin-left: auto;">
+                                <i class="fa fa-rotate-left"></i> Reset Filters
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px;">
                     <div style="grid-column: span 2; min-width: 260px;">
                         <label style="font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block;">Keywords</label>

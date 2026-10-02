@@ -33,22 +33,53 @@ $myApplicationsCount = R::count('applications', 'teacher_id = ?', [$teacher_id])
 $unreadAlerts = R::find('jobalert', 'teacher_id = ? ORDER BY id DESC LIMIT 5', [$teacher_id]);
 $unreadAlertsCount = R::count('jobalert', 'teacher_id = ? AND is_read = 0', [$teacher_id]);
 
-// Recommended Jobs (matching teacher's teaching subjects or county)
-$teachingSubjects = (string)($teacher->teaching_subjects ?? '');
-$primarySubject = '';
-if (!empty($teachingSubjects)) {
-    $firstSlash = explode('/', $teachingSubjects)[0] ?? '';
-    $primarySubject = trim(explode(',', $firstSlash)[0] ?? '');
+// Multi-Subject Smart Matching
+$teachingSubjectsRaw = (string)($teacher->teaching_subjects ?? '');
+$rawTokens = preg_split('/[\/,\+;&|]|\band\b/i', $teachingSubjectsRaw);
+$subjectTokens = [];
+foreach ($rawTokens as $tok) {
+    $tok = trim($tok);
+    if (strlen($tok) >= 2) {
+        $subjectTokens[] = $tok;
+    }
 }
+$subjectTokens = array_values(array_unique($subjectTokens));
+
 $recommendedJobs = [];
-if (!empty($primarySubject)) {
-    $recommendedJobs = R::find('job', '(title LIKE ? OR description LIKE ? OR requirements LIKE ?) AND (aggregation_status = "published" OR aggregation_status IS NULL OR source_type = "direct" OR source_type IS NULL) ORDER BY id DESC LIMIT 4', [
-        "%$primarySubject%", "%$primarySubject%", "%$primarySubject%"
-    ]);
+if (!empty($subjectTokens)) {
+    $orClauses = [];
+    $params = [];
+    foreach ($subjectTokens as $subj) {
+        $orClauses[] = "(title LIKE ? OR description LIKE ? OR requirements LIKE ?)";
+        $params[] = "%$subj%";
+        $params[] = "%$subj%";
+        $params[] = "%$subj%";
+    }
+    $whereSql = "(" . implode(" OR ", $orClauses) . ") AND (aggregation_status = 'published' OR aggregation_status IS NULL OR source_type = 'direct' OR source_type IS NULL)";
+    $candidateJobs = R::find('job', "$whereSql ORDER BY id DESC LIMIT 12", $params);
+    
+    foreach ($candidateJobs as $cJob) {
+        $matched = [];
+        $haystack = strtolower(($cJob->title ?? '') . ' ' . ($cJob->description ?? '') . ' ' . ($cJob->requirements ?? ''));
+        foreach ($subjectTokens as $st) {
+            if (stripos($haystack, strtolower($st)) !== false) {
+                $matched[] = $st;
+            }
+        }
+        $cJob->matched_tokens = $matched;
+        $recommendedJobs[] = $cJob;
+        if (count($recommendedJobs) >= 6) {
+            break;
+        }
+    }
 }
+
 if (empty($recommendedJobs)) {
-    $recommendedJobs = R::find('job', '(aggregation_status = "published" OR aggregation_status IS NULL OR source_type = "direct" OR source_type IS NULL) ORDER BY id DESC LIMIT 4');
+    $recommendedJobs = R::find('job', '(aggregation_status = "published" OR aggregation_status IS NULL OR source_type = "direct" OR source_type IS NULL) ORDER BY id DESC LIMIT 6');
 }
+
+// Recent Applications for Dashboard Status Timeline
+$recentApplications = R::find('applications', 'teacher_id = ? ORDER BY id DESC LIMIT 3', [$teacher_id]);
 
 // Handle AJAX or POST status change
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
@@ -202,6 +233,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
             </div>
         </div>
 
+        <!-- Recent Applications & Status Timeline Tracker -->
+        <?php if (!empty($recentApplications)): ?>
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa fa-list-check" style="color: #0f766e;"></i> My Active Applications & Status
+                        </h4>
+                        <p style="margin: 2px 0 0; font-size: 0.8rem; color: #64748b;">
+                            Live progress stages of your submitted job applications
+                        </p>
+                    </div>
+                    <a href="/teacher/applications" style="font-size: 0.82rem; font-weight: 700; color: #0f766e; text-decoration: none;">View All & Two-Way Messages &rarr;</a>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <?php 
+                    $stageMap = [
+                        'applied' => ['step' => 1, 'label' => 'Submitted', 'color' => '#0284c7', 'bg' => '#e0f2fe'],
+                        'reviewing' => ['step' => 2, 'label' => 'Under Review', 'color' => '#d97706', 'bg' => '#fef3c7'],
+                        'shortlisted' => ['step' => 3, 'label' => 'Shortlisted', 'color' => '#16a34a', 'bg' => '#dcfce7'],
+                        'interview_scheduled' => ['step' => 4, 'label' => 'Interview Invited', 'color' => '#7c3aed', 'bg' => '#ede9fe'],
+                        'hired' => ['step' => 5, 'label' => 'Offered / Hired', 'color' => '#15803d', 'bg' => '#bbf7d0'],
+                        'rejected' => ['step' => 5, 'label' => 'Not Selected', 'color' => '#dc2626', 'bg' => '#fee2e2'],
+                    ];
+                    foreach ($recentApplications as $app): 
+                        $job = R::load('job', $app->job_id);
+                        $isExt = ($job->source_type === 'external');
+                        $schoolObj = !$isExt ? R::load('school', $job->school_id) : null;
+                        $schoolName = $isExt ? ($job->company_name ?: ($job->source_name ?: 'Education Partner')) : ($schoolObj->name ?? 'Registered School');
+                        $st = $stageMap[$app->status] ?? $stageMap['applied'];
+                        $currentStep = $st['step'];
+                        $isRejected = ($app->status === 'rejected');
+                    ?>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;">
+                                <div>
+                                    <h5 style="margin: 0 0 3px; font-size: 0.95rem; font-weight: 800; color: #0f172a;">
+                                        <?= h($job->title ?: 'Teaching Position') ?>
+                                    </h5>
+                                    <span style="font-size: 0.8rem; color: #64748b;">
+                                        <i class="fa fa-school" style="color: #0f766e;"></i> <?= h($schoolName) ?> &bull; 
+                                        Applied on <?= date('M d, Y', strtotime($app->application_date ?? 'now')) ?>
+                                    </span>
+                                </div>
+                                <div>
+                                    <span style="background: <?= $st['bg'] ?>; color: <?= $st['color'] ?>; font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 20px;">
+                                        <?= $st['label'] ?>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Mini 5-Stage Stepper Bar -->
+                            <div style="display: flex; align-items: center; justify-content: space-between; position: relative; margin: 1.25rem 0.5rem 0.5rem;">
+                                <?php 
+                                $steps = [
+                                    1 => 'Applied',
+                                    2 => 'Review',
+                                    3 => 'Shortlist',
+                                    4 => 'Interview',
+                                    5 => $isRejected ? 'Declined' : 'Decision'
+                                ];
+                                foreach ($steps as $idx => $sLabel):
+                                    $isPassed = ($currentStep >= $idx && !$isRejected) || ($isRejected && $idx === 1);
+                                    $isCurrent = ($currentStep === $idx);
+                                    $circleBg = $isCurrent ? ($isRejected ? '#dc2626' : '#0f766e') : ($isPassed ? '#10b981' : '#e2e8f0');
+                                    $circleColor = ($isPassed || $isCurrent) ? '#ffffff' : '#94a3b8';
+                                    $labelColor = $isCurrent ? ($isRejected ? '#dc2626' : '#0f766e') : ($isPassed ? '#1e293b' : '#94a3b8');
+                                ?>
+                                    <div style="display: flex; flex-direction: column; align-items: center; z-index: 2; flex: 1;">
+                                        <div style="width: 22px; height: 22px; border-radius: 50%; background: <?= $circleBg ?>; color: <?= $circleColor ?>; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; margin-bottom: 4px;">
+                                            <?= ($isPassed && !$isCurrent) ? '✓' : $idx ?>
+                                        </div>
+                                        <span style="font-size: 0.72rem; font-weight: <?= $isCurrent ? '700' : '500' ?>; color: <?= $labelColor ?>; text-align: center;">
+                                            <?= $sLabel ?>
+                                        </span>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <!-- Recommended Jobs Table / Section -->
         <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 8px;">
@@ -210,7 +326,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                         <i class="fa fa-briefcase" style="color: #0f766e;"></i> Matching Vacancies For You
                     </h4>
                     <p style="margin: 2px 0 0; font-size: 0.8rem; color: #64748b;">
-                        Live openings matching <?= !empty($primarySubject) ? '<strong>' . h($primarySubject) . '</strong>' : 'your profile' ?>
+                        <?php if (!empty($subjectTokens)): ?>
+                            Live openings matching your subject specialization: <strong><?= h(implode(' &bull; ', $subjectTokens)) ?></strong>
+                        <?php else: ?>
+                            Latest active teaching vacancies
+                        <?php endif; ?>
                     </p>
                 </div>
                 <a href="/teacher/jobs" style="font-size: 0.82rem; font-weight: 700; color: #0f766e; text-decoration: none;">View All Vacancies &rarr;</a>
@@ -223,6 +343,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                         $schoolObj = !$isExt ? R::load('school', $job->school_id) : null;
                         $instName = $isExt ? ($job->company_name ?: ($job->source_name ?: 'Education Partner')) : ($schoolObj->name ?? 'Registered School');
                         $instLoc = $isExt ? ($job->location_text ?: 'Kenya') : ($schoolObj->county ?? 'Kenya');
+                        $matchedTokens = $job->matched_tokens ?? [];
                     ?>
                         <div style="display: flex; flex-direction: column; justify-content: space-between; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
                             <div>
@@ -236,10 +357,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                                         </span>
                                     <?php endif; ?>
                                 </div>
-                                <p style="margin: 0 0 10px; font-size: 0.8rem; color: #64748b;">
+                                <p style="margin: 0 0 8px; font-size: 0.8rem; color: #64748b;">
                                     <i class="fa fa-school" style="color: #0f766e;"></i> <?= h($instName) ?> &bull; 
                                     <i class="fa fa-map-marker-alt" style="color: #0f766e;"></i> <?= h($instLoc) ?>
                                 </p>
+
+                                <?php if (!empty($matchedTokens)): ?>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px;">
+                                        <?php foreach ($matchedTokens as $mt): ?>
+                                            <span style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 4px;">
+                                                <i class="fa fa-check" style="font-size: 0.65rem;"></i> <?= h($mt) ?> Match
+                                            </span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 8px;">
                                 <span style="font-size: 0.75rem; color: #94a3b8;">
