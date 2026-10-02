@@ -169,6 +169,8 @@ $modernRoutes = [
     'tp-hub' => 'views/tp_hub.php',
 
     'school/dashboard' => 'views/school_dashboard.php',
+    'school/update' => 'views/school_update.php',
+    'school/profile' => 'views/school_update.php',
     'school/applicants' => 'views/school_applicants.php',
     'school/staff' => 'views/school_staff.php',
     'school/post-job' => 'views/school_post_job.php',

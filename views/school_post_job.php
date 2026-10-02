@@ -22,6 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $requirements = trim($_POST['requirements'] ?? '');
+        $curriculum = trim($_POST['curriculum'] ?? 'CBC');
+        $educationLevel = trim($_POST['education_level'] ?? 'Secondary');
+        $jobType = trim($_POST['job_type'] ?? 'Full-Time');
         $salary = !empty($_POST['salary']) ? (float) $_POST['salary'] : null;
 
         if (!empty($title) && !empty($description)) {
@@ -30,6 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $job->title = $title;
             $job->description = $description;
             $job->requirements = $requirements;
+            $job->curriculum = $curriculum;
+            $job->education_level = $educationLevel;
+            $job->job_type = $jobType;
+            $job->source_type = 'direct';
+            $job->aggregation_status = 'published';
             $job->salary = $salary;
             $job->deadline = !empty($_POST['deadline']) ? $_POST['deadline'] : null;
             $job->posted_date = date('Y-m-d H:i:s');
@@ -96,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         search!
                     </p>
                     <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                        <a href="/school/pay" class="btn-primary"
+                        <a href="/school/subscribe" class="btn-primary"
                             style="background: #0f766e; color: white !important; padding: 10px 24px; font-size: 0.92rem; font-weight: 700; text-decoration: none;">
                             <i class="fa fa-bolt"></i> Upgrade to Pro &rarr;
                         </a>
@@ -132,13 +140,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 required style="width: 100%; box-sizing: border-box;">
                         </div>
 
+                        <!-- Curriculum, Education Level, and Job Type Dropdowns -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+                            <div>
+                                <label style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">
+                                    Curriculum <span style="color: red;">*</span>
+                                </label>
+                                <select name="curriculum" style="width: 100%; box-sizing: border-box; background: white; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem;">
+                                    <option value="CBC">CBC (Competency Based Curriculum)</option>
+                                    <option value="8-4-4">8-4-4</option>
+                                    <option value="IGCSE">IGCSE / Cambridge</option>
+                                    <option value="IB">IB (International Baccalaureate)</option>
+                                    <option value="American">American Curriculum</option>
+                                    <option value="Other">Other / Dual Curriculum</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">
+                                    Institution Level
+                                </label>
+                                <select name="education_level" style="width: 100%; box-sizing: border-box; background: white; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem;">
+                                    <option value="Secondary">Senior High School / Secondary</option>
+                                    <option value="Junior Secondary">Junior School (JSS Grades 7-9)</option>
+                                    <option value="Primary">Primary School (Grades 1-6)</option>
+                                    <option value="ECD">Early Childhood / Kindergarten</option>
+                                    <option value="Tertiary">Tertiary / TVET / College</option>
+                                    <option value="Special Needs">Special Needs Education (SNE)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">
+                                    Employment Type
+                                </label>
+                                <select name="job_type" style="width: 100%; box-sizing: border-box; background: white; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem;">
+                                    <option value="Full-Time">Full-Time (Permanent / Term)</option>
+                                    <option value="BOM Contract">BOM Contract</option>
+                                    <option value="Part-Time">Part-Time / Subject Specialist</option>
+                                    <option value="Relief">Relief / Maternity Cover</option>
+                                    <option value="Internship">Teaching Practice / Intern</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div style="margin-bottom: 1.25rem;">
                             <label
                                 style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">
                                 Detailed Description & Responsibilities <span style="color: red;">*</span>
                             </label>
                             <textarea name="description" rows="5"
-                                placeholder="Describe the subjects to teach, classes, curriculum (e.g. CBC / 8-4-4 / IGCSE), and duties..."
+                                placeholder="Describe the subjects to teach, classes, lesson load, and expected duties..."
                                 required style="width: 100%; box-sizing: border-box; font-family: inherit;"></textarea>
                         </div>
 
@@ -148,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 Candidate Requirements & Qualifications
                             </label>
                             <textarea name="requirements" rows="4"
-                                placeholder="e.g. Bachelor of Education, TSC Registration required, 3+ years experience..."
+                                placeholder="e.g. Bachelor of Education, TSC Registration required, 2+ years CBC experience..."
                                 style="width: 100%; box-sizing: border-box; font-family: inherit;"></textarea>
                         </div>
 
@@ -159,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">
                                     Monthly Gross Salary (KES) (Optional)
                                 </label>
-                                <input type="number" name="salary" placeholder=""
+                                <input type="number" name="salary" placeholder="e.g. 40000"
                                     style="width: 100%; box-sizing: border-box;">
                             </div>
                             <div>

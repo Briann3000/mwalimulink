@@ -63,6 +63,9 @@ $isActive = function ($path) use ($currentUri) {
         <a href="/tp-hub" class="sidebar-item-link <?= $isActive('tp-hub') ?>">
             <i class="fa fa-graduation-cap"></i> <span>TP Placements</span>
         </a>
+        <a href="/school/update" class="sidebar-item-link <?= ($isActive('school/update') || $isActive('school/profile')) ? 'active' : '' ?>">
+            <i class="fa fa-school"></i> <span>Edit Profile</span>
+        </a>
         <a href="/school/subscribe" class="sidebar-item-link <?= $isActive('school/subscribe') ?>">
             <i class="fa fa-credit-card"></i> <span>Manage Plan</span>
         </a>

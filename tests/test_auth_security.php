@@ -232,11 +232,66 @@ $adminEnvPassword = env('ADMIN_PASSWORD', 'Kenya@254');
 assert_test("Constant-time hash_equals matches correct admin credentials", hash_equals(strtolower($adminEnvEmail), strtolower('infomwalimulink@gmail.com')) && hash_equals($adminEnvPassword, 'Kenya@254'));
 assert_test("Constant-time hash_equals rejects invalid admin password", !hash_equals($adminEnvPassword, 'WrongAdminPass'));
 
+// -------------------------------------------------------------
+// TEST 9: Secure File Upload Engine & Extension Whitelist
+// -------------------------------------------------------------
+echo "\n[9] Testing Secure File Upload Engine...\n";
+$fakePhpUpload = [
+    'name' => 'malicious.php',
+    'type' => 'application/x-php',
+    'tmp_name' => __DIR__ . '/test_temp.txt',
+    'error' => UPLOAD_ERR_OK,
+    'size' => 1024
+];
+file_put_contents(__DIR__ . '/test_temp.txt', '<?php phpinfo(); ?>');
+$resPhp = secure_validate_and_upload($fakePhpUpload, 'uploads/documents/', ['pdf', 'jpg', 'png']);
+assert_test("Executable .php upload strictly rejected", $resPhp['success'] === false);
+
+$fakeDoubleExtUpload = [
+    'name' => 'image.php.jpg',
+    'type' => 'image/jpeg',
+    'tmp_name' => __DIR__ . '/test_temp.txt',
+    'error' => UPLOAD_ERR_OK,
+    'size' => 1024
+];
+$resDouble = secure_validate_and_upload($fakeDoubleExtUpload, 'uploads/documents/', ['pdf', 'jpg', 'png']);
+assert_test("Double-extension attack (.php.jpg) strictly rejected", $resDouble['success'] === false);
+
+@unlink(__DIR__ . '/test_temp.txt');
+
+// -------------------------------------------------------------
+// TEST 10: Cross-Role Duplicate Email Collision Protection
+// -------------------------------------------------------------
+echo "\n[10] Testing Cross-Role Email Collision Protection...\n";
+$uniqueCrossEmail = 'crosstest_' . time() . '@mwalimulink.co.ke';
+$testSchool = R::dispense('school');
+$testSchool->name = 'Collision Academy';
+$testSchool->email = $uniqueCrossEmail;
+$testSchool->password = password_hash('Pass@12345', PASSWORD_DEFAULT);
+R::store($testSchool);
+
+// Check if teacher can register with existing school email
+$dupTeacherCheck = R::findOne('school', 'email = ?', [$uniqueCrossEmail]);
+assert_test("Teacher registration collides with existing school account", $dupTeacherCheck !== null);
+
+// Check if school can register with existing teacher email
+$uniqueTeacherEmail = 'teachertest_' . time() . '@mwalimulink.co.ke';
+$testTeacher = R::dispense('teacher');
+$testTeacher->name = 'Collision Teacher';
+$testTeacher->email = $uniqueTeacherEmail;
+$testTeacher->password = password_hash('Pass@12345', PASSWORD_DEFAULT);
+R::store($testTeacher);
+
+$dupSchoolCheck = R::findOne('teacher', 'email = ?', [$uniqueTeacherEmail]);
+assert_test("School registration collides with existing teacher account", $dupSchoolCheck !== null);
+
 // Clean up test records
 try {
     R::trash($teacher);
     R::trash($school);
     R::trash($sTeacher);
+    R::trash($testSchool);
+    R::trash($testTeacher);
 } catch (Exception $e) {}
 
 echo "\n========================================================\n";

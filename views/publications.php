@@ -48,19 +48,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $pub->is_published = 1;
 
         // Handle PDF File Upload
-        if (isset($_FILES['pdf_file']) && $_FILES['pdf_file']['error'] === UPLOAD_ERR_OK) {
-            $ext = strtolower(pathinfo($_FILES['pdf_file']['name'], PATHINFO_EXTENSION));
-            if ($ext === 'pdf') {
-                $uploadDir = __DIR__ . '/../uploads/publications/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
-                $fileName = 'paper_' . time() . '_' . rand(100, 999) . '.pdf';
-                if (move_uploaded_file($_FILES['pdf_file']['tmp_name'], $uploadDir . $fileName)) {
-                    $pub->pdf_path = '/uploads/publications/' . $fileName;
-                    if (empty($pub->pdf_url)) {
-                        $pub->pdf_url = '/uploads/publications/' . $fileName;
-                    }
+        if (!empty($_FILES['pdf_file']['name'])) {
+            $pdfUpload = secure_validate_and_upload($_FILES['pdf_file'], 'uploads/publications/', ['pdf'], 15 * 1024 * 1024);
+            if ($pdfUpload['success']) {
+                $pub->pdf_path = '/' . ltrim($pdfUpload['relative_path'], '/');
+                if (empty($pub->pdf_url)) {
+                    $pub->pdf_url = '/' . ltrim($pdfUpload['relative_path'], '/');
                 }
             }
         }

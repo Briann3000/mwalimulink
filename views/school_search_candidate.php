@@ -22,6 +22,7 @@ $county = isset($_GET['county']) ? sanitize_input($_GET['county']) : '';
 $subject = isset($_GET['subject']) ? sanitize_input($_GET['subject']) : '';
 $experience = isset($_GET['experience']) ? (int) $_GET['experience'] : 0;
 $grade = isset($_GET['grade']) ? sanitize_input($_GET['grade']) : '';
+$statusFilter = isset($_GET['status']) ? sanitize_input($_GET['status']) : '';
 $verifiedOnly = !empty($_GET['verified_only']);
 
 // Build safe query with filters
@@ -32,14 +33,62 @@ if ($verifiedOnly) {
     $conditions[] = "(verification_status = 'verified' OR (good_conduct_doc IS NOT NULL AND good_conduct_doc != ''))";
 }
 
+if (!empty($statusFilter) && in_array($statusFilter, ['available', 'open_to_offers'])) {
+    $conditions[] = "status = ?";
+    $params[] = $statusFilter;
+}
+
 if (!empty($county)) {
     $conditions[] = "county LIKE ?";
     $params[] = "%$county%";
 }
 
 if (!empty($subject)) {
-    $conditions[] = "teaching_subjects LIKE ?";
-    $params[] = "%$subject%";
+    // Subject synonym dictionary for Kenyan curriculum
+    $synonyms = [
+        'math' => ['math', 'mathematics', 'maths'],
+        'maths' => ['math', 'mathematics', 'maths'],
+        'mathematics' => ['math', 'mathematics', 'maths'],
+        'chem' => ['chem', 'chemistry'],
+        'chemistry' => ['chem', 'chemistry'],
+        'bio' => ['bio', 'biology'],
+        'biology' => ['bio', 'biology'],
+        'phy' => ['phy', 'physics'],
+        'physics' => ['phy', 'physics'],
+        'eng' => ['eng', 'english', 'literature'],
+        'english' => ['eng', 'english', 'literature'],
+        'lit' => ['lit', 'literature', 'english'],
+        'literature' => ['lit', 'literature', 'english'],
+        'kisw' => ['kisw', 'kiswahili', 'fasihi'],
+        'kiswahili' => ['kisw', 'kiswahili', 'fasihi'],
+        'hist' => ['hist', 'history', 'government'],
+        'history' => ['hist', 'history', 'government'],
+        'geo' => ['geo', 'geography'],
+        'geography' => ['geo', 'geography'],
+        'cre' => ['cre', 'christian religious education', 'religion'],
+        'ire' => ['ire', 'islamic religious education', 'islamic'],
+        'agri' => ['agri', 'agriculture'],
+        'agriculture' => ['agri', 'agriculture'],
+        'biz' => ['biz', 'business', 'business studies', 'commerce', 'accounting'],
+        'business' => ['biz', 'business', 'business studies', 'commerce', 'accounting'],
+        'comp' => ['comp', 'computer', 'computer studies', 'ict'],
+        'computer' => ['comp', 'computer', 'computer studies', 'ict'],
+        'ict' => ['comp', 'computer', 'computer studies', 'ict'],
+        'french' => ['french', 'francais'],
+        'german' => ['german', 'deutsch'],
+        'music' => ['music'],
+        'art' => ['art', 'craft', 'fine art']
+    ];
+
+    $subjLower = strtolower(trim($subject));
+    $matchedSyns = $synonyms[$subjLower] ?? [$subjLower];
+
+    $subjOrClauses = [];
+    foreach ($matchedSyns as $syn) {
+        $subjOrClauses[] = "teaching_subjects LIKE ?";
+        $params[] = "%$syn%";
+    }
+    $conditions[] = "(" . implode(" OR ", $subjOrClauses) . ")";
 }
 
 if ($experience > 0) {
@@ -90,14 +139,14 @@ $totalPages = ceil($totalTeachers / $limit);
                     </div>
                     <div>
                         <div style="font-size: 0.9rem; font-weight: 700; color: #92400e;">
-                            Candidate Direct Search &Direct Contact (Pro Feature)
+                            Candidate Direct Search & Contact (Pro Feature)
                         </div>
                         <div style="font-size: 0.8rem; color: #b45309; margin-top: 2px;">
                             You are previewing teacher profiles. Upgrade to Pro to unlock direct contact and full CVs.
                         </div>
                     </div>
                 </div>
-                <a href="/school/pay" class="btn-primary"
+                <a href="/school/subscribe" class="btn-primary"
                     style="background: #0f766e; color: white !important; font-size: 0.82rem; font-weight: 700; padding: 7px 16px; border-radius: 6px; text-decoration: none; border: none; white-space: nowrap;">
                     <i class="fa fa-bolt"></i> Unlock Pro
                 </a>
@@ -108,8 +157,27 @@ $totalPages = ceil($totalTeachers / $limit);
         <div
             style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
             <form method="GET" action="/school/search-candidates" style="margin: 0;">
+                
+                <!-- Quick Subject Shortcut Chips -->
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+                    <span style="font-size: 0.76rem; font-weight: 700; color: #64748b;">Popular Searches:</span>
+                    <?php 
+                    $popularSubjects = ['Mathematics', 'English', 'Kiswahili', 'Chemistry', 'Biology', 'Physics', 'Computer Studies', 'Junior Secondary'];
+                    foreach ($popularSubjects as $ps): 
+                    ?>
+                        <a href="/school/search-candidates?subject=<?= urlencode($ps) ?>" style="background: <?= (strtolower($subject) === strtolower($ps)) ? '#0f766e' : '#f8fafc' ?>; color: <?= (strtolower($subject) === strtolower($ps)) ? '#ffffff' : '#334155' ?>; border: 1px solid #e2e8f0; font-size: 0.74rem; font-weight: 600; padding: 3px 10px; border-radius: 16px; text-decoration: none;">
+                            <?= h($ps) ?>
+                        </a>
+                    <?php endforeach; ?>
+                    <?php if (!empty($subject) || !empty($county) || !empty($grade) || !empty($statusFilter) || $verifiedOnly || $experience > 0): ?>
+                        <a href="/school/search-candidates" style="font-size: 0.75rem; color: #dc2626; font-weight: 600; text-decoration: none; margin-left: auto;">
+                            <i class="fa fa-rotate-left"></i> Reset
+                        </a>
+                    <?php endif; ?>
+                </div>
+
                 <div
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; align-items: flex-end;">
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; align-items: flex-end;">
                     <div>
                         <label
                             style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block;">County</label>
@@ -124,11 +192,10 @@ $totalPages = ceil($totalTeachers / $limit);
 
                     <div>
                         <label
-                            style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block;">Grade
-                            Level</label>
+                            style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block;">Grade Level</label>
                         <select name="grade"
                             style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; background: white; margin: 0; box-sizing: border-box;">
-                            <option value="">All Grade Levels</option>
+                            <option value="">All Levels</option>
                             <?php foreach (kenyan_grade_levels() as $gl): ?>
                                 <option value="<?= h($gl) ?>" <?= ($grade === $gl) ? 'selected' : '' ?>><?= h($gl) ?></option>
                             <?php endforeach; ?>
@@ -137,20 +204,29 @@ $totalPages = ceil($totalTeachers / $limit);
 
                     <div>
                         <label
-                            style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block;">Teaching
-                            Subject</label>
+                            style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block;">Subject</label>
                         <input type="text" name="subject" value="<?= h($subject) ?>"
-                            placeholder="e.g. Physics, Kiswahili"
+                            placeholder="e.g. Maths, Kiswahili"
                             style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; margin: 0; box-sizing: border-box;">
                     </div>
 
                     <div>
                         <label
-                            style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block;">Min.
-                            Experience</label>
+                            style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block;">Availability</label>
+                        <select name="status"
+                            style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; background: white; margin: 0; box-sizing: border-box;">
+                            <option value="">All Statuses</option>
+                            <option value="available" <?= ($statusFilter === 'available') ? 'selected' : '' ?>>🟢 Available for Hire</option>
+                            <option value="open_to_offers" <?= ($statusFilter === 'open_to_offers') ? 'selected' : '' ?>>🟡 Open to Offers</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label
+                            style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block;">Min. Exp</label>
                         <input type="number" name="experience" value="<?= $experience > 0 ? h($experience) : '' ?>"
                             placeholder="Years" min="0"
-                            style="width: 100%; padding: 8px 12px; border-line: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; margin: 0; box-sizing: border-box;">
+                            style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; margin: 0; box-sizing: border-box;">
                     </div>
 
                     <div style="display: flex; flex-direction: column; justify-content: flex-end;">

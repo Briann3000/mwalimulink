@@ -31,12 +31,21 @@ $totalTeachersCount = R::count('teacher', 'status = ?', ['available']);
 $postedJobs = R::find('job', 'school_id = ? ORDER BY id DESC', [$school_id]);
 $postedJobsCount = count($postedJobs);
 
-// Total applicants across all jobs posted by this school
+// Total applicants across all jobs posted by this school with pipeline breakdowns
 $totalApplicantsCount = 0;
+$newAppsCount = 0;
+$shortlistedAppsCount = 0;
+$interviewAppsCount = 0;
+$hiredAppsCount = 0;
+
 $jobIds = array_keys($postedJobs);
 if (!empty($jobIds)) {
     $placeholders = implode(',', array_fill(0, count($jobIds), '?'));
     $totalApplicantsCount = R::count('applications', "job_id IN ($placeholders)", $jobIds);
+    $newAppsCount = R::count('applications', "job_id IN ($placeholders) AND (status = 'applied' OR status = 'reviewing')", $jobIds);
+    $shortlistedAppsCount = R::count('applications', "job_id IN ($placeholders) AND status = 'shortlisted'", $jobIds);
+    $interviewAppsCount = R::count('applications', "job_id IN ($placeholders) AND status = 'interview_scheduled'", $jobIds);
+    $hiredAppsCount = R::count('applications', "job_id IN ($placeholders) AND status = 'hired'", $jobIds);
 }
 
 // Recent Registered Candidates (Top 4)
@@ -67,7 +76,7 @@ $recentCandidates = R::find('teacher', 'status = ? ORDER BY id DESC LIMIT 4', ['
                         </div>
                     </div>
                 </div>
-                <a href="/school/pay" class="btn-primary"
+                <a href="/school/subscribe" class="btn-primary"
                     style="background: #0f766e; color: white !important; font-size: 0.82rem; font-weight: 700; padding: 7px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fa fa-bolt"></i> Upgrade to Pro
                 </a>
@@ -82,8 +91,7 @@ $recentCandidates = R::find('teacher', 'status = ? ORDER BY id DESC LIMIT 4', ['
                     <div class="quick-action-icon" style="background: #f0fdf4; color: #16a34a;">
                         <i class="fa fa-user-check"></i>
                     </div>
-                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Applicants
-                        (<?= $totalApplicantsCount ?>)</span>
+                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">Applicants (<?= $totalApplicantsCount ?>)</span>
                 </a>
 
                 <a href="/school/post-job" class="quick-action-tile">
@@ -112,6 +120,13 @@ $recentCandidates = R::find('teacher', 'status = ? ORDER BY id DESC LIMIT 4', ['
                         <i class="fa fa-graduation-cap"></i>
                     </div>
                     <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">TP Placements</span>
+                </a>
+
+                <a href="/school/update" class="quick-action-tile">
+                    <div class="quick-action-icon" style="background: #f0fdfa; color: #0f766e;">
+                        <i class="fa fa-school"></i>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">School Profile & Settings</span>
                 </a>
 
                 <a href="/school/subscribe" class="quick-action-tile">
@@ -163,7 +178,7 @@ $recentCandidates = R::find('teacher', 'status = ? ORDER BY id DESC LIMIT 4', ['
                 </div>
                 <a href="/school/applicants"
                     style="font-size: 0.78rem; font-weight: 700; color: #2271b1; display: flex; align-items: center; gap: 4px;">
-                    View applicants &rarr;
+                    View applicants pipeline &rarr;
                 </a>
             </div>
 
@@ -176,12 +191,12 @@ $recentCandidates = R::find('teacher', 'status = ? ORDER BY id DESC LIMIT 4', ['
                     <?= $isPro ? 'Pro Recruiter' : 'Freemium' ?>
                 </div>
                 <?php if ($isPro): ?>
-                    <a href="/school/pay"
+                    <a href="/school/subscribe"
                         style="font-size: 0.78rem; font-weight: 700; color: #2271b1; display: flex; align-items: center; gap: 4px;">
-                        <?= $daysRemaining ?> days left &bull; Renew &rarr;
+                        <?= $daysRemaining ?> days left &bull; Manage &rarr;
                     </a>
                 <?php else: ?>
-                    <a href="/school/pay"
+                    <a href="/school/subscribe"
                         style="font-size: 0.78rem; font-weight: 700; color: #d97706; display: flex; align-items: center; gap: 4px;">
                         Upgrade to Pro &rarr;
                     </a>
