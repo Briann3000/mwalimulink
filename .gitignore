@@ -20,6 +20,8 @@ _local_archive_do_not_upload/
 # User Uploads (CVs, Resumes, Personal PDFs)
 uploads/*
 !uploads/.gitkeep
+!uploads/publications/
+!uploads/publications/*
 
 # Large SQLite Database Files
 *.db

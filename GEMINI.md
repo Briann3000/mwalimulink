@@ -10,3 +10,10 @@
 * **No AI Cliches**: Do not use cheesy AI badges, sparkle emojis, generic gradient borders, or "Powered by AI" labels.
 * **Natural Terminology**: Use clean, standard terminology (e.g., use "Transcription" instead of "AI Transcription", "General Chat" instead of "AI Lounge").
 * **Clean Navigation & Labels**: Avoid ambiguous slashes in navigation links, titles, and tabs (e.g., use "Teachers Forum" instead of "Teachers Forum / Community").
+
+## 3. Git & Version Control Policy
+* **Never Execute `git commit` Directly**: Never run the `git commit` command for the user.
+* **Commit Preparation Only**: When the user indicates they want to commit:
+  1. Inspect and ensure `.gitignore` is properly configured (exclude untracked temp files, cache, or private documents).
+  2. Stage appropriate project files if needed (`git add`).
+  3. Provide a clear, conventional commit message for the user to copy/paste and execute themselves in the terminal.

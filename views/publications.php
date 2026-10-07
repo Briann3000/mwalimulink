@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
   if ($deleteId > 0) {
     $pubToDelete = R::load('publications', $deleteId);
     if ($pubToDelete && $pubToDelete->id) {
-      $canDelete = ($authUser && ($authUser['role'] === 'admin' || $authUser['name'] === $pubToDelete->author || ($authUser['id'] == $pubToDelete->teacher_id)));
+      $canDelete = ($authUser && ($authUser['role'] === 'admin' || (!empty($pubToDelete->teacher_id) && (int) $authUser['id'] === (int) $pubToDelete->teacher_id)));
       if ($canDelete) {
         R::trash($pubToDelete);
         $actionSuccess = "Publication deleted successfully.";
@@ -42,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $pub->teacher_id = $authUser['id'] ?? null;
     $pub->summary = $summary;
     $pub->content = $content ?: $summary;
+    $pub->references = trim($_POST['references'] ?? '');
     $pub->pdf_url = $pdfUrl;
     $pub->views_count = 1;
     $pub->created_at = date('Y-m-d H:i:s');
@@ -68,48 +69,28 @@ $count = R::count('publications');
 if ($count === 0) {
   $seedPapers = [
     [
-      'title' => 'Empirical Study on CBC Junior Secondary School Transition in Rural Kenya',
+      'title' => 'Post-Independence Basic Education in Kenya: An Historical Analysis of Curriculum Reforms and Competency-Based Learning',
       'category' => 'CBC Pedagogical Research',
-      'author' => 'Dr. Elizabeth Mwangi',
-      'author_role' => 'Senior Curriculum Specialist, Nairobi',
-      'summary' => 'An evaluation of classroom readiness, laboratory apparatus adaptations, and teacher formative assessment practices in Junior Secondary Schools across 12 rural sub-counties.',
-      'content' => "This empirical research study examines the pedagogical transitions under the Competency Based Curriculum (CBC) in Grade 7 and Grade 8 classrooms.\n\nKey Findings:\n1. 78% of rural schools have improvised STEM experimental kits using locally available materials.\n2. Formative rubric assessments have increased student engagement by 42% compared to summative rote learning.\n3. Continuous teacher professional development remains critical in integrated science and pre-technical studies.",
-      'pdf_url' => '/uploads/publications/cbc_jss_transition_study.pdf',
+      'author' => 'Justus O. Inyega, Hellen N. Inyega & Daniel O. Oganga',
+      'author_role' => 'Department of Educational Communication and Technology, University of Nairobi',
+      'summary' => 'A comprehensive historical evaluation investigating the evolution of Kenya\'s basic education reforms from independence to the 2-6-6-3 Competency-Based Curriculum (CBC). Examines pedagogical paradigm shifts, institutional readiness, and strategies for sustainable learner-centered curriculum implementation.',
+      'content' => "This study examines the trajectory of curriculum reforms in Kenya's basic education sector since 1963, culminating in the adoption of the Competency-Based Curriculum (CBC).\n\nKey Analysis & Findings:\n1. Historical Reforms: The transitions from 7-4-2-3 to 8-4-4 and subsequently 2-6-6-3 reflect evolving national economic and pedagogical priorities.\n2. CBC Paradigm Shift: CBC moves from rote memorization and high-stakes summative exams toward continuous formative assessment, nurturing core competencies, values, and 21st-century learner skills.\n3. Implementation Recommendations: Sustainable CBC execution requires structured continuous professional development for teachers, adequate physical and digital learning infrastructure, and active parental engagement.",
+      'pdf_url' => '/uploads/publications/kenya_curriculum_reforms_cbc_inyega.pdf',
+      'references' => "Kenya Institute of Curriculum Development (KICD). (2017). Basic Education Curriculum Framework (BECF). Nairobi: KICD.\nInyega, J. O., Inyega, H. N., & Oganga, D. O. (2021). Post-Independence Basic Education in Kenya: An Historical Analysis of Curriculum Reforms. FIRE: Forum for International Research in Education, 7(1), 1–23.\nRepublic of Kenya. (2019). National Curriculum Policy: Competency Based Curriculum (CBC) Implementation. Nairobi: Ministry of Education.\nSifuna, D. N. (1990). Development of Education in Africa: The Kenyan Experience. Nairobi: Initiatives Publishers.",
       'created_at' => date('Y-m-d H:i:s', strtotime('-5 days')),
       'views_count' => 142
     ],
     [
-      'title' => 'Integrating Digital Literacy and Micro-Learning in High School STEM Classrooms',
+      'title' => 'Teacher Preparation Practices in Kenya and the 21st Century Learning: A Moral Obligation',
       'category' => 'STEM & Digital Learning',
-      'author' => 'Mwalimu Dennis Kiprop',
-      'author_role' => 'Head of Physics & ICT Lead, Nakuru',
-      'summary' => 'A practical framework demonstrating how offline digital simulations (PhET) and mobile micro-assessments improved student retention in Physics and Chemistry by 34%.',
-      'content' => "This paper outlines a blended learning model tailored for Kenyan high school science teachers operating in low-bandwidth environments.\n\nBy leveraging localized digital simulations and 5-minute interactive quizzes, educators can significantly reinforce abstract concepts in mechanics and chemical stoichiometry without requiring constant high-speed internet connectivity.",
-      'pdf_url' => '/uploads/publications/kenyan_educators_stem_guide.pdf',
+      'author' => 'Nabwire Violet Opata, Gaudience Obondo & Sella Terrie Kisaka',
+      'author_role' => 'Department of Curriculum, Instruction & Educational Media, Moi University',
+      'summary' => 'A critical academic study investigating instructional methodologies in Kenyan teacher preparation institutions. Explores the shift from test-score-centric training to 21st-century competencies, educational technology, character formation, and collaborative pedagogy.',
+      'content' => "This paper examines teacher preparation practices in Kenya relative to 21st-century pedagogical demands, framing teacher training as a moral obligation to future generations of learners.\n\nCore Insights:\n1. Holistic Teacher Education: Teacher preparation must transcend cognitive transmission to cultivate character, critical thinking, creativity, and digital adaptability.\n2. 21st Century Classroom Demands: Educators must transition from instructors to facilitators of cooperative and inquiry-based learning environments.\n3. Policy Imperatives: Teacher training colleges and universities must integrate practical ICT tools, micro-teaching simulations, and reflective practice into core teacher education curricula.",
+      'pdf_url' => '/uploads/publications/teacher_preparation_kenya_21st_century.pdf',
+      'references' => "Fullan, M. (2007). The New Meaning of Educational Change. New York: Teachers College Press.\nDarling-Hammond, L. (2006). Constructing 21st-Century Teacher Education. Journal of Teacher Education, 57(3), 300–314.\nRepublic of Kenya. (2012). A Policy Framework for Education and Training on Reforming Education and Training in Kenya (Sessional Paper No. 14). Nairobi: Government Printer.\nPartnership for 21st Century Skills. (2009). P21 Framework Definitions. Washington, DC: Partnership for 21st Century Skills.",
       'created_at' => date('Y-m-d H:i:s', strtotime('-12 days')),
       'views_count' => 289
-    ],
-    [
-      'title' => 'Inclusive Education Strategies: Supporting Neurodivergent Learners in Mainstream Classrooms',
-      'category' => 'Special Needs & Inclusion',
-      'author' => 'Grace Wambui Chege',
-      'author_role' => 'Special Needs Coordinator, Kiambu',
-      'summary' => 'Actionable classroom interventions, differentiated instruction templates, and peer-buddy systems to support autistic and ADHD pupils in primary and secondary schools.',
-      'content' => "Inclusive pedagogy requires systematic differentiation rather than separate exclusion. This guide presents seven core classroom adaptations tested across 15 public and private schools in Central Kenya.\n\nHighlights include visual schedules, sensory quiet zones, and structured cooperative learning teams that elevate classroom belonging and academic performance.",
-      'pdf_url' => '/uploads/publications/cbc_jss_transition_study.pdf',
-      'created_at' => date('Y-m-d H:i:s', strtotime('-18 days')),
-      'views_count' => 195
-    ],
-    [
-      'title' => 'Navigating Global Teaching Placements: Transition Guide for Kenyan Teachers in the Middle East',
-      'category' => 'Teaching Overseas Insights',
-      'author' => 'Kennedy Otieno',
-      'author_role' => 'International Educator & Mentor, Dubai',
-      'summary' => 'A comprehensive review of curriculum cross-training (IB vs. Cambridge), licensing equivalency, visa document attestation, and cultural adaptation for teachers moving abroad.',
-      'content' => "Drawing upon first-hand experiences of over 200 Kenyan teachers placed across UAE, Qatar, and Oman, this publication offers a step-by-step roadmap for educators seeking international career mobility.\n\nCovers syllabus mapping, interview simulation strategies, and contract negotiation standards for maximum career growth.",
-      'pdf_url' => '/uploads/publications/kenyan_educators_stem_guide.pdf',
-      'created_at' => date('Y-m-d H:i:s', strtotime('-25 days')),
-      'views_count' => 512
     ]
   ];
 
@@ -122,10 +103,36 @@ if ($count === 0) {
     $p->summary = $seed['summary'];
     $p->content = $seed['content'];
     $p->pdf_url = $seed['pdf_url'];
+    $p->references = $seed['references'] ?? '';
     $p->created_at = $seed['created_at'];
     $p->views_count = $seed['views_count'];
     $p->is_published = 1;
     R::store($p);
+  }
+} else {
+  // Auto-sync existing live database records to authentic Kenyan papers & references
+  $legacyPaper1 = R::findOne('publications', 'title LIKE ?', ['%Implementing Competency Based Curriculum%']);
+  if ($legacyPaper1) {
+    $legacyPaper1->title = 'Post-Independence Basic Education in Kenya: An Historical Analysis of Curriculum Reforms and Competency-Based Learning';
+    $legacyPaper1->author = 'Justus O. Inyega, Hellen N. Inyega & Daniel O. Oganga';
+    $legacyPaper1->author_role = 'Department of Educational Communication and Technology, University of Nairobi';
+    $legacyPaper1->summary = 'A comprehensive historical evaluation investigating the evolution of Kenya\'s basic education reforms from independence to the 2-6-6-3 Competency-Based Curriculum (CBC). Examines pedagogical paradigm shifts, institutional readiness, and strategies for sustainable learner-centered curriculum implementation.';
+    $legacyPaper1->pdf_url = '/uploads/publications/kenya_curriculum_reforms_cbc_inyega.pdf';
+    $legacyPaper1->pdf_path = '/uploads/publications/kenya_curriculum_reforms_cbc_inyega.pdf';
+    $legacyPaper1->references = "Kenya Institute of Curriculum Development (KICD). (2017). Basic Education Curriculum Framework (BECF). Nairobi: KICD.\nInyega, J. O., Inyega, H. N., & Oganga, D. O. (2021). Post-Independence Basic Education in Kenya: An Historical Analysis of Curriculum Reforms. FIRE: Forum for International Research in Education, 7(1), 1–23.\nRepublic of Kenya. (2019). National Curriculum Policy: Competency Based Curriculum (CBC) Implementation. Nairobi: Ministry of Education.\nSifuna, D. N. (1990). Development of Education in Africa: The Kenyan Experience. Nairobi: Initiatives Publishers.";
+    R::store($legacyPaper1);
+  }
+
+  $legacyPaper2 = R::findOne('publications', 'title LIKE ?', ['%STEM Learning Methodologies%']);
+  if ($legacyPaper2) {
+    $legacyPaper2->title = 'Teacher Preparation Practices in Kenya and the 21st Century Learning: A Moral Obligation';
+    $legacyPaper2->author = 'Nabwire Violet Opata, Gaudience Obondo & Sella Terrie Kisaka';
+    $legacyPaper2->author_role = 'Department of Curriculum, Instruction & Educational Media, Moi University';
+    $legacyPaper2->summary = 'A critical academic study investigating instructional methodologies in Kenyan teacher preparation institutions. Explores the shift from test-score-centric training to 21st-century competencies, educational technology, character formation, and collaborative pedagogy.';
+    $legacyPaper2->pdf_url = '/uploads/publications/teacher_preparation_kenya_21st_century.pdf';
+    $legacyPaper2->pdf_path = '/uploads/publications/teacher_preparation_kenya_21st_century.pdf';
+    $legacyPaper2->references = "Fullan, M. (2007). The New Meaning of Educational Change. New York: Teachers College Press.\nDarling-Hammond, L. (2006). Constructing 21st-Century Teacher Education. Journal of Teacher Education, 57(3), 300–314.\nRepublic of Kenya. (2012). A Policy Framework for Education and Training on Reforming Education and Training in Kenya (Sessional Paper No. 14). Nairobi: Government Printer.\nPartnership for 21st Century Skills. (2009). P21 Framework Definitions. Washington, DC: Partnership for 21st Century Skills.";
+    R::store($legacyPaper2);
   }
 }
 
@@ -243,7 +250,7 @@ $publications = R::findAll('publications', 'ORDER BY created_at DESC');
             </div>
 
             <div class="pub-card-actions">
-              <?php if ($authUser && ($authUser['role'] === 'admin' || $authUser['name'] === $pub->author || ($authUser['id'] == $pub->teacher_id))): ?>
+              <?php if ($authUser && ($authUser['role'] === 'admin' || (!empty($pub->teacher_id) && (int) $authUser['id'] === (int) $pub->teacher_id))): ?>
                 <form method="post" action=""
                   onsubmit="return confirm('Are you sure you want to delete this publication?');" style="display: inline;">
                   <input type="hidden" name="action" value="delete">
@@ -328,6 +335,13 @@ $publications = R::findAll('publications', 'ORDER BY created_at DESC');
           <label for="pubContent">Full Article Content / Notes</label>
           <textarea id="pubContent" name="content" rows="6"
             placeholder="Provide the complete body text, methodology, background, observations, and recommendations..."
+            class="pub-input"></textarea>
+        </div>
+
+        <div class="pub-form-group">
+          <label for="pubReferences">Academic References & Citations (Optional)</label>
+          <textarea id="pubReferences" name="references" rows="3"
+            placeholder="Enter 1 reference per line, e.g.&#10;KICD. (2019). Basic Education Curriculum Framework. Nairobi: Government Printer.&#10;UNESCO. (2022). Formative Assessment in East Africa. https://doi.org/..."
             class="pub-input"></textarea>
         </div>
 
