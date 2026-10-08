@@ -43,6 +43,12 @@ $isActive = function ($path) use ($currentUri) {
             class="sidebar-item-link <?= ($isActive('teacher/cv-builder') || $isActive('teacher/cv-preview')) ? 'active' : '' ?>">
             <i class="fa fa-file-lines"></i> <span>CV Builder & Polisher</span>
         </a>
+        <a href="/elibrary" class="sidebar-item-link <?= $isActive('elibrary') ?>">
+            <i class="fa fa-book-open"></i> <span>E-Library & Notes</span>
+        </a>
+        <a href="/teacher/elibrary" class="sidebar-item-link <?= $isActive('teacher/elibrary') ?>">
+            <i class="fa fa-cloud-arrow-up"></i> <span>My Uploads & Unlocks</span>
+        </a>
 
     <?php elseif ($role === 'school'): ?>
         <a href="/school/dashboard" class="sidebar-item-link <?= $isActive('school/dashboard') ?>">
@@ -57,13 +63,20 @@ $isActive = function ($path) use ($currentUri) {
         <a href="/school/search-candidates" class="sidebar-item-link <?= $isActive('school/search-candidates') ?>">
             <i class="fa fa-search"></i> <span>Find Teachers</span>
         </a>
+        <a href="/elibrary" class="sidebar-item-link <?= $isActive('elibrary') ?>">
+            <i class="fa fa-book-open"></i> <span>E-Library Hub</span>
+        </a>
+        <a href="/school/elibrary" class="sidebar-item-link <?= $isActive('school/elibrary') ?>">
+            <i class="fa fa-upload"></i> <span>Institution Uploads</span>
+        </a>
         <a href="/school/staff" class="sidebar-item-link <?= $isActive('school/staff') ?>">
             <i class="fa fa-users"></i> <span>Employed Staff</span>
         </a>
         <a href="/tp-hub" class="sidebar-item-link <?= $isActive('tp-hub') ?>">
             <i class="fa fa-graduation-cap"></i> <span>TP Placements</span>
         </a>
-        <a href="/school/update" class="sidebar-item-link <?= ($isActive('school/update') || $isActive('school/profile')) ? 'active' : '' ?>">
+        <a href="/school/update"
+            class="sidebar-item-link <?= ($isActive('school/update') || $isActive('school/profile')) ? 'active' : '' ?>">
             <i class="fa fa-school"></i> <span>Edit Profile</span>
         </a>
         <a href="/school/subscribe" class="sidebar-item-link <?= $isActive('school/subscribe') ?>">
@@ -73,6 +86,9 @@ $isActive = function ($path) use ($currentUri) {
     <?php elseif ($role === 'admin'): ?>
         <a href="/admin/dashboard" class="sidebar-item-link <?= $isActive('admin/dashboard') ?>">
             <i class="fa fa-tachometer-alt"></i> <span>Dashboard</span>
+        </a>
+        <a href="/admin/elibrary" class="sidebar-item-link <?= $isActive('admin/elibrary') ?>">
+            <i class="fa fa-book-bookmark"></i> <span>E-Library Moderation</span>
         </a>
         <a href="/admin/teachers" class="sidebar-item-link <?= $isActive('admin/teachers') ?>">
             <i class="fa fa-user-graduate"></i> <span>Manage Teachers</span>
@@ -97,8 +113,7 @@ $isActive = function ($path) use ($currentUri) {
             class="sidebar-item-link <?= ($isActive('admin/pricing') || $isActive('admin/settings')) ? 'active' : '' ?>">
             <i class="fa fa-tags"></i> <span>Pricing & Settings</span>
         </a>
-        <a href="/admin/transactions"
-            class="sidebar-item-link <?= $isActive('admin/transactions') ?>">
+        <a href="/admin/transactions" class="sidebar-item-link <?= $isActive('admin/transactions') ?>">
             <i class="fa fa-receipt"></i> <span>Transactions & Ledger</span>
         </a>
         <a href="/admin/audit"

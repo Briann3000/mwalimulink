@@ -18,6 +18,10 @@ $isTestMode = (strtolower((string) env('INTASEND_TEST_MODE', 'false')) === 'true
 $amount = (float) get_setting('school_pro_fee', 1000);
 $durationMonths = (int) get_setting('school_pro_months', 12);
 $currency = (string) get_setting('payment_currency', 'KES');
+if (empty($currency) || is_numeric($currency) || strlen(trim($currency)) < 2) {
+    $currency = 'KES';
+}
+$currency = trim($currency);
 $error_message = null;
 
 // If the form is submitted, process the payment request

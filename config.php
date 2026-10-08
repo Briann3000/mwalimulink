@@ -198,7 +198,7 @@ function admin_stop_impersonation()
     if (!empty($_SESSION['_admin_impersonator']['original_auth'])) {
         $adminAuth = $_SESSION['_admin_impersonator']['original_auth'];
         $impersonated = $_SESSION['auth'] ?? [];
-        
+
         log_admin_audit('admin_action', 'IMPERSONATION_ENDED', $impersonated['role'] ?? 'unknown', $impersonated['user_id'] ?? 0, $impersonated['name'] ?? 'User', "Admin {$adminAuth['email']} ended impersonation session");
 
         $_SESSION['auth'] = $adminAuth;
@@ -1197,17 +1197,28 @@ function get_setting($key, $default = null)
     try {
         if (class_exists('R') && R::testConnection()) {
             $setting = R::findOne('systemsetting', 'setting_key = ?', [$key]);
-            if ($setting && $setting->id && $setting->setting_value !== null) {
-                $_MWALIMU_SETTINGS_CACHE[$key] = $setting->setting_value;
-                return $setting->setting_value;
+            if ($setting && $setting->id && $setting->setting_value !== null && $setting->setting_value !== '') {
+                $val = $setting->setting_value;
+                if ($key === 'payment_currency' && (empty($val) || is_numeric($val) || strlen(trim($val)) < 2)) {
+                    $val = 'KES';
+                    $setting->setting_value = 'KES';
+                    try { R::store($setting); } catch (\Throwable $e) {}
+                }
+                $_MWALIMU_SETTINGS_CACHE[$key] = $val;
+                return $val;
             }
         }
     } catch (\Throwable $e) {
         // Fallback to default
     }
 
-    $_MWALIMU_SETTINGS_CACHE[$key] = $default;
-    return $default;
+    $finalDefault = $default;
+    if ($key === 'payment_currency' && (empty($finalDefault) || is_numeric($finalDefault) || strlen(trim((string)$finalDefault)) < 2)) {
+        $finalDefault = 'KES';
+    }
+
+    $_MWALIMU_SETTINGS_CACHE[$key] = $finalDefault;
+    return $finalDefault;
 }
 
 /**
@@ -1350,8 +1361,8 @@ function grant_school_pro_subscription($schoolId, $amount = null, $paymentRef = 
             return false;
         }
 
-        $durationMonths = $customMonths !== null && intval($customMonths) > 0 
-            ? intval($customMonths) 
+        $durationMonths = $customMonths !== null && intval($customMonths) > 0
+            ? intval($customMonths)
             : (int) get_setting('school_pro_months', 12);
         if ($durationMonths <= 0) {
             $durationMonths = 12;
@@ -2060,6 +2071,381 @@ function chat_validate_and_store_attachment($file, $expectedType = '')
         'size' => $formattedSize
     ];
 }
+
+// -------------------------------------------------------------------
+// E-Library & Teaching Resources Hub Helpers & Schema
+// -------------------------------------------------------------------
+
+/**
+ * Ensure E-Library tables exist in RedBeanPHP
+ */
+function init_elibrary_schema()
+{
+    static $initialized = false;
+    if ($initialized)
+        return;
+    $initialized = true;
+
+    try {
+        if (class_exists('R')) {
+            R::freeze(false);
+        }
+    } catch (Exception $e) {
+        error_log("init_elibrary_schema notice: " . $e->getMessage());
+    }
+}
+
+/**
+ * Get available download unlocks balance for a teacher or school
+ */
+function get_user_elibrary_credits($userType, $userId)
+{
+    $userId = (int) $userId;
+    if ($userId <= 0 || !in_array($userType, ['teacher', 'school'])) {
+        return 0;
+    }
+    try {
+        $credit = R::findOne('resource_credit', ' user_type = ? AND user_id = ? ', [$userType, $userId]);
+        return $credit ? (int) $credit->unlocks_balance : 0;
+    } catch (Exception $e) {
+        return 0;
+    }
+}
+
+/**
+ * Award download unlocks to a teacher or school (default 3 unlocks per approved upload)
+ */
+function award_user_elibrary_credits($userType, $userId, $credits = 3)
+{
+    $userId = (int) $userId;
+    $credits = (int) $credits;
+    if ($userId <= 0 || !in_array($userType, ['teacher', 'school']) || $credits <= 0) {
+        return false;
+    }
+    try {
+        $credit = R::findOne('resource_credit', ' user_type = ? AND user_id = ? ', [$userType, $userId]);
+        if (!$credit) {
+            $credit = R::dispense('resource_credit');
+            $credit->user_type = $userType;
+            $credit->user_id = $userId;
+            $credit->unlocks_balance = 0;
+            $credit->total_uploads_approved = 0;
+        }
+        $credit->unlocks_balance = (int) $credit->unlocks_balance + $credits;
+        $credit->total_uploads_approved = (int) $credit->total_uploads_approved + 1;
+        $credit->updated_at = date('Y-m-d H:i:s');
+        R::store($credit);
+        return true;
+    } catch (Exception $e) {
+        error_log("award_user_elibrary_credits error: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Deduct 1 download unlock when downloading a paid material
+ */
+function deduct_user_elibrary_credit($userType, $userId, $resourceId)
+{
+    $userId = (int) $userId;
+    $resourceId = (int) $resourceId;
+    if ($userId <= 0 || !in_array($userType, ['teacher', 'school'])) {
+        return false;
+    }
+    try {
+        $credit = R::findOne('resource_credit', ' user_type = ? AND user_id = ? ', [$userType, $userId]);
+        if (!$credit || (int) $credit->unlocks_balance <= 0) {
+            return false;
+        }
+        $credit->unlocks_balance = max(0, (int) $credit->unlocks_balance - 1);
+        $credit->updated_at = date('Y-m-d H:i:s');
+        R::store($credit);
+
+        // Record access
+        record_resource_access($resourceId, $userType, $userId, null, 'credit_unlock', 0.00, 'CREDIT_UNLOCK');
+        return true;
+    } catch (Exception $e) {
+        error_log("deduct_user_elibrary_credit error: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Check if a user/guest has already purchased, unlocked, or authored this resource
+ */
+function user_has_unlocked_resource($resourceId, $userId = null, $userType = null, $userEmail = null)
+{
+    $resourceId = (int) $resourceId;
+    if ($resourceId <= 0)
+        return false;
+
+    try {
+        $resource = R::load('resource', $resourceId);
+        if (!$resource || !$resource->id)
+            return false;
+
+        // Free resources are unlocked for everyone
+        if ((float) $resource->price <= 0)
+            return true;
+
+        // Author always has access to their own materials
+        if ($userId && $userType && (string) $resource->uploader_type === (string) $userType && (int) $resource->uploader_id === (int) $userId) {
+            return true;
+        }
+
+        // Check user ID log
+        if ($userId && $userType) {
+            $log = R::findOne('resource_access_log', ' resource_id = ? AND user_type = ? AND user_id = ? ', [$resourceId, $userType, (int) $userId]);
+            if ($log && $log->id)
+                return true;
+        }
+
+        // Check guest email log
+        if (!empty($userEmail)) {
+            $logEmail = R::findOne('resource_access_log', ' resource_id = ? AND user_email = ? ', [$resourceId, trim(strtolower($userEmail))]);
+            if ($logEmail && $logEmail->id)
+                return true;
+        }
+
+        // Check session unlock token for instant post-payment access
+        if (isset($_SESSION['elibrary_unlocked_' . $resourceId]) && $_SESSION['elibrary_unlocked_' . $resourceId] === true) {
+            return true;
+        }
+
+        return false;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+/**
+ * Record an access/purchase log entry
+ */
+function record_resource_access($resourceId, $userType = 'guest', $userId = null, $userEmail = null, $accessType = 'free_download', $amountPaid = 0.00, $paymentRef = null)
+{
+    $resourceId = (int) $resourceId;
+    if ($resourceId <= 0)
+        return false;
+
+    try {
+        $log = R::dispense('resource_access_log');
+        $log->resource_id = $resourceId;
+        $log->user_type = $userType ?: 'guest';
+        $log->user_id = $userId ? (int) $userId : null;
+        $log->user_email = $userEmail ? trim(strtolower($userEmail)) : null;
+        $log->access_type = $accessType;
+        $log->amount_paid = (float) $amountPaid;
+        $log->payment_ref = $paymentRef;
+        $log->created_at = date('Y-m-d H:i:s');
+        R::store($log);
+
+        // Increment resource download counter
+        $resource = R::load('resource', $resourceId);
+        if ($resource && $resource->id) {
+            $resource->download_count = (int) $resource->download_count + 1;
+            R::store($resource);
+        }
+
+        // Save session flag for immediate seamless download
+        $_SESSION['elibrary_unlocked_' . $resourceId] = true;
+        return true;
+    } catch (Exception $e) {
+        error_log("record_resource_access error: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Format bytes to readable size
+ */
+function format_elibrary_file_size($bytes)
+{
+    $bytes = (int) $bytes;
+    if ($bytes >= 1048576) {
+        return number_format($bytes / 1048576, 1) . ' MB';
+    } elseif ($bytes >= 1024) {
+        return round($bytes / 1024) . ' KB';
+    }
+    return $bytes . ' B';
+}
+
+/**
+ * Secure file upload validator for E-Library documents
+ */
+function validate_and_upload_elibrary_file($fileArray)
+{
+    if (empty($fileArray) || !isset($fileArray['error']) || $fileArray['error'] !== UPLOAD_ERR_OK) {
+        $errMap = [
+            UPLOAD_ERR_INI_SIZE => 'Uploaded file exceeds server upload size limit.',
+            UPLOAD_ERR_FORM_SIZE => 'Uploaded file exceeds form maximum size.',
+            UPLOAD_ERR_PARTIAL => 'File was only partially uploaded.',
+            UPLOAD_ERR_NO_FILE => 'No file was selected.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder.',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk.'
+        ];
+        return ['success' => false, 'error' => $errMap[$fileArray['error'] ?? 0] ?? 'File upload error.'];
+    }
+
+    $tmpPath = $fileArray['tmp_name'];
+    $origName = $fileArray['name'];
+    $fileSize = (int) $fileArray['size'];
+
+    // 1. File Size Constraints (Min 10KB, Max 30MB)
+    if ($fileSize < 10 * 1024) {
+        return ['success' => false, 'error' => 'File size is too small. Please ensure you upload complete, substantive documents.'];
+    }
+    if ($fileSize > 30 * 1024 * 1024) {
+        return ['success' => false, 'error' => 'File exceeds maximum allowed size of 30 MB.'];
+    }
+
+    // 2. Extension validation
+    $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+    $allowedExts = ['pdf', 'docx', 'doc', 'pptx', 'ppt', 'zip'];
+    if (!in_array($ext, $allowedExts, true)) {
+        return ['success' => false, 'error' => 'Invalid file format. Allowed formats: PDF (.pdf), Word (.docx, .doc), PowerPoint (.pptx), or Archive (.zip).'];
+    }
+
+    // 3. MIME type inspection
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $detectedMime = finfo_file($finfo, $tmpPath);
+    finfo_close($finfo);
+
+    $validMimes = [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'application/vnd.ms-powerpoint',
+        'application/zip',
+        'application/x-zip-compressed',
+        'application/octet-stream'
+    ];
+
+    if (!in_array($detectedMime, $validMimes, true)) {
+        return ['success' => false, 'error' => "Unsupported file contents (Detected MIME: {$detectedMime}). Please upload a valid document."];
+    }
+
+    // 4. Create safe directory
+    $yearMonth = date('Y/m');
+    $uploadDir = __DIR__ . '/uploads/elibrary/' . $yearMonth;
+    if (!is_dir($uploadDir)) {
+        @mkdir($uploadDir, 0755, true);
+    }
+
+    // 5. Unique safe filename
+    $cleanBase = preg_replace('/[^a-zA-Z0-9_\-]/', '_', pathinfo($origName, PATHINFO_FILENAME));
+    $cleanBase = substr($cleanBase, 0, 40);
+    $uniqueName = 'res_' . time() . '_' . bin2hex(random_bytes(4)) . '_' . $cleanBase . '.' . $ext;
+    $targetPath = $uploadDir . '/' . $uniqueName;
+
+    $saved = is_uploaded_file($tmpPath) ? move_uploaded_file($tmpPath, $targetPath) : (@copy($tmpPath, $targetPath) || @rename($tmpPath, $targetPath));
+    if (!$saved) {
+        return ['success' => false, 'error' => 'Failed to save document to server storage.'];
+    }
+
+    return [
+        'success' => true,
+        'file_path' => '/uploads/elibrary/' . $yearMonth . '/' . $uniqueName,
+        'file_type' => $ext,
+        'file_size' => $fileSize,
+        'file_name' => $origName
+    ];
+}
+
+/**
+ * Resolves physical file path for E-Library resources across local, uploads, and server library directories
+ */
+function resolve_elibrary_file_path($filePath)
+{
+    if (empty($filePath))
+        return null;
+
+    $normalized = str_replace('\\', '/', $filePath);
+    $trimmed = ltrim($normalized, '/');
+    $basename = basename($normalized);
+
+    $candidates = [
+        __DIR__ . '/' . $trimmed,
+        __DIR__ . '/../' . $trimmed,
+        __DIR__ . '/public_html/' . $trimmed,
+        __DIR__ . '/../public_html/' . $trimmed,
+        __DIR__ . '/uploads/elibrary/' . $basename,
+        __DIR__ . '/../uploads/elibrary/' . $basename,
+        __DIR__ . '/library/' . $trimmed,
+        __DIR__ . '/../library/' . $trimmed,
+        __DIR__ . '/library/' . $basename,
+        __DIR__ . '/../library/' . $basename,
+    ];
+
+    if (!empty($_SERVER['DOCUMENT_ROOT'])) {
+        $docRoot = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']), '/');
+        $candidates[] = $docRoot . '/' . $trimmed;
+        $candidates[] = $docRoot . '/library/' . $trimmed;
+        $candidates[] = $docRoot . '/uploads/elibrary/' . $basename;
+    }
+
+    foreach ($candidates as $cand) {
+        if (!empty($cand) && file_exists($cand) && is_file($cand)) {
+            return realpath($cand);
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Sends transactional email with secure download links upon completed purchase
+ */
+function send_elibrary_purchase_email($toEmail, $resources, $paymentRef = '')
+{
+    if (empty($toEmail) || !filter_var($toEmail, FILTER_VALIDATE_EMAIL) || empty($resources)) {
+        return false;
+    }
+
+    if (!is_array($resources)) {
+        $resources = [$resources];
+    }
+
+    $appUrl = env('APP_URL', 'https://mwalimu.info');
+    if (!empty($_SERVER['HTTP_HOST'])) {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+        $appUrl = $protocol . $_SERVER['HTTP_HOST'];
+    }
+
+    $itemsHtml = '';
+    foreach ($resources as $res) {
+        $dlLink = rtrim($appUrl, '/') . '/elibrary/download?id=' . $res->id . '&ref=' . urlencode($paymentRef) . '&email=' . urlencode($toEmail);
+        $itemsHtml .= '
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;">
+            <div style="font-weight: 700; color: #0f172a; font-size: 15px; margin-bottom: 4px;">' . htmlspecialchars($res->title) . '</div>
+            <div style="font-size: 13px; color: #64748b; margin-bottom: 10px;">' . htmlspecialchars($res->grade_level) . ' &bull; ' . htmlspecialchars($res->subject) . ' &bull; ' . htmlspecialchars($res->category) . '</div>
+            <a href="' . $dlLink . '" style="display: inline-block; background: #0f766e; color: #ffffff; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 13px;">Download File</a>
+        </div>';
+    }
+
+    $subject = 'Your Teaching Resources Download Links - Mwalimu E-Library';
+    $htmlBody = '
+    <div style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #f8fafc; color: #1e293b; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <div style="text-align: center; margin-bottom: 24px;">
+            <div style="font-size: 20px; font-weight: 900; color: #0f172a;">Mwalimu Link</div>
+            <div style="font-size: 13px; color: #64748b; font-weight: 600;">E-Library & Teaching Resources Hub</div>
+        </div>
+        <div style="background: #ffffff; border-radius: 10px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+            <h2 style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 10px;">Thank you for your order!</h2>
+            <p style="font-size: 14px; color: #475569; line-height: 1.5; margin-bottom: 16px;">
+                Your M-Pesa payment (' . htmlspecialchars($paymentRef ?: 'CONFIRMED') . ') has been verified. You can access and download your resources below at any time:
+            </p>
+            ' . $itemsHtml . '
+        </div>
+        <div style="font-size: 12px; color: #94a3b8; text-align: center; line-height: 1.4;">
+            If you need any assistance with your order, reply to this email or contact support at infomwalimulink@gmail.com.<br>
+            &copy; ' . date('Y') . ' Mwalimu Link. All rights reserved.
+        </div>
+    </div>';
+
+    return send_system_email($toEmail, '', $subject, $htmlBody);
+}
+
 
 
 

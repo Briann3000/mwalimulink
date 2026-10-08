@@ -39,6 +39,10 @@ $currentDirMonths = intval(get_setting('directory_access_months', 12));
 $currentSchoolFee = floatval(get_setting('school_pro_fee', 1000));
 $currentSchoolMonths = intval(get_setting('school_pro_months', 12));
 $currentCurrency = (string) get_setting('payment_currency', 'KES');
+if (empty($currentCurrency) || is_numeric($currentCurrency) || strlen(trim($currentCurrency)) < 2) {
+    $currentCurrency = 'KES';
+}
+$currentCurrency = trim($currentCurrency);
 
 // Analytics & Metrics
 $totalDirPasses = 0;

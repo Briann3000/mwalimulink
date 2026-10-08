@@ -1399,14 +1399,23 @@ if (function_exists('init_session')) {
           </li>
 
           <li><a href="/forum"><i class="fa fa-comments"></i> Forum</a></li>
-          <li><a href="/publications"><i class="fa fa-file-lines"></i> Publications</a></li>
 
           <li class="top-dropdown">
-            <a href="#"><i class="fa fa-book-open"></i> Resources <i class="fa fa-chevron-down"
+            <a href="#"><i class="fa fa-book-open"></i> Knowledge Hub <i class="fa fa-chevron-down"
+                style="font-size: 10px;"></i></a>
+            <div class="top-dropdown-menu">
+              <a href="/elibrary"><i class="fa fa-graduation-cap"></i> E-Library & Notes</a>
+              <a href="/publications"><i class="fa fa-file-lines"></i> Publications Hub</a>
+            </div>
+          </li>
+
+          <li class="top-dropdown">
+            <a href="#"><i class="fa fa-circle-question"></i> Support & Policies <i class="fa fa-chevron-down"
                 style="font-size: 10px;"></i></a>
             <div class="top-dropdown-menu">
               <a href="/faqs"><i class="fa fa-question-circle"></i> Educator FAQs</a>
               <a href="/faqs-overseas"><i class="fa fa-plane"></i> Teaching Overseas FAQ</a>
+              <div style="border-top: 1px solid #334155; margin: 4px 0;"></div>
               <a href="/privacy"><i class="fa fa-shield-alt"></i> Privacy Policy</a>
               <a href="/terms"><i class="fa fa-file-contract"></i> Terms of Service</a>
             </div>
@@ -1474,7 +1483,9 @@ if (function_exists('init_session')) {
       </div>
 
       <div class="public-drawer-section">
-        <div class="public-drawer-title">Community & Knowledge</div>
+        <div class="public-drawer-title">Knowledge Hub</div>
+        <a href="/elibrary" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-book-open"></i>
+          E-Library & Notes</a>
         <a href="/forum" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-comments"></i>
           Forum</a>
         <a href="/publications" class="public-drawer-link" onclick="closePublicMobileNav()"><i
@@ -1482,7 +1493,7 @@ if (function_exists('init_session')) {
       </div>
 
       <div class="public-drawer-section">
-        <div class="public-drawer-title">Resources & Legal</div>
+        <div class="public-drawer-title">Support & Policies</div>
         <a href="/faqs" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-question-circle"></i>
           Educator FAQs</a>
         <a href="/faqs-overseas" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-plane"></i>

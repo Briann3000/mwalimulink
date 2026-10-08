@@ -1,55 +1,70 @@
 # MwalimuLink
 
-MwalimuLink is a recruitment, networking, and institutional directory platform built for Kenyan educators, private/international school recruiters, and educational stakeholders nationwide.
+MwalimuLink is an all-in-one educational platform, institutional recruitment network, and Competency-Based Curriculum (CBC) teaching resources hub built for Kenyan educators, schools, and academic stakeholders nationwide.
 
 ---
 
-## Key Features
+## Core Features & Modules
 
-### 1. Teacher Portal & Professional Tools
-- **Profile & Application Management**: Manage teaching subjects, curriculum competencies (CBC, 8-4-4, Cambridge/IGCSE, IB), TSC verification status, and direct job applications.
-- **Dynamic CV Builder**: Interactive resume editor with live formatting, PDF export, and qualification highlights.
-- **Vacancy Discovery**: Filter active Kenyan teaching vacancies by county, subject combination, education level, and compensation.
+### 1. E-Library & Teaching Materials Hub
+- **Curriculum Taxonomy**: Categorized resources spanning Pre-Primary (PP1/PP2), Primary (Grade 1–6), Junior School (Grade 7–9), and Senior Secondary (Form 1–4 / KCSE).
+- **Resource Categories**: Learning notes, revision past papers with complete marking schemes, rationalised schemes of work, lesson plans, set book guides, and curriculum designs.
+- **Teaser Preview & Instant Access**: Secure first-page document preview window with locked scrolling for non-downloaded items.
+- **Batch Cart & 1-Click Purchase**: Support for multi-resource shopping cart (`/elibrary/cart`) and instant 1-click M-Pesa direct purchase.
+- **Automated Email Delivery**: Purchased and unlocked documents are automatically emailed to the buyer's specified email address in addition to in-browser downloads.
+- **Creator Incentive System**: Teachers and schools receive **3 Free Download Unlocks** automatically upon admin approval of each contributed document.
+- **Privacy & Contributor Protection**: Individual teacher names are protected on public cards with a verified *"Verified Educator"* badge.
+- **Copyright Safe Harbor**: Built-in takedown claim submission workflow compliant with Section 35B of the Kenya Copyright Act.
 
-### 2. School Recruitment Dashboard
-- **Candidate Search**: Multi-parameter search with synonym-aware subject matching (e.g., Biology / BIO / Integrated Science).
-- **Application Pipeline**: Track applicants through recruitment stages (Pending, Reviewed, Shortlisted, Interview Scheduled, Hired).
-- **School Staff Collaboration**: Multi-user staff access with role-based permissions and invitation links.
+### 2. Teacher Career Portal & Professional Tools
+- **Profile & Credential Management**: Teaching subjects, curriculum specializations (CBC, 8-4-4, Cambridge/IGCSE, IB), TSC number verification, and application history.
+- **Interactive CV Builder**: Real-time resume editor with custom styling, work experience timeline, and PDF export.
+- **Job Discovery & Direct Applications**: Live vacancy search filterable by county, school type, subject combination, and compensation.
+- **Teaching Practice (TP) Hub**: Dedicated placement directory connecting student teachers with schools offering attachment opportunities across all 47 counties.
 
-### 3. Institutional Directory
-- Comprehensive national directory covering **Public Schools**, **Private Schools**, and **International Schools**.
-- Categorized county filtering, curriculum indicators, contact verification, and paywalled full directory access options.
+### 3. School Recruitment & Institutional Management
+- **Synonym-Aware Candidate Search**: Multi-parameter teacher discovery matching alternate subject keywords (e.g., Biology / BIO / Integrated Science).
+- **Recruitment Pipeline**: Application tracker across stages (Pending, Reviewed, Shortlisted, Interview Scheduled, Hired).
+- **Institutional Subscriptions**: Pro recruitment tier enabling unlimited job postings, direct candidate outreach, and verified directory badges.
+- **Multi-User Staff Access**: Role-based access control for administrative and departmental recruitment teams.
 
-### 4. Educational Publications & Research
-- Peer-reviewed research papers, CBC pedagogical insights, and international teaching guide repository with PDF viewing and direct downloads.
+### 4. National Institutional Directory
+- **Comprehensive Coverage**: Verified directories of **Public Schools**, **Private Academies**, and **International Schools**.
+- **Location & Curriculum Filters**: Search by county, constituency, curriculum offered, boarding status, and verified contact channels.
+- **Directory Access Passes**: Time-limited institutional access passes via automated M-Pesa gateway.
 
-### 5. Community & Direct Communication
-- **Discussion Forums**: Categorized subject boards, CBC implementation discussion, and career advice.
-- **Direct Messaging**: In-platform messaging between teachers and verified schools.
+### 5. Publications Hub & Research Repository
+- Peer-reviewed research papers, CBC pedagogical insights, and education leadership publications with PDF stream viewing.
 
-### 6. Payments & Ingestion
-- **IntaSend Integration**: Seamless M-Pesa STK push and Card checkouts for school subscriptions and premium directory passes.
-- **Automated Job Scrapers**: Background workers for aggregating teaching vacancies across Kenyan career portals.
+### 6. Discussion Forums & Direct Messaging
+- **Educators Forum**: Subject-specific boards, curriculum transition discussions, and career guidance.
+- **Direct Messaging**: Secure communication channels between verified schools and candidate teachers.
+
+### 7. Administration & Moderation Control Panel
+- **E-Library Moderation Queue**: 1-click resource approval/rejection with auto-unlock awards and PDF stream inspection.
+- **Copyright Claim Management**: Compliance ticket review and instant resource suspension tools.
+- **Pricing & Currency Control**: Dynamic fee management with auto-healing currency fallbacks.
 
 ---
 
-## Tech Stack
+## Technical Architecture
 
-- **Backend**: PHP 8.x (Vanilla architecture, fast and lightweight)
-- **Database / ORM**: RedBeanPHP with support for both SQLite (local/fallback) and MySQL/MariaDB (production)
-- **Frontend**: Alpine.js, Pico CSS, FontAwesome 6, Inter typography
-- **Payments**: IntaSend PHP SDK & REST API (M-Pesa Express & Card Processing)
-- **Email Delivery**: PHPMailer (SMTP) & Resend API integration
+- **Backend**: PHP 8.1+ (Clean MVC-inspired routing, lightweight and dependency-minimal)
+- **Database / ORM**: RedBeanPHP with dual support for SQLite (local testing) and MySQL / MariaDB (production)
+- **Frontend**: Inter typography, Alpine.js, Pico CSS (with scoped container isolation), FontAwesome 6
+- **Payment Gateway**: IntaSend REST API & SDK (Instant M-Pesa STK Push, Card processing, and Webhook verification)
+- **Transactional Mail**: Resend REST API with automatic PHPMailer SMTP fallback
+- **Storage Resolution**: Multi-root storage dispatcher supporting localized and clustered storage layouts
 
 ---
 
 ## Local Development Setup
 
 ### Prerequisites
-- PHP 8.1 or higher (with `pdo_sqlite`, `pdo_mysql`, `curl`, and `fileinfo` extensions enabled)
-- MySQL / MariaDB (optional; SQLite works out of the box for development)
+- PHP 8.1 or higher (with `pdo_sqlite`, `pdo_mysql`, `curl`, `fileinfo`, and `zip` extensions enabled)
+- MySQL / MariaDB (optional; SQLite runs out of the box for local development)
 
-### Installation
+### Getting Started
 
 1. **Clone the repository**:
    ```bash
@@ -61,19 +76,24 @@ MwalimuLink is a recruitment, networking, and institutional directory platform b
    ```bash
    cp .env.example .env
    ```
-   Open `.env` and configure your database settings, IntaSend credentials, and mail settings.
+   Configure your database, IntaSend credentials, and email delivery keys in `.env`.
 
-3. **Start the development server**:
+3. **Start the local server**:
    ```bash
    php -S localhost:8000 router.php
    ```
-   Visit `http://localhost:8000` in your web browser.
+   Open `http://localhost:8000` in your web browser.
+
+4. **Import E-Library Starter Data (Optional)**:
+   ```bash
+   php scripts/import_elibrary_sql.php library_resources.sql
+   ```
 
 ---
 
-## Automated Test Suite
+## Automated Verification & Tests
 
-To run the full suite of authentication, security, and integration tests:
+Run the security and integration test suite:
 
 ```bash
 php tests/test_auth_security.php

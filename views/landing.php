@@ -1314,6 +1314,41 @@ try {
   </section>
 
   <!-- ========================================================================
+       E-LIBRARY & TEACHING MATERIALS SHOWCASE BANNER
+       ======================================================================== -->
+  <section
+    style="background: linear-gradient(135deg, #0f172a 0%, #0f766e 100%); color: #ffffff; padding: 3.5rem 1rem; border-top: 1px solid #1e293b; border-bottom: 1px solid #1e293b;">
+    <div
+      style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; md:flex-row; align-items: center; justify-content: space-between; gap: 2rem;">
+      <div style="max-width: 760px;">
+        <div
+          style="display: inline-flex; align-items: center; gap: 6px; background: rgba(45, 212, 191, 0.2); border: 1px solid #2dd4bf; color: #ccfbf1; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 800; margin-bottom: 1rem; text-transform: uppercase;">
+          <i class="fa fa-book-open"></i> Competency-Based Curriculum (CBC) Hub
+        </div>
+        <h2
+          style="font-size: 1.85rem; font-weight: 900; color: #ffffff !important; margin: 0 0 0.75rem 0; letter-spacing: -0.01em;">
+          Kenya's Digital E-Library for Teaching Resources
+        </h2>
+        <p style="color: #cbd5e1; font-size: 0.98rem; line-height: 1.6; margin: 0;">
+          Access verified Grade 1–9 CBC learning notes, Form 1–4 KCSE revision papers with full marking schemes, termly
+          lesson plans, and rationalised schemes of work. Contribute your materials to earn free download unlocks.
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="/elibrary"
+          style="display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: #0f172a !important; padding: 14px 24px; border-radius: 10px; font-weight: 800; text-decoration: none; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+          <i class="fa fa-graduation-cap" style="color: #0f766e;"></i> Browse E-Library
+        </a>
+        <a href="/teacher/elibrary"
+          style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); color: #ffffff !important; border: 1px solid rgba(255,255,255,0.4); padding: 14px 20px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 0.95rem;">
+          <i class="fa fa-cloud-arrow-up"></i> Share Materials
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
        4. HOW IT WORKS (3 Simple Steps)
        ======================================================================== -->
   <section class="landing-section landing-steps">

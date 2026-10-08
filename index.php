@@ -218,6 +218,19 @@ $modernRoutes = [
     'admin/impersonate' => 'views/admin_impersonate.php',
     'admin/stop-impersonate' => 'views/admin_impersonate.php',
 
+    // E-Library & Curriculum Resources
+    'elibrary' => 'views/elibrary_catalog.php',
+    'elibrary/cart' => 'views/elibrary_cart.php',
+    'elibrary/view' => 'views/elibrary_view.php',
+    'elibrary/download' => 'views/elibrary_download.php',
+    'elibrary/claim' => 'views/elibrary_claim.php',
+    'resources' => 'views/elibrary_catalog.php',
+    'resources/view' => 'views/elibrary_view.php',
+    'teacher/elibrary' => 'views/teacher_elibrary.php',
+    'school/elibrary' => 'views/school_elibrary.php',
+    'admin/elibrary' => 'views/admin_elibrary.php',
+    'api/elibrary' => 'views/api_elibrary.php',
+
     // School Directories
     'schools/public' => 'views/public_school_search.php',
     'schools/public/detail' => 'views/public_school_detail.php',

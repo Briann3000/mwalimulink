@@ -43,6 +43,10 @@ try {
     }
 
     $currency = (string) get_setting('payment_currency', 'KES');
+    if (empty($currency) || is_numeric($currency) || strlen(trim($currency)) < 2) {
+        $currency = 'KES';
+    }
+    $currency = trim($currency);
     $isTestMode = (strtolower((string) env('INTASEND_TEST_MODE', 'false')) === 'true' || env('INTASEND_TEST_MODE') === '1');
     $publicKey = env('INTASEND_PUBLIC_KEY') ?: env('INTASEND_PUBLISHABLE_KEY');
     $secretKey = env('INTASEND_SECRET_KEY');
