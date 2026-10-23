@@ -26,7 +26,7 @@ AddDefaultCharset UTF-8
 
     # 3. Block access to sensitive database dumps, logs, backups, and configs
     RewriteRule \.(db|sqlite|sqlite3|sql|log|ini|bak|zip|gz|tar|sh|bat|cmd)$ - [F,L]
-    RewriteRule ^(_archive|data|scratch|\.system_generated)(/|$) - [F,L]
+    RewriteRule ^(_archive|_local_archive|data|scratch|\.system_generated)(/|$) - [F,L]
 
     # 4. Clean URL routing through index.php
     RewriteRule ^index\.php$ - [L]
