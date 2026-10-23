@@ -345,7 +345,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     style="width: 100%; box-sizing: border-box; margin: 0;">
                             </div>
 
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                            <div class="resp-grid-2">
                                 <div>
                                     <label
                                         style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">Gender</label>
@@ -511,7 +511,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     style="width: 100%; box-sizing: border-box; margin: 0;">
                             </div>
 
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                            <div class="resp-grid-2">
                                 <div>
                                     <label
                                         style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">Years

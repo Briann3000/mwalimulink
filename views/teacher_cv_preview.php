@@ -324,6 +324,44 @@ $isVerified = (($teacher->verification_status ?? '') === 'verified');
             min-height: 1050px;
         }
 
+        @media (max-width: 768px) {
+            .cv-action-bar {
+                padding: 8px 12px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .cv-paper-container {
+                padding: 20px 14px !important;
+                margin: 0.75rem auto !important;
+                min-height: auto !important;
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0;
+                border-radius: 0;
+            }
+            .template-classic_kenyan .cv-header,
+            .template-modern_cbc .cv-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 12px !important;
+            }
+            .template-classic_kenyan .cv-badge-block {
+                text-align: left !important;
+                border-left: none !important;
+                padding-left: 0 !important;
+                border-top: 1px solid #e2e8f0;
+                padding-top: 8px;
+                width: 100%;
+            }
+            .template-classic_kenyan .entry-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+            }
+            .btn-action {
+                font-size: 0.78rem !important;
+                padding: 0 10px !important;
+            }
+        }
+
         /* ========================================================= */
         /* TEMPLATE 1: CLASSIC KENYAN ACADEMIC                      */
         /* ========================================================= */

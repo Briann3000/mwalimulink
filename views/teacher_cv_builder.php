@@ -560,12 +560,56 @@ $referees = $cvData['referees'] ?? [];
             top: -1rem !important;
         }
     }
+
+    /* Responsive Repeater Form Rows */
+    .cv-training-grid {
+        display: grid;
+        grid-template-columns: 3fr 2fr 1fr 30px;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .cv-cocurricular-grid {
+        display: grid;
+        grid-template-columns: 2fr 4fr 30px;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .cv-referee-grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.65rem;
+        margin-bottom: 0.65rem;
+    }
+
+    .cv-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    @media (max-width: 640px) {
+        .cv-training-grid,
+        .cv-cocurricular-grid,
+        .cv-referee-grid-3,
+        .cv-grid-2 {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+        }
+        .cv-training-grid > div:last-child,
+        .cv-cocurricular-grid > div:last-child {
+            padding-top: 0 !important;
+            align-self: flex-end;
+        }
+    }
 </style>
 
 <div class="workspace-wrapper cv-builder-scope">
     <?php include __DIR__ . '/partials/sidebar.php'; ?>
 
-    <main class="content-pane" style="max-width: 1100px; margin: 0 auto; padding: 1.75rem 1.5rem 3rem;">
+    <main class="content-pane" style="max-width: 1080px; margin-left: 0; margin-right: auto; padding: 1.75rem 1.5rem 3rem;">
 
         <!-- Sticky Controls Wrapper (Action Header + Independent Quality Checklist Card) -->
         <div class="cv-sticky-controls-wrapper">
@@ -904,7 +948,7 @@ $referees = $cvData['referees'] ?? [];
                                         <i class="fa fa-trash"></i> Remove
                                     </button>
                                 </div>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                                <div class="cv-grid-2" style="margin-bottom: 0.75rem;">
                                     <div>
                                         <label class="field-label">Institution / University / College</label>
                                         <input type="text" name="edu_institution[]" value="" placeholder="e.g. Kenyatta University">
@@ -914,7 +958,7 @@ $referees = $cvData['referees'] ?? [];
                                         <input type="text" name="edu_award[]" value="" placeholder="e.g. Bachelor of Education (Science)">
                                     </div>
                                 </div>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                <div class="cv-grid-2">
                                     <div>
                                         <label class="field-label">Graduation Year</label>
                                         <input type="text" name="edu_year[]" value="" placeholder="e.g. 2021">
@@ -934,7 +978,7 @@ $referees = $cvData['referees'] ?? [];
                                             <i class="fa fa-trash"></i> Remove
                                         </button>
                                     </div>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                                    <div class="cv-grid-2" style="margin-bottom: 0.75rem;">
                                         <div>
                                             <label class="field-label">Institution / University / College</label>
                                             <input type="text" name="edu_institution[]" value="<?= h($edu['institution'] ?? '') ?>" placeholder="e.g. Kenyatta University">
@@ -944,7 +988,7 @@ $referees = $cvData['referees'] ?? [];
                                             <input type="text" name="edu_award[]" value="<?= h($edu['award'] ?? '') ?>" placeholder="e.g. Bachelor of Education (Science)">
                                         </div>
                                     </div>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                    <div class="cv-grid-2">
                                         <div>
                                             <label class="field-label">Graduation Year</label>
                                             <input type="text" name="edu_year[]" value="<?= h($edu['year'] ?? '') ?>" placeholder="e.g. 2021">
@@ -974,7 +1018,7 @@ $referees = $cvData['referees'] ?? [];
                     <div id="trainingsContainer" style="display: flex; flex-direction: column; gap: 0.75rem;">
                         <?php if (empty($trainings)): ?>
                             <div class="card-entry" style="padding: 0.85rem;">
-                                <div style="display: grid; grid-template-columns: 3fr 2fr 1fr 30px; gap: 0.5rem; align-items: center;">
+                                <div class="cv-training-grid">
                                     <div>
                                         <label class="field-label">Training / Workshop</label>
                                         <input type="text" name="train_name[]" value="" placeholder="e.g. CBC Assessment Facilitation">
@@ -997,7 +1041,7 @@ $referees = $cvData['referees'] ?? [];
                         <?php else: ?>
                             <?php foreach ($trainings as $tr): ?>
                                 <div class="card-entry" style="padding: 0.85rem;">
-                                    <div style="display: grid; grid-template-columns: 3fr 2fr 1fr 30px; gap: 0.5rem; align-items: center;">
+                                    <div class="cv-training-grid">
                                         <div>
                                             <label class="field-label">Training / Workshop</label>
                                             <input type="text" name="train_name[]" value="<?= h($tr['name'] ?? '') ?>" placeholder="e.g. CBC Assessment Facilitation">
@@ -1041,7 +1085,7 @@ $referees = $cvData['referees'] ?? [];
                     <div id="cocurricularContainer" style="display: flex; flex-direction: column; gap: 0.75rem;">
                         <?php if (empty($cocurricular)): ?>
                             <div class="card-entry" style="padding: 0.85rem;">
-                                <div style="display: grid; grid-template-columns: 2fr 4fr 30px; gap: 0.5rem; align-items: center;">
+                                <div class="cv-cocurricular-grid">
                                     <div>
                                         <label class="field-label">Activity / Capacity</label>
                                         <input type="text" name="co_activity[]" value="" placeholder="e.g. Science & Innovation Club Patron">
@@ -1060,7 +1104,7 @@ $referees = $cvData['referees'] ?? [];
                         <?php else: ?>
                             <?php foreach ($cocurricular as $cc): ?>
                                 <div class="card-entry" style="padding: 0.85rem;">
-                                    <div style="display: grid; grid-template-columns: 2fr 4fr 30px; gap: 0.5rem; align-items: center;">
+                                    <div class="cv-cocurricular-grid">
                                         <div>
                                             <label class="field-label">Activity / Capacity</label>
                                             <input type="text" name="co_activity[]" value="<?= h($cc['activity'] ?? '') ?>" placeholder="e.g. Science & Innovation Club Patron">
@@ -1101,7 +1145,7 @@ $referees = $cvData['referees'] ?? [];
                                         <i class="fa fa-trash"></i> Remove
                                     </button>
                                 </div>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.65rem; margin-bottom: 0.65rem;">
+                                <div class="cv-referee-grid-3">
                                     <div>
                                         <label class="field-label">Full Name</label>
                                         <input type="text" name="ref_name[]" value="" placeholder="e.g. Mr. John Ochieng">
@@ -1115,7 +1159,7 @@ $referees = $cvData['referees'] ?? [];
                                         <input type="text" name="ref_institution[]" value="" placeholder="e.g. Nairobi School">
                                     </div>
                                 </div>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;">
+                                <div class="cv-grid-2">
                                     <div>
                                         <label class="field-label">Phone Number</label>
                                         <input type="text" name="ref_phone[]" value="" placeholder="e.g. 0722 000 000">
@@ -1163,7 +1207,7 @@ $referees = $cvData['referees'] ?? [];
                                             </button>
                                         </div>
                                     </div>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.65rem; margin-bottom: 0.65rem;">
+                                    <div class="cv-referee-grid-3">
                                         <div>
                                             <label class="field-label">Full Name</label>
                                             <input type="text" name="ref_name[]" value="<?= h($rf['name'] ?? '') ?>" placeholder="e.g. Mr. John Ochieng">
@@ -1177,7 +1221,7 @@ $referees = $cvData['referees'] ?? [];
                                             <input type="text" name="ref_institution[]" value="<?= h($rf['institution'] ?? '') ?>" placeholder="e.g. Nairobi School">
                                         </div>
                                     </div>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;">
+                                    <div class="cv-grid-2">
                                         <div>
                                             <label class="field-label">Phone Number</label>
                                             <input type="text" name="ref_phone[]" value="<?= h($rf['phone'] ?? '') ?>" placeholder="e.g. 0722 000 000">
@@ -1608,7 +1652,7 @@ $referees = $cvData['referees'] ?? [];
                     <i class="fa fa-trash"></i> Remove
                 </button>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+            <div class="cv-grid-2" style="margin-bottom: 0.75rem;">
                 <div>
                     <label class="field-label">Institution / University / College</label>
                     <input type="text" name="edu_institution[]" placeholder="e.g. Kenyatta University">
@@ -1618,7 +1662,7 @@ $referees = $cvData['referees'] ?? [];
                     <input type="text" name="edu_award[]" placeholder="e.g. Bachelor of Education (Science)">
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="cv-grid-2">
                 <div>
                     <label class="field-label">Graduation Year</label>
                     <input type="text" name="edu_year[]" placeholder="e.g. 2021">
@@ -1640,7 +1684,7 @@ $referees = $cvData['referees'] ?? [];
         row.className = 'card-entry';
         row.style = 'padding: 0.85rem;';
         row.innerHTML = `
-            <div style="display: grid; grid-template-columns: 3fr 2fr 1fr 30px; gap: 0.5rem; align-items: center;">
+            <div class="cv-training-grid">
                 <div>
                     <label class="field-label">Training / Workshop</label>
                     <input type="text" name="train_name[]" placeholder="e.g. CBC Assessment Facilitation">
@@ -1670,7 +1714,7 @@ $referees = $cvData['referees'] ?? [];
         row.className = 'card-entry';
         row.style = 'padding: 0.85rem;';
         row.innerHTML = `
-            <div style="display: grid; grid-template-columns: 2fr 4fr 30px; gap: 0.5rem; align-items: center;">
+            <div class="cv-cocurricular-grid">
                 <div>
                     <label class="field-label">Activity / Capacity</label>
                     <input type="text" name="co_activity[]" value="${escapeHtml(activity)}" placeholder="e.g. Drama Club Patron">
@@ -1769,7 +1813,7 @@ $referees = $cvData['referees'] ?? [];
                     <i class="fa fa-trash"></i> Remove
                 </button>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.65rem; margin-bottom: 0.65rem;">
+            <div class="cv-referee-grid-3">
                 <div>
                     <label class="field-label">Full Name</label>
                     <input type="text" name="ref_name[]" placeholder="e.g. Mr. John Ochieng">
@@ -1783,7 +1827,7 @@ $referees = $cvData['referees'] ?? [];
                     <input type="text" name="ref_institution[]" placeholder="e.g. Nairobi School">
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;">
+            <div class="cv-grid-2">
                 <div>
                     <label class="field-label">Phone Number</label>
                     <input type="text" name="ref_phone[]" placeholder="e.g. 0722 000 000">

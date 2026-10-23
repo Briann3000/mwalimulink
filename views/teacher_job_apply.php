@@ -341,7 +341,7 @@ if (!$job->id) {
                                     </p>
                                 </div>
                             </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.82rem; color: #334155; border-top: 1px solid #e2e8f0; padding-top: 8px;">
+                            <div class="resp-grid-2" style="font-size: 0.82rem; color: #334155; border-top: 1px solid #e2e8f0; padding-top: 8px;">
                                 <div><strong>Subjects:</strong> <?= h($teacher->teaching_subjects ?: 'General') ?></div>
                                 <div><strong>Experience:</strong> <?= intval($teacher->years_of_experience) ?> Years</div>
                                 <div><strong>Qualification:</strong> <?= h($teacher->qualification ?: 'Teacher') ?></div>
@@ -358,7 +358,7 @@ if (!$job->id) {
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; font-size: 0.85rem;">
+                        <div class="resp-grid-2" style="margin-bottom: 1.25rem; font-size: 0.85rem;">
                             <div style="background: #f1f5f9; padding: 10px; border-radius: 6px;">
                                 <span style="color: #64748b; display: block; font-size: 0.75rem;">Availability:</span>
                                 <strong id="previewAvailability" style="color: #0f172a;">Immediately</strong>

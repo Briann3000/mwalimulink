@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $endorsement) {
         <?php else: ?>
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
                 <h4 style="margin: 0 0 8px; font-size: 0.94rem; color: #0f172a;">Candidate Details:</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.86rem;">
+                <div class="resp-grid-2" style="font-size: 0.86rem;">
                     <div><strong style="color: #64748b;">Educator:</strong> <?= h($endorsement->teacher_name) ?></div>
                     <div><strong style="color: #64748b;">Institution:</strong> <?= h($endorsement->institution) ?></div>
                     <div><strong style="color: #64748b;">Role Listed:</strong> <?= h($endorsement->role_title) ?></div>

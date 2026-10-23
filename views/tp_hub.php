@@ -984,7 +984,7 @@ $buildTpQueryUrl = function ($newPage = null, $newPerPage = null, $newSort = nul
                 <?= csrf_field() ?>
                 <input type="hidden" name="action_type" value="create_tp_slot">
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;">
+                <div class="resp-grid-2" style="margin-bottom: 1rem;">
                     <div>
                         <label
                             style="font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 4px; display: block;">Target
@@ -1068,7 +1068,7 @@ $buildTpQueryUrl = function ($newPage = null, $newPerPage = null, $newSort = nul
                     placeholder="e.g. Kenyatta University, Moi University, Machakos TTC" required
                     style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; margin-bottom: 1rem; box-sizing: border-box;">
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;">
+                <div class="resp-grid-2" style="margin-bottom: 1rem;">
                     <div>
                         <label
                             style="font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 4px; display: block;">Student
@@ -1199,6 +1199,7 @@ $buildTpQueryUrl = function ($newPage = null, $newPerPage = null, $newSort = nul
                 opening at our institution for:
             </p>
 
+            <div class="table-responsive">
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.88rem;">
                 <tr style="border-bottom: 1px solid #e2e8f0;">
                     <td style="padding: 8px 0; font-weight: 700; color: #475569; width: 40%;">Assigned Teaching Term:
@@ -1215,6 +1216,7 @@ $buildTpQueryUrl = function ($newPage = null, $newPerPage = null, $newSort = nul
                     <td style="padding: 8px 0; color: #166534; font-weight: 700;">✓ Verified Placement Host School</td>
                 </tr>
             </table>
+            </div>
 
             <p style="font-size: 0.85rem; color: #475569; line-height: 1.5; margin-bottom: 2rem;">
                 The student teacher is expected to report to the Dean of Studies / TP Coordinator on the official term

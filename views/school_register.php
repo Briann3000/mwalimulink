@@ -1,6 +1,15 @@
 <?php
 // school_register.php
 
+// If already authenticated as a school, redirect directly to dashboard
+if (is_logged_in() && has_role('school')) {
+    if (ob_get_length()) {
+        ob_clean();
+    }
+    header('Location: /school/dashboard');
+    exit();
+}
+
 $message = '';
 $showForm = true;
 $redirect = trim($_GET['redirect'] ?? ($_POST['redirect'] ?? ''));
@@ -57,6 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $school_id = R::store($school);
             auth_login($school, 'school');
 
+            if (ob_get_length()) {
+                ob_clean();
+            }
             $dest = !empty($redirect) ? $redirect : '/school/dashboard';
             header("Location: $dest");
             exit;
@@ -213,7 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
                     <button type="button" class="secondary" onclick="goToSchoolStep(1)"
                         style="width: auto; padding: 0.6rem 1.5rem;">&larr; Back</button>
-                    <button type="submit" class="primary"
+                    <button type="submit" id="btnSubmitSchoolReg" class="primary"
                         style="width: auto; padding: 0.6rem 2.5rem; background: #28a745; border-color: #28a745;">Register &
                         Proceed to Subscription</button>
                 </div>
@@ -311,6 +323,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // Prevent double form submission on fast clicking
+        document.addEventListener('DOMContentLoaded', function () {
+            const schoolForm = document.getElementById('schoolRegForm');
+            const schoolSubmitBtn = document.getElementById('btnSubmitSchoolReg');
+            if (schoolForm && schoolSubmitBtn) {
+                let isSchoolSubmitting = false;
+                schoolForm.addEventListener('submit', function (e) {
+                    if (isSchoolSubmitting) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    isSchoolSubmitting = true;
+                    schoolSubmitBtn.disabled = true;
+                    schoolSubmitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Registering Institution...';
+                    schoolSubmitBtn.style.opacity = '0.75';
+                    schoolSubmitBtn.style.cursor = 'not-allowed';
+                });
+            }
+        });
     </script>
 
     <style>

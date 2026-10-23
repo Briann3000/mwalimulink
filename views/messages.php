@@ -122,9 +122,68 @@ if (!function_exists('msg_time_format')) {
             </a>
         </div>
 
+        <style>
+            .inbox-layout-container {
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+                display: grid;
+                grid-template-columns: 300px 1fr;
+                flex: 1;
+                min-height: 0;
+                overflow: hidden;
+                max-width: 1200px;
+                margin-right: auto;
+                width: 100%;
+            }
+            .mobile-back-to-inbox-btn {
+                display: none;
+            }
+            @media (max-width: 768px) {
+                .inbox-layout-container {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    height: 100% !important;
+                }
+                .mobile-back-to-inbox-btn {
+                    display: inline-flex !important;
+                    align-items: center;
+                    gap: 4px;
+                    padding: 5px 10px;
+                    background: #f1f5f9;
+                    color: #0f766e !important;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 6px;
+                    font-size: 0.78rem;
+                    font-weight: 700;
+                    text-decoration: none;
+                }
+                <?php if ($activeConv): ?>
+                #inboxLeftPane {
+                    display: none !important;
+                }
+                #inboxRightPane {
+                    display: flex !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                }
+                <?php else: ?>
+                #inboxLeftPane {
+                    display: flex !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    border-right: none !important;
+                }
+                #inboxRightPane {
+                    display: none !important;
+                }
+                <?php endif; ?>
+            }
+        </style>
+
         <!-- 2-Column Responsive Inbox Container -->
-        <div
-            style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: grid; grid-template-columns: 300px 1fr; flex: 1; min-height: 0; overflow: hidden;">
+        <div class="inbox-layout-container">
 
             <!-- Left Pane: Conversations List -->
             <div id="inboxLeftPane"
@@ -215,6 +274,9 @@ if (!function_exists('msg_time_format')) {
                     <div
                         style="flex-shrink: 0; padding: 8px 16px; border-bottom: 1px solid #e2e8f0; background: #ffffff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
+                            <a href="/messages" class="mobile-back-to-inbox-btn" title="Back to conversations">
+                                <i class="fa fa-arrow-left"></i> Back
+                            </a>
                             <div
                                 style="width: 36px; height: 36px; border-radius: 50%; background: #0f766e; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem;">
                                 <?= h($otherUser['initial']) ?>

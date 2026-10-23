@@ -108,7 +108,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     <?php include __DIR__ . '/partials/sidebar.php'; ?>
 
     <main class="content-pane" style="width: 100%; box-sizing: border-box;">
-        <div style="max-width: 820px; margin: 0 auto;">
+        <div style="max-width: 960px; margin-left: 0; margin-right: auto;">
 
             <div
                 style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">

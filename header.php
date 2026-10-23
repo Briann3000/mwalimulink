@@ -891,6 +891,47 @@ if (function_exists('init_session')) {
       scrollbar-color: #cbd5e1 transparent !important;
     }
 
+    /* Constrain workspace content to maintain right-hand white space on wide displays */
+    .workspace-wrapper .content-pane > *:not(dialog):not(.modal-backdrop):not([style*="position: fixed"]):not([style*="position:fixed"]):not(.sidebar-drawer-overlay) {
+      max-width: 1320px;
+      margin-left: 0;
+      margin-right: auto;
+    }
+
+    /* Universal Responsive Table Wrapper */
+    .table-responsive,
+    .admin-table-container {
+      width: 100% !important;
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+      margin-bottom: 1.5rem;
+    }
+
+    .table-responsive > table,
+    .admin-table-container > table {
+      margin-bottom: 0 !important;
+    }
+
+    /* Responsive Form Grid Helpers */
+    .resp-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .resp-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 640px) {
+      .resp-grid-2,
+      .resp-grid-3 {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
     .content-pane::-webkit-scrollbar {
       width: 6px;
     }

@@ -233,7 +233,7 @@ $recentCandidates = R::find('teacher', 'status = ? ORDER BY id DESC LIMIT 4', ['
         </div>
 
         <!-- Split Grid: Posted Vacancies & Featured Candidates -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
 
             <!-- Left: Posted Vacancies -->
             <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem;">

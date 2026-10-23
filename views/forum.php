@@ -59,7 +59,7 @@ if (!function_exists('chat_msg_time')) {
 </style>
 
 <div class="<?= $isLoggedIn ? 'workspace-wrapper' : 'container' ?>"
-    style="<?= !$isLoggedIn ? 'max-width: 1200px; margin: 1.5rem auto; padding: 0 1rem;' : '' ?>">
+    style="<?= !$isLoggedIn ? 'max-width: 1280px; margin-left: 0; margin-right: auto; padding: 0 1rem;' : '' ?>">
     <?php if ($isLoggedIn)
         include __DIR__ . '/partials/sidebar.php'; ?>
 
@@ -68,7 +68,7 @@ if (!function_exists('chat_msg_time')) {
 
         <!-- Top Navigation & Channel Bar -->
         <div
-            style="flex-shrink: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.6rem 1rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            style="flex-shrink: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.6rem 1rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; max-width: 1280px; width: 100%; box-sizing: border-box; margin-right: auto;">
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <h1
                     style="margin: 0; font-size: 1.15rem; color: #0f172a; font-weight: 800; display: flex; align-items: center; gap: 6px;">
@@ -111,9 +111,75 @@ if (!function_exists('chat_msg_time')) {
             </div>
         </div>
 
+        <style>
+            #forumChatLayout {
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+                display: grid;
+                grid-template-columns: 240px 1fr;
+                flex: 1;
+                height: 100%;
+                min-height: 0;
+                overflow: hidden;
+                max-width: 1280px;
+                margin-right: auto;
+                width: 100%;
+            }
+
+            @media (max-width: 768px) {
+                #forumChatLayout {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    height: 100% !important;
+                    max-width: 100% !important;
+                }
+                #chatChannelsPane {
+                    flex-direction: row !important;
+                    height: auto !important;
+                    width: 100% !important;
+                    border-right: none !important;
+                    border-bottom: 1px solid #e2e8f0 !important;
+                    flex-shrink: 0 !important;
+                    overflow-x: auto !important;
+                    overflow-y: hidden !important;
+                    white-space: nowrap !important;
+                    padding: 0 !important;
+                }
+                #chatChannelsPane > div:first-child {
+                    display: none !important; /* Hide "Channels / Rooms" header on mobile */
+                }
+                #chatChannelsPane > div:nth-child(2) {
+                    display: flex !important;
+                    flex-direction: row !important;
+                    gap: 6px !important;
+                    padding: 6px 8px !important;
+                    overflow-x: auto !important;
+                    -webkit-overflow-scrolling: touch !important;
+                }
+                #chatChannelsPane a {
+                    padding: 6px 12px !important;
+                    margin-bottom: 0 !important;
+                    border-left: none !important;
+                    border-radius: 20px !important;
+                    border: 1px solid #e2e8f0 !important;
+                    font-size: 0.78rem !important;
+                    flex-shrink: 0 !important;
+                }
+                #chatChannelsPane a[style*="#f0fdfa"] {
+                    border-color: #0f766e !important;
+                }
+                #chatFeedPane {
+                    flex: 1 1 auto !important;
+                    height: auto !important;
+                    min-height: 0 !important;
+                }
+            }
+        </style>
+
         <!-- 2-Column Responsive Chat Layout -->
-        <div id="forumChatLayout"
-            style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: grid; grid-template-columns: 240px 1fr; flex: 1; height: 100%; min-height: 0; overflow: hidden;">
+        <div id="forumChatLayout">
 
             <!-- Left Pane: Channels / Rooms List -->
             <div id="chatChannelsPane"

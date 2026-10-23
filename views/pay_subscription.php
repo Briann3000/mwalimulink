@@ -168,7 +168,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <!-- 2-Column Responsive Workspace Layout -->
             <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; align-items: start; margin-bottom: 2rem;">
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; align-items: start; margin-bottom: 2rem;">
 
                 <!-- Left Column: Plan Inclusions & Features -->
                 <div

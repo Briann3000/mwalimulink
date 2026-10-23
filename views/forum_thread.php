@@ -54,12 +54,12 @@ if (!function_exists('forum_detail_time')) {
 ?>
 
 <div class="<?= $isLoggedIn ? 'workspace-wrapper' : 'container' ?>"
-    style="<?= !$isLoggedIn ? 'max-width: 1040px; margin: 2rem auto; padding: 0 1rem;' : '' ?>">
+    style="<?= !$isLoggedIn ? 'max-width: 960px; margin: 2rem auto 2rem 0; padding: 0 1rem;' : '' ?>">
     <?php if ($isLoggedIn)
         include __DIR__ . '/partials/sidebar.php'; ?>
 
     <main class="<?= $isLoggedIn ? 'content-pane' : '' ?>" style="width: 100%; box-sizing: border-box;">
-        <div style="max-width: 860px; margin: 0 auto;">
+        <div style="max-width: 960px; margin-left: 0; margin-right: auto;">
 
             <!-- Breadcrumb Navigation Bar -->
             <div

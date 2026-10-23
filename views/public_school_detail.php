@@ -76,7 +76,7 @@ $officialWebsiteUrl = !empty($school->website) ? $school->website : ('https://ww
 <div class="workspace-wrapper">
     <?php include __DIR__ . '/partials/sidebar.php'; ?>
 
-    <main class="content-pane" style="max-width: 1400px; width: 100%; margin: 0 auto; padding: 2rem 1.5rem; box-sizing: border-box;">
+    <main class="content-pane" style="max-width: 1280px; width: 100%; margin-left: 0; margin-right: auto; padding: 2rem 1.5rem; box-sizing: border-box;">
         
         <!-- Breadcrumb & Top Actions -->
         <div style="margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
@@ -174,6 +174,7 @@ $officialWebsiteUrl = !empty($school->website) ? $school->website : ('https://ww
                 <div style="padding: 1rem 1.25rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: 700; font-size: 0.9rem; color: #0f172a;">
                     <i class="fa fa-info-circle" style="color: #0f766e; margin-right: 6px;"></i> Administrative Details
                 </div>
+                <div class="table-responsive">
                 <table class="mwalimu-table">
                     <tbody>
                         <tr>
@@ -218,6 +219,7 @@ $officialWebsiteUrl = !empty($school->website) ? $school->website : ('https://ww
                         <?php endif; ?>
                     </tbody>
                 </table>
+                </div>
             </div>
 
             <!-- Geographic Location Card & Map -->
@@ -280,7 +282,7 @@ $officialWebsiteUrl = !empty($school->website) ? $school->website : ('https://ww
                 <input type="text" name="name" required value="<?= h($authUser['name'] ?? '') ?>" placeholder="e.g. Jane Wanjiku" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem;">
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;">
+            <div class="resp-grid-2" style="margin-bottom: 1rem;">
                 <div>
                     <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px;">Email Address *</label>
                     <input type="email" name="email" required value="<?= h($authUser['email'] ?? '') ?>" placeholder="name@example.com" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem;">
@@ -320,7 +322,7 @@ $officialWebsiteUrl = !empty($school->website) ? $school->website : ('https://ww
         <div style="padding: 1.5rem;">
             <!-- Form to fill letter details -->
             <div id="tpFormFields" style="display: block;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem;">
+                <div class="resp-grid-2" style="margin-bottom: 1rem;">
                     <div>
                         <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px;">Student Teacher Name *</label>
                         <input type="text" id="tpStudentName" value="<?= h($authUser['name'] ?? '') ?>" placeholder="e.g. John Kamau" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem;">
@@ -331,7 +333,7 @@ $officialWebsiteUrl = !empty($school->website) ? $school->website : ('https://ww
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem;">
+                <div class="resp-grid-2" style="margin-bottom: 1rem;">
                     <div>
                         <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px;">Student Registration No.</label>
                         <input type="text" id="tpRegNo" placeholder="e.g. E37/1234/2023" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem;">
@@ -342,7 +344,7 @@ $officialWebsiteUrl = !empty($school->website) ? $school->website : ('https://ww
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem;">
+                <div class="resp-grid-2" style="margin-bottom: 1.25rem;">
                     <div>
                         <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px;">Proposed TP Period / Term</label>
                         <input type="text" id="tpPeriod" placeholder="e.g. Term 2 (May - August 2026)" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem;">

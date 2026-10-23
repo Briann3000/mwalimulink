@@ -1,6 +1,15 @@
 <?php
 // teacher_register.php
 
+// If already authenticated as a teacher, redirect directly to dashboard
+if (is_logged_in() && has_role('teacher')) {
+    if (ob_get_length()) {
+        ob_clean();
+    }
+    header('Location: /teacher/dashboard');
+    exit();
+}
+
 $message = '';
 $showForm = true;
 $redirect = trim($_GET['redirect'] ?? ($_POST['redirect'] ?? ''));
@@ -100,6 +109,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 R::store($invite);
 
                                 auth_login($teacher, 'teacher');
+                                if (ob_get_length()) {
+                                    ob_clean();
+                                }
                                 header("Location: /teacher/dashboard?msg=" . urlencode("Welcome! Your account is created and linked to " . $invitingSchool->name));
                                 exit();
                             }
@@ -107,6 +119,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     auth_login($teacher, 'teacher');
+                    if (ob_get_length()) {
+                        ob_clean();
+                    }
                     $dest = !empty($redirect) ? $redirect : '/teacher/dashboard?welcome=1';
                     header("Location: $dest");
                     exit();
@@ -367,7 +382,7 @@ $prefilledEmail = trim($_GET['email'] ?? ($_POST['email'] ?? ''));
                 <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
                     <button type="button" class="secondary" onclick="goToStep(2)"
                         style="width: auto; padding: 0.6rem 1.5rem;">&larr; Back</button>
-                    <button type="submit" class="primary"
+                    <button type="submit" id="btnSubmitTeacherReg" class="primary"
                         style="width: auto; padding: 0.6rem 2.5rem; background: #28a745; border-color: #28a745;">Complete
                         Registration</button>
                 </div>
@@ -546,6 +561,26 @@ $prefilledEmail = trim($_GET['email'] ?? ($_POST['email'] ?? ''));
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // Prevent double form submission on fast clicking
+        document.addEventListener('DOMContentLoaded', function () {
+            const teacherForm = document.getElementById('teacherRegForm');
+            const teacherSubmitBtn = document.getElementById('btnSubmitTeacherReg');
+            if (teacherForm && teacherSubmitBtn) {
+                let isSubmitting = false;
+                teacherForm.addEventListener('submit', function (e) {
+                    if (isSubmitting) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    isSubmitting = true;
+                    teacherSubmitBtn.disabled = true;
+                    teacherSubmitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Creating Account...';
+                    teacherSubmitBtn.style.opacity = '0.75';
+                    teacherSubmitBtn.style.cursor = 'not-allowed';
+                });
+            }
+        });
     </script>
 
     <style>
