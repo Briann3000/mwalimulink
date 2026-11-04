@@ -130,7 +130,7 @@ try {
         'job_type' => $jobType,
         'deadline' => $deadlineText,
         'req_pills' => array_slice($reqPills, 0, 3),
-        'apply_url' => is_logged_in() ? '/teacher/apply?job_id=' . $jb->id : '/login/teacher?redirect=' . urlencode('/teacher/apply?job_id=' . $jb->id)
+        'apply_url' => '/jobs/view?id=' . $jb->id
       ];
     }
   }
@@ -1456,7 +1456,7 @@ try {
             <div class="job-card-item">
               <div>
                 <div class="job-role-header">
-                  <h4 class="job-role-title"><?= h($job['title']) ?></h4>
+                  <h4 class="job-role-title"><a href="<?= h($job['apply_url']) ?>" style="color: inherit; text-decoration: none;"><?= h($job['title']) ?></a></h4>
                   <span class="job-type-pill"><?= h($job['job_type']) ?></span>
                 </div>
                 <div class="job-school-info">
@@ -1472,7 +1472,7 @@ try {
               </div>
               <div class="job-card-bottom">
                 <span class="job-deadline"><i class="fa-regular fa-clock"></i> <?= h($job['deadline']) ?></span>
-                <a href="<?= h($job['apply_url']) ?>" class="job-apply-link">Login to Apply <i
+                <a href="<?= h($job['apply_url']) ?>" class="job-apply-link">View Vacancy <i
                     class="fa-solid fa-chevron-right"></i></a>
               </div>
             </div>
@@ -1482,7 +1482,7 @@ try {
           <div class="job-card-item">
             <div>
               <div class="job-role-header">
-                <h4 class="job-role-title">Junior Secondary Mathematics & Integrated Science Teacher</h4>
+                <h4 class="job-role-title"><a href="/jobs" style="color: inherit; text-decoration: none;">Junior Secondary Mathematics & Integrated Science Teacher</a></h4>
                 <span class="job-type-pill">Full-Time</span>
               </div>
               <div class="job-school-info">
@@ -1498,13 +1498,13 @@ try {
             </div>
             <div class="job-card-bottom">
               <span class="job-deadline"><i class="fa-regular fa-clock"></i> Deadline: 14 Days Left</span>
-              <a href="/login/teacher" class="job-apply-link">Login to Apply <i class="fa-solid fa-chevron-right"></i></a>
+              <a href="/jobs" class="job-apply-link">View Vacancies <i class="fa-solid fa-chevron-right"></i></a>
             </div>
           </div>
           <div class="job-card-item">
             <div>
               <div class="job-role-header">
-                <h4 class="job-role-title">CBC Lead Educator (Grade 4–6 English & Social Studies)</h4>
+                <h4 class="job-role-title"><a href="/jobs" style="color: inherit; text-decoration: none;">CBC Lead Educator (Grade 4–6 English & Social Studies)</a></h4>
                 <span class="job-type-pill">Full-Time</span>
               </div>
               <div class="job-school-info">
@@ -1520,7 +1520,7 @@ try {
             </div>
             <div class="job-card-bottom">
               <span class="job-deadline"><i class="fa-regular fa-clock"></i> Deadline: 9 Days Left</span>
-              <a href="/login/teacher" class="job-apply-link">Login to Apply <i class="fa-solid fa-chevron-right"></i></a>
+              <a href="/jobs" class="job-apply-link">View Vacancies <i class="fa-solid fa-chevron-right"></i></a>
             </div>
           </div>
         <?php endif; ?>
@@ -1529,17 +1529,16 @@ try {
       <div class="jobs-notice-box">
         <div class="jobs-notice-text">
           <i class="fa-solid fa-circle-info"></i>
-          <span>Live vacancies from our verified recruitment network. Register or sign in to your Educator account to
-            view all postings and apply directly.</span>
+          <span>Live vacancies from our verified recruitment network and partner educational portals across Kenya. Browse active listings or sign in to submit your verified CV.</span>
         </div>
-        <div style="display: flex; gap: 0.75rem;">
-          <a href="/login/teacher" class="btn-landing btn-landing-primary"
-            style="padding: 8px 16px; font-size: 0.86rem;">
-            Teacher Login
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <a href="/jobs" class="btn-landing btn-landing-primary"
+            style="padding: 8px 18px; font-size: 0.86rem;">
+            <i class="fa fa-briefcase"></i> Browse All Vacancies
           </a>
           <a href="/register/teacher" class="btn-landing btn-landing-white"
             style="padding: 8px 16px; font-size: 0.86rem; border: 1px solid var(--ml-slate-200);">
-            Register Free
+            <i class="fa fa-user-plus"></i> Register Free
           </a>
         </div>
       </div>

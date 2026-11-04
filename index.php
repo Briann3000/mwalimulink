@@ -108,7 +108,26 @@ if (str_ends_with($requestUri, 'index.php')) {
 }
 
 $action = $_GET['action'] ?? null;
-$isApiRoute = str_starts_with($requestUri, 'api/') || (!empty($action) && str_starts_with($action, 'api/'));
+$isApiRoute = str_starts_with($requestUri, 'api/') || (!empty($action) && str_starts_with($action, 'api/')) || $requestUri === 'sitemap.xml';
+
+// Dynamic SEO page titles & meta descriptions for public routes
+if ($requestUri === 'jobs') {
+    $GLOBALS['pageTitle'] = 'Teaching Job Vacancies in Kenya & International Schools';
+    $GLOBALS['metaDescription'] = 'Browse active teaching vacancies, high school jobs, primary school CBC positions, and international teaching opportunities in Kenya.';
+} elseif ($requestUri === 'jobs/view') {
+    $jobId = intval($_GET['id'] ?? 0);
+    if ($jobId > 0) {
+        $jobMeta = R::load('job', $jobId);
+        if ($jobMeta && $jobMeta->id) {
+            $inst = !empty($jobMeta->company_name) ? $jobMeta->company_name : 'Education Institution';
+            $loc = !empty($jobMeta->location_text) ? $jobMeta->location_text : 'Kenya';
+            $GLOBALS['pageTitle'] = $jobMeta->title . ' - ' . $inst . ' (' . $loc . ')';
+            $descSnippet = strip_tags($jobMeta->description ?? '');
+            $descSnippet = mb_substr(preg_replace('/\s+/', ' ', $descSnippet), 0, 155);
+            $GLOBALS['metaDescription'] = !empty($descSnippet) ? $descSnippet : "Apply for {$jobMeta->title} vacancy at {$inst}.";
+        }
+    }
+}
 
 // Stop impersonation shortcut before rendering any HTML
 if ($requestUri === 'admin/stop-impersonate' || ($action === 'admin/stop-impersonate') || ($action === 'stop' && str_contains($requestUri, 'impersonate'))) {
@@ -154,6 +173,11 @@ $modernRoutes = [
     'register/school' => 'views/school_register.php',
     'reset-password/teacher' => 'views/reset_teacher_password.php',
     'reset-password/school' => 'views/reset_school_password.php',
+
+    // Public Teaching Vacancies (Open to all visitors & search engines)
+    'jobs' => 'views/jobs_search.php',
+    'jobs/view' => 'views/job_view.php',
+    'sitemap.xml' => 'views/sitemap.php',
 
     // Dashboards & Portals
     'teacher/dashboard' => 'views/teacher_dashboard.php',

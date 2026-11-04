@@ -12,13 +12,16 @@ if (function_exists('init_session')) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <meta name="description"
-    content="Mwalimu.info connects teachers and schools across Kenya, offering job opportunities, educational resources, and a professional networking platform for educators.">
+    content="<?= !empty($GLOBALS['metaDescription']) ? htmlspecialchars($GLOBALS['metaDescription']) : 'Mwalimu.info connects teachers and schools across Kenya, offering job opportunities, educational resources, and a professional networking platform for educators.' ?>">
   <meta name="keywords"
     content="teachers, schools, Kenya, teaching jobs, education, mwalimu, teacher resources, school vacancies, educators, employment">
   <meta name="author" content="Mwalimu.info">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="robots" content="index, follow">
-  <title>Mwalimu Link&trade;</title>
+  <title><?= !empty($GLOBALS['pageTitle']) ? htmlspecialchars($GLOBALS['pageTitle']) . ' | MwalimuLink' : 'Mwalimu Link&trade;' ?></title>
+  <?php if (!empty($GLOBALS['ogTags'])): ?>
+    <?= $GLOBALS['ogTags'] ?>
+  <?php endif; ?>
 
   <!-- Favicon & Icons -->
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
@@ -1415,6 +1418,7 @@ if (function_exists('init_session')) {
         <!-- Public Desktop Nav -->
         <ul class="topbar-nav public-nav-desktop">
           <li><a href="/"><i class="fa fa-home"></i> Home</a></li>
+          <li><a href="/jobs"><i class="fa fa-briefcase"></i> Teaching Jobs</a></li>
 
           <li class="top-dropdown">
             <a href="#"><i class="fa fa-school"></i> Schools <i class="fa fa-chevron-down"
@@ -1433,6 +1437,7 @@ if (function_exists('init_session')) {
             <a href="#"><i class="fa fa-graduation-cap"></i> Teachers <i class="fa fa-chevron-down"
                 style="font-size: 10px;"></i></a>
             <div class="top-dropdown-menu">
+              <a href="/jobs"><i class="fa fa-briefcase"></i> Teaching Vacancies</a>
               <a href="/register/teacher"><i class="fa fa-user-plus"></i> Register Free</a>
               <a href="/login/teacher"><i class="fa fa-sign-in-alt"></i> Teacher Login</a>
               <a href="/tp-hub"><i class="fa fa-award"></i> Teaching Practice (TP) Hub</a>
@@ -1497,6 +1502,7 @@ if (function_exists('init_session')) {
 
       <div class="public-drawer-section">
         <a href="/" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-home"></i> Home</a>
+        <a href="/jobs" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-briefcase"></i> Teaching Vacancies</a>
       </div>
 
       <div class="public-drawer-section">
@@ -1507,6 +1513,7 @@ if (function_exists('init_session')) {
             class="fa fa-building"></i> Private Academies</a>
         <a href="/schools/international" class="public-drawer-link" onclick="closePublicMobileNav()"><i
             class="fa fa-globe"></i> International Schools</a>
+        <div style="border-top: 1px solid #1e293b; margin: 4px 0;"></div>
         <a href="/register/school" class="public-drawer-link" onclick="closePublicMobileNav()"><i
             class="fa fa-plus-circle"></i> Register Institution</a>
         <a href="/login/school" class="public-drawer-link" onclick="closePublicMobileNav()"><i class="fa fa-school"></i>
@@ -1515,6 +1522,8 @@ if (function_exists('init_session')) {
 
       <div class="public-drawer-section">
         <div class="public-drawer-title">Educators Hub</div>
+        <a href="/jobs" class="public-drawer-link" onclick="closePublicMobileNav()"><i
+            class="fa fa-briefcase"></i> Browse Teaching Jobs</a>
         <a href="/register/teacher" class="public-drawer-link" onclick="closePublicMobileNav()"><i
             class="fa fa-user-plus"></i> Register as Teacher (Free)</a>
         <a href="/login/teacher" class="public-drawer-link" onclick="closePublicMobileNav()"><i

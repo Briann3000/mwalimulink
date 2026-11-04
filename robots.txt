@@ -3,3 +3,5 @@ Allow: /
 
 Disallow: /data/
 Disallow: /_archive/
+
+Sitemap: https://mwalimu.info/sitemap.xml
