@@ -6,6 +6,7 @@ $id = intval($_GET['id'] ?? 0);
 $school = R::load('public_school', $id);
 
 if (!$school->id) {
+    http_response_code(404);
     echo '<div style="padding: 3rem; text-align: center;"><h2>School not found.</h2><a href="/schools/public" class="btn-primary">Back to Directory</a></div>';
     return;
 }

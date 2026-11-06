@@ -13,6 +13,7 @@ if ($threadId > 0) {
 }
 
 if (!$thread || !$thread->id || $thread->is_hidden) {
+    http_response_code(404);
     echo "<div class='container' style='max-width: 800px; margin: 3rem auto; padding: 2rem; text-align: center;'><div style='background: #fee2e2; color: #991b1b; padding: 1.5rem; border-radius: 8px;'>This discussion topic does not exist or has been removed. <a href='/forum' style='display:block; margin-top:8px; font-weight:700;'>Return to Forum Hub</a></div></div>";
     exit();
 }

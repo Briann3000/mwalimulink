@@ -128,6 +128,14 @@ class JobScraperWorker
             $summary['urls_repaired'] = $repairedUrls;
             $prunedIntl = JobIngestionService::pruneInternationalJobs(25);
             $summary['international_pruned'] = $prunedIntl;
+
+            // Automatically refresh static sitemap index and sub-sitemaps after job ingestion
+            try {
+                require_once __DIR__ . '/generate_sitemap_index.php';
+                SitemapIndexGenerator::generateAll();
+            } catch (\Throwable $e) {
+                error_log("Failed to refresh sitemap index: " . $e->getMessage());
+            }
         }
 
         $summary['finished_at'] = date('Y-m-d H:i:s');

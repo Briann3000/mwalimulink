@@ -1,53 +1,51 @@
 <?php
-// views/sitemap.php - Dynamic XML Sitemap for Search Engine Discovery
+// views/sitemap.php - High-performance cached sitemap delivery
 if (!headers_sent()) {
     header('Content-Type: application/xml; charset=utf-8');
 }
 
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-$host = $_SERVER['HTTP_HOST'] ?? 'mwalimu.info';
-$baseUrl = $scheme . $host;
+$rootDir = realpath(__DIR__ . '/..');
 
-// Fetch active teaching vacancies
-$jobWhere = "((source_type = 'external' AND aggregation_status = 'published') OR source_type = 'direct' OR source_type IS NULL OR source_type = '')";
-$recentJobs = R::find('job', "{$jobWhere} ORDER BY id DESC LIMIT 1000");
+// Map incoming route or URI to corresponding sitemap file
+$uri = trim($_SERVER['REQUEST_URI'] ?? '', '/');
+$uri = strtok($uri, '?'); // strip query strings
 
-// Static routes with their priorities and frequencies
-$staticUrls = [
-    ['loc' => '/', 'priority' => '1.0', 'changefreq' => 'daily'],
-    ['loc' => '/jobs', 'priority' => '0.9', 'changefreq' => 'hourly'],
-    ['loc' => '/schools/public', 'priority' => '0.8', 'changefreq' => 'weekly'],
-    ['loc' => '/schools/private', 'priority' => '0.8', 'changefreq' => 'weekly'],
-    ['loc' => '/schools/international', 'priority' => '0.8', 'changefreq' => 'weekly'],
-    ['loc' => '/elibrary', 'priority' => '0.8', 'changefreq' => 'daily'],
-    ['loc' => '/publications', 'priority' => '0.8', 'changefreq' => 'weekly'],
-    ['loc' => '/forum', 'priority' => '0.8', 'changefreq' => 'daily'],
-    ['loc' => '/tp-hub', 'priority' => '0.7', 'changefreq' => 'weekly'],
-    ['loc' => '/faqs', 'priority' => '0.5', 'changefreq' => 'monthly'],
-    ['loc' => '/about', 'priority' => '0.5', 'changefreq' => 'monthly'],
-    ['loc' => '/contacts', 'priority' => '0.5', 'changefreq' => 'monthly'],
+$sitemapMap = [
+    'sitemap.xml' => 'sitemap.xml',
+    'sitemap_index.xml' => 'sitemap_index.xml',
+    'sitemaps.xml' => 'sitemap_index.xml', // Typo tolerance alias
+    'sitemap-pages.xml' => 'sitemap-pages.xml',
+    'sitemap-jobs.xml' => 'sitemap-jobs.xml',
+    'sitemap-schools.xml' => 'sitemap-schools.xml',
+    'sitemap-resources.xml' => 'sitemap-resources.xml',
 ];
 
-echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<?php foreach ($staticUrls as $s): ?>
-  <url>
-    <loc><?= htmlspecialchars($baseUrl . $s['loc']) ?></loc>
-    <changefreq><?= $s['changefreq'] ?></changefreq>
-    <priority><?= $s['priority'] ?></priority>
-  </url>
-<?php endforeach; ?>
+$targetFile = $sitemapMap[$uri] ?? 'sitemap_index.xml';
+$filePath = $rootDir . '/' . $targetFile;
 
-<?php foreach ($recentJobs as $job): ?>
-  <?php
-  $modDate = !empty($job->posted_date) ? date('Y-m-d', strtotime($job->posted_date)) : date('Y-m-d');
-  ?>
-  <url>
-    <loc><?= htmlspecialchars($baseUrl . '/jobs/view?id=' . $job->id) ?></loc>
-    <lastmod><?= $modDate ?></lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-<?php endforeach; ?>
-</urlset>
+// If target file exists and is fresh (< 24h), deliver it instantly
+$cacheDuration = 86400; // 24 hours
+if (file_exists($filePath) && filesize($filePath) > 50 && (time() - filemtime($filePath) < $cacheDuration)) {
+    readfile($filePath);
+    exit();
+}
+
+// Otherwise regenerate all sitemaps using the fast generator
+require_once __DIR__ . '/../scripts/generate_sitemap_index.php';
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+$host = $_SERVER['HTTP_HOST'] ?? 'mwalimu.info';
+$baseUrl = rtrim($scheme . $host, '/');
+
+SitemapIndexGenerator::generateAll($rootDir, $baseUrl);
+
+if (file_exists($filePath) && filesize($filePath) > 50) {
+    readfile($filePath);
+    exit();
+}
+
+// Fallback if target file still missing
+if (file_exists($rootDir . '/sitemap_index.xml')) {
+    readfile($rootDir . '/sitemap_index.xml');
+    exit();
+}
+

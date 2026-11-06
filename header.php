@@ -11,16 +11,29 @@ if (function_exists('init_session')) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title><?= !empty($GLOBALS['pageTitle']) ? htmlspecialchars($GLOBALS['pageTitle']) : 'MwalimuLink - Teaching Jobs, School Directories & Teacher Resources in Kenya' ?></title>
   <meta name="description"
-    content="<?= !empty($GLOBALS['metaDescription']) ? htmlspecialchars($GLOBALS['metaDescription']) : 'Mwalimu.info connects teachers and schools across Kenya, offering job opportunities, educational resources, and a professional networking platform for educators.' ?>">
+    content="<?= !empty($GLOBALS['metaDescription']) ? htmlspecialchars($GLOBALS['metaDescription']) : 'MwalimuLink connects teachers and schools across Kenya, offering verified job vacancies, school directories, and CBC educational resources.' ?>">
   <meta name="keywords"
-    content="teachers, schools, Kenya, teaching jobs, education, mwalimu, teacher resources, school vacancies, educators, employment">
-  <meta name="author" content="Mwalimu.info">
+    content="teachers, schools, Kenya, teaching jobs, CBC curriculum, teacher resources, school vacancies, educators, TSC registration, education Kenya">
+  <meta name="author" content="MwalimuLink">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="robots" content="index, follow">
-  <title><?= !empty($GLOBALS['pageTitle']) ? htmlspecialchars($GLOBALS['pageTitle']) . ' | MwalimuLink' : 'Mwalimu Link&trade;' ?></title>
+  <meta name="robots" content="<?= htmlspecialchars($GLOBALS['robotsMeta'] ?? 'index, follow') ?>">
+  <?php if (!empty($GLOBALS['canonicalUrl'])): ?>
+  <link rel="canonical" href="<?= htmlspecialchars($GLOBALS['canonicalUrl']) ?>">
+  <?php endif; ?>
+  <?php if ($gVerify = env('GOOGLE_SITE_VERIFICATION')): ?>
+  <meta name="google-site-verification" content="<?= htmlspecialchars($gVerify) ?>">
+  <?php endif; ?>
   <?php if (!empty($GLOBALS['ogTags'])): ?>
-    <?= $GLOBALS['ogTags'] ?>
+  <?= $GLOBALS['ogTags'] ?>
+  <?php endif; ?>
+  <?php if (!empty($GLOBALS['seoSchemas']) && is_array($GLOBALS['seoSchemas'])): ?>
+    <?php foreach ($GLOBALS['seoSchemas'] as $schemaItem): ?>
+  <script type="application/ld+json">
+    <?= json_encode($schemaItem, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>
+  </script>
+    <?php endforeach; ?>
   <?php endif; ?>
 
   <!-- Favicon & Icons -->

@@ -8,6 +8,7 @@ if ($jobId <= 0) {
 
 $job = R::load('job', $jobId);
 if (!$job || !$job->id || ($job->aggregation_status === 'archived' || $job->aggregation_status === 'rejected')) {
+    http_response_code(404);
     echo '<div class="container" style="max-width: 650px; margin: 3rem auto; text-align: center; padding: 1.5rem;">
         <article style="background: white; padding: 2.5rem 2rem; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
             <div style="width: 56px; height: 56px; background: #fef2f2; color: #dc2626; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">
@@ -77,47 +78,78 @@ $currentUrl = $scheme . ($_SERVER['HTTP_HOST'] ?? 'mwalimu.info') . '/jobs/view?
 // Related vacancies in same county or matching subject
 $relatedJobs = R::find('job', "id != ? AND ((source_type = 'external' AND aggregation_status = 'published') OR source_type = 'direct' OR source_type IS NULL) ORDER BY id DESC LIMIT 3", [$job->id]);
 
-// Google Schema.org JSON-LD structured data
-$schemaDesc = !empty($job->description) ? strip_tags($job->description) : ($job->title . ' vacancy at ' . $institutionName);
-$schemaDesc = htmlspecialchars(preg_replace('/\s+/', ' ', $schemaDesc), ENT_QUOTES, 'UTF-8');
-$schemaDatePosted = !empty($job->posted_date) ? date('Y-m-d', strtotime($job->posted_date)) : date('Y-m-d');
-$schemaValidThrough = (!empty($job->deadline) && !$isDeadlinePassed) ? date('Y-m-d', strtotime($job->deadline)) : date('Y-m-d', strtotime('+30 days'));
+// Build Google-compliant Schema.org JobPosting JSON-LD
+$fullDesc = '';
+if (!empty($job->description)) {
+    $fullDesc .= '<p>' . nl2br(h($job->description)) . '</p>';
+}
+if (!empty($job->requirements)) {
+    $fullDesc .= '<h3>Requirements & Qualifications</h3><p>' . nl2br(h($job->requirements)) . '</p>';
+}
+if (empty($fullDesc)) {
+    $fullDesc = '<p>' . h($job->title) . ' vacancy at ' . h($institutionName) . ' in ' . h($institutionLocation) . '. Apply on MwalimuLink.</p>';
+}
 
-$cleanTitle = htmlspecialchars($job->title, ENT_QUOTES, 'UTF-8');
-$cleanOrgName = htmlspecialchars($institutionName, ENT_QUOTES, 'UTF-8');
-$cleanLoc = htmlspecialchars($institutionLocation, ENT_QUOTES, 'UTF-8');
+$schemaData = [
+    '@context' => 'https://schema.org/',
+    '@type' => 'JobPosting',
+    'title' => $job->title,
+    'description' => $fullDesc,
+    'identifier' => [
+        '@type' => 'PropertyValue',
+        'name' => 'MwalimuLink',
+        'value' => (string)$job->id
+    ],
+    'datePosted' => !empty($job->posted_date) ? date('c', strtotime($job->posted_date)) : date('c'),
+    'validThrough' => (!empty($job->deadline) && !$isDeadlinePassed) ? date('c', strtotime($job->deadline)) : date('c', strtotime('+30 days')),
+    'employmentType' => 'FULL_TIME',
+    'hiringOrganization' => [
+        '@type' => 'Organization',
+        'name' => $institutionName,
+        'sameAs' => $schoolProfileUrl ? ($scheme . ($_SERVER['HTTP_HOST'] ?? 'mwalimu.info') . $schoolProfileUrl) : $currentUrl,
+        'logo' => $scheme . ($_SERVER['HTTP_HOST'] ?? 'mwalimu.info') . '/mwalimu-link-logo-clean.png'
+    ],
+    'jobLocation' => [
+        '@type' => 'Place',
+        'address' => [
+            '@type' => 'PostalAddress',
+            'addressLocality' => $institutionLocation,
+            'addressCountry' => 'KE'
+        ]
+    ],
+    'applicantLocationRequirements' => [
+        '@type' => 'Country',
+        'name' => 'Kenya'
+    ],
+    'directApply' => true
+];
+
+if (!empty($job->salary)) {
+    $numericSalary = preg_replace('/[^0-9]/', '', (string)$job->salary);
+    if (!empty($numericSalary) && is_numeric($numericSalary) && intval($numericSalary) > 1000) {
+        $schemaData['baseSalary'] = [
+            '@type' => 'MonetaryAmount',
+            'currency' => 'KES',
+            'value' => [
+                '@type' => 'QuantitativeValue',
+                'value' => (float)$numericSalary,
+                'unitText' => 'MONTH'
+            ]
+        ];
+    }
+}
+
+// Format WhatsApp message for viral sharing
+$waMessage = "🇰🇪 TEACHING VACANCY: " . $job->title . "\n"
+    . "🏫 Institution: " . $institutionName . "\n"
+    . "📍 Location: " . $institutionLocation . "\n"
+    . "⏳ Deadline: " . ($deadlineFormatted ?: 'Open') . "\n"
+    . "👉 View details & apply: " . $currentUrl;
 ?>
 
 <!-- Google Jobs Schema.org JSON-LD Structured Data -->
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org/",
-  "@type": "JobPosting",
-  "title": "<?= $cleanTitle ?>",
-  "description": "<?= $schemaDesc ?>",
-  "identifier": {
-    "@type": "PropertyValue",
-    "name": "MwalimuLink",
-    "value": "<?= $job->id ?>"
-  },
-  "datePosted": "<?= $schemaDatePosted ?>",
-  "validThrough": "<?= $schemaValidThrough ?>",
-  "employmentType": "FULL_TIME",
-  "hiringOrganization": {
-    "@type": "Organization",
-    "name": "<?= $cleanOrgName ?>",
-    "sameAs": "<?= $schoolProfileUrl ? ($scheme . ($_SERVER['HTTP_HOST'] ?? 'mwalimu.info') . $schoolProfileUrl) : $currentUrl ?>"
-  },
-  "jobLocation": {
-    "@type": "Place",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "<?= $cleanLoc ?>",
-      "addressCountry": "KE"
-    }
-  },
-  "directApply": true
-}
+<?= json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?>
 </script>
 
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem;">
@@ -393,7 +425,7 @@ $cleanLoc = htmlspecialchars($institutionLocation, ENT_QUOTES, 'UTF-8');
                     Share Vacancy With Colleagues
                 </span>
                 <div style="display: flex; gap: 8px;">
-                    <a href="https://api.whatsapp.com/send?text=<?= urlencode('Teaching Vacancy: ' . $job->title . ' at ' . $institutionName . ' (' . $institutionLocation . ') - ' . $currentUrl) ?>" target="_blank" rel="noopener noreferrer"
+                    <a href="https://api.whatsapp.com/send?text=<?= urlencode($waMessage) ?>" target="_blank" rel="noopener noreferrer"
                         style="flex: 1; background: #25d366; color: white !important; font-size: 0.84rem; font-weight: 700; padding: 8px 12px; border-radius: 6px; text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
                         <i class="fa-brands fa-whatsapp"></i> WhatsApp
                     </a>

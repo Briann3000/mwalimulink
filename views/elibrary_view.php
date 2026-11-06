@@ -16,6 +16,7 @@ if ($id <= 0) {
 
 $resource = R::load('resource', $id);
 if (!$resource || !$resource->id || ($resource->status !== 'approved' && (!$authUser || $authUser['role'] !== 'admin' && ((int) $resource->uploader_id !== (int) $userId || $resource->uploader_type !== $userType)))) {
+  http_response_code(404);
   echo '<div class="container" style="max-width: 600px; margin: 3rem auto; text-align: center;">
         <article style="background: white; padding: 2rem; border-radius: 12px; border: 1px solid #e2e8f0;">
             <h2 style="color: #dc2626;">Resource Unavailable</h2>

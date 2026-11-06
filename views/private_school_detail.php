@@ -1,6 +1,6 @@
 <?php
 // views/private_school_detail.php - Modern Interactive Detail View
-require_directory_access();
+$hasDirectoryAccess = has_directory_access();
 
 $authUser = auth_user();
 
@@ -8,6 +8,7 @@ $id = intval($_GET['id'] ?? 0);
 $school = R::load('private_school', $id);
 
 if (!$school->id) {
+    http_response_code(404);
     echo '<div style="padding: 3rem; text-align: center;"><h2>Private school not found.</h2><a href="/schools/private" class="btn-primary">Back to Directory</a></div>';
     return;
 }
@@ -100,13 +101,13 @@ $officialWebsiteUrl = !empty($school->website) ? $school->website : ('https://ww
                 </a>
 
                 <!-- TP Letter Generator Trigger -->
-                <button type="button" onclick="openTpModal()"
+                <button type="button" onclick="<?= $hasDirectoryAccess ? 'openTpModal()' : "window.location.href='/schools/pay?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)" ?>"
                     style="margin: 0 !important; height: 36px !important; padding: 0 14px !important; background: #f1f5f9 !important; color: #0f766e !important; font-size: 0.82rem !important; font-weight: 600 !important; border-radius: 6px !important; border: 1px solid #cbd5e1 !important; cursor: pointer !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; box-sizing: border-box !important; line-height: 1 !important;">
                     <i class="fa fa-file-alt"></i> Generate TP Letter
                 </button>
 
                 <!-- On-Page Inquiry Trigger -->
-                <button type="button" onclick="openInquiryModal()"
+                <button type="button" onclick="<?= $hasDirectoryAccess ? 'openInquiryModal()' : "window.location.href='/schools/pay?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)" ?>"
                     style="margin: 0 !important; height: 36px !important; padding: 0 16px !important; background: #0f766e !important; color: #ffffff !important; font-size: 0.82rem !important; font-weight: 600 !important; border-radius: 6px !important; border: 1px solid #0f766e !important; cursor: pointer !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; box-shadow: 0 1px 2px rgba(15,118,110,0.2) !important; box-sizing: border-box !important; line-height: 1 !important;">
                     <i class="fa fa-envelope"></i> Inquire via MwalimuLink
                 </button>
@@ -166,6 +167,19 @@ $officialWebsiteUrl = !empty($school->website) ? $school->website : ('https://ww
                 </div>
             </div>
         </div>
+
+        <?php if (!$hasDirectoryAccess): ?>
+            <!-- Gated Contacts Notice -->
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px; color: #166534; font-size: 0.85rem;">
+                    <i class="fa fa-lock" style="color: #0f766e;"></i>
+                    <span>Direct school contact info, phone, and recruitment messaging are protected. Unlock verified access for <strong>KES 50 / 24 hours</strong>.</span>
+                </div>
+                <a href="/schools/pay?redirect=<?= urlencode($_SERVER['REQUEST_URI'] ?? '/schools/private') ?>" style="background: #0f766e; color: white !important; font-size: 0.8rem; font-weight: 700; padding: 6px 14px; border-radius: 6px; text-decoration: none; white-space: nowrap;">
+                    Unlock Contacts
+                </a>
+            </div>
+        <?php endif; ?>
 
         <?php if (!$isClaimed): ?>
             <!-- Claim School Profile Banner -->
@@ -238,15 +252,15 @@ $officialWebsiteUrl = !empty($school->website) ? $school->website : ('https://ww
                         <?php if (!empty($school->email)): ?>
                             <tr>
                                 <th style="background: white !important; color: #64748b !important;">Email Address</th>
-                                <td><a href="mailto:<?= h($school->email) ?>"
-                                        style="color: #0f766e;"><?= h($school->email) ?></a></td>
+                                <td><?php if ($hasDirectoryAccess): ?><a href="mailto:<?= h($school->email) ?>" style="color: #0f766e;"><?= h($school->email) ?></a><?php else: ?><span style="filter: blur(4px); user-select: none; color: #64748b;">principal@academy.ac.ke</span> <a href="/schools/pay?redirect=<?= urlencode($_SERVER['REQUEST_URI'] ?? '/schools/private') ?>" style="margin-left: 8px; font-size: 0.75rem; background: #0f766e; color: white !important; padding: 2px 8px; border-radius: 4px; text-decoration: none; font-weight: 700;">Unlock</a><?php endif; ?><!--
+--></td>
                             </tr>
                         <?php endif; ?>
                         <?php if (!empty($school->website)): ?>
                             <tr>
                                 <th style="background: white !important; color: #64748b !important;">Official Website</th>
-                                <td><a href="<?= h($school->website) ?>" target="_blank" rel="noopener noreferrer"
-                                        style="color: #0f766e; font-weight: 600;"><?= h($school->website) ?> ↗</a></td>
+                                <td><?php if ($hasDirectoryAccess): ?><a href="<?= h($school->website) ?>" target="_blank" rel="noopener noreferrer" style="color: #0f766e; font-weight: 600;"><?= h($school->website) ?> ↗</a><?php else: ?><span style="filter: blur(4px); user-select: none; color: #64748b;">https://school.ac.ke</span> <a href="/schools/pay?redirect=<?= urlencode($_SERVER['REQUEST_URI'] ?? '/schools/private') ?>" style="margin-left: 8px; font-size: 0.75rem; background: #0f766e; color: white !important; padding: 2px 8px; border-radius: 4px; text-decoration: none; font-weight: 700;">Unlock</a><?php endif; ?><!--
+--></td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

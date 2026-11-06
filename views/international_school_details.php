@@ -1,6 +1,6 @@
 <?php
 // views/international_school_details.php - Transparent Discovery & Interactive Inquiry
-require_directory_access();
+$hasDirectoryAccess = has_directory_access();
 
 $authUser = auth_user();
 
@@ -8,6 +8,7 @@ $id = intval($_GET['id'] ?? 0);
 $rec = R::load('international_school', $id);
 
 if (!$rec->id) {
+    http_response_code(404);
     echo '<div style="padding: 3rem; text-align: center;"><h2>International school not found.</h2><a href="/schools/international" class="btn-primary">Back to Directory</a></div>';
     return;
 }
@@ -90,7 +91,7 @@ $officialWebsiteUrl = !empty($rec->website) ? $rec->website : ('https://www.goog
                 </a>
 
                 <!-- On-Page Inquiry Trigger -->
-                <button type="button" onclick="openInquiryModal()"
+                <button type="button" onclick="<?= $hasDirectoryAccess ? 'openInquiryModal()' : "window.location.href='/schools/pay?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)" ?>"
                     style="margin: 0 !important; height: 36px !important; padding: 0 16px !important; background: #0f766e !important; color: #ffffff !important; font-size: 0.82rem !important; font-weight: 600 !important; border-radius: 6px !important; border: 1px solid #0f766e !important; cursor: pointer !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; box-shadow: 0 1px 2px rgba(15,118,110,0.2) !important; box-sizing: border-box !important; line-height: 1 !important;">
                     <i class="fa fa-envelope"></i> Inquire with MwalimuLink
                 </button>
@@ -111,6 +112,19 @@ $officialWebsiteUrl = !empty($rec->website) ? $rec->website : ('https://www.goog
                 style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 1rem 1.25rem; border-radius: 8px; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 10px; font-size: 0.9rem;">
                 <i class="fa fa-exclamation-circle" style="font-size: 1.1rem; color: #ef4444;"></i>
                 <div><?= h($inquiryError) ?></div>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!$hasDirectoryAccess): ?>
+            <!-- Gated Contacts Notice -->
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px; color: #166534; font-size: 0.85rem;">
+                    <i class="fa fa-lock" style="color: #0f766e;"></i>
+                    <span>Direct institutional contact information and admissions messaging are protected. Unlock verified access for <strong>KES 50 / 24 hours</strong>.</span>
+                </div>
+                <a href="/schools/pay?redirect=<?= urlencode($_SERVER['REQUEST_URI'] ?? '/schools/international') ?>" style="background: #0f766e; color: white !important; font-size: 0.8rem; font-weight: 700; padding: 6px 14px; border-radius: 6px; text-decoration: none; white-space: nowrap;">
+                    Unlock Access
+                </a>
             </div>
         <?php endif; ?>
 
@@ -211,7 +225,7 @@ $officialWebsiteUrl = !empty($rec->website) ? $rec->website : ('https://www.goog
                         style="background: #f1f5f9; color: #0f766e; font-weight: 600; font-size: 0.82rem; padding: 8px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #e2e8f0;">
                         <i class="fa fa-book"></i> Overseas FAQs
                     </a>
-                    <button type="button" onclick="openInquiryModal()"
+                    <button type="button" onclick="<?= $hasDirectoryAccess ? 'openInquiryModal()' : "window.location.href='/schools/pay?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)" ?>"
                         style="margin: 0 !important; background: #0f766e; color: white !important; font-size: 0.82rem; font-weight: 600; padding: 8px 14px; border-radius: 6px; border: 1px solid #0f766e; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 1px 2px rgba(15,118,110,0.2);">
                         <i class="fa fa-paper-plane"></i> Request Advisory
                     </button>

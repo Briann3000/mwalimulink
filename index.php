@@ -108,26 +108,27 @@ if (str_ends_with($requestUri, 'index.php')) {
 }
 
 $action = $_GET['action'] ?? null;
-$isApiRoute = str_starts_with($requestUri, 'api/') || (!empty($action) && str_starts_with($action, 'api/')) || $requestUri === 'sitemap.xml';
+$isSitemapRoute = in_array($requestUri, [
+    'sitemap.xml',
+    'sitemaps.xml',
+    'sitemap_index.xml',
+    'sitemap-pages.xml',
+    'sitemap-jobs.xml',
+    'sitemap-schools.xml',
+    'sitemap-resources.xml'
+]) || str_starts_with($requestUri, 'sitemap');
 
-// Dynamic SEO page titles & meta descriptions for public routes
-if ($requestUri === 'jobs') {
-    $GLOBALS['pageTitle'] = 'Teaching Job Vacancies in Kenya & International Schools';
-    $GLOBALS['metaDescription'] = 'Browse active teaching vacancies, high school jobs, primary school CBC positions, and international teaching opportunities in Kenya.';
-} elseif ($requestUri === 'jobs/view') {
-    $jobId = intval($_GET['id'] ?? 0);
-    if ($jobId > 0) {
-        $jobMeta = R::load('job', $jobId);
-        if ($jobMeta && $jobMeta->id) {
-            $inst = !empty($jobMeta->company_name) ? $jobMeta->company_name : 'Education Institution';
-            $loc = !empty($jobMeta->location_text) ? $jobMeta->location_text : 'Kenya';
-            $GLOBALS['pageTitle'] = $jobMeta->title . ' - ' . $inst . ' (' . $loc . ')';
-            $descSnippet = strip_tags($jobMeta->description ?? '');
-            $descSnippet = mb_substr(preg_replace('/\s+/', ' ', $descSnippet), 0, 155);
-            $GLOBALS['metaDescription'] = !empty($descSnippet) ? $descSnippet : "Apply for {$jobMeta->title} vacancy at {$inst}.";
-        }
-    }
-}
+$isApiRoute = str_starts_with($requestUri, 'api/') || (!empty($action) && str_starts_with($action, 'api/')) || $isSitemapRoute;
+
+// Dynamic SEO & Social Graph Engine
+require_once __DIR__ . '/services/SeoService.php';
+$seoData = SeoService::resolve($requestUri, $_GET);
+$GLOBALS['pageTitle'] = $seoData['title'];
+$GLOBALS['metaDescription'] = $seoData['description'];
+$GLOBALS['canonicalUrl'] = $seoData['canonical_url'];
+$GLOBALS['robotsMeta'] = $seoData['robots'] ?? 'index, follow';
+$GLOBALS['ogTags'] = $seoData['og_tags'];
+$GLOBALS['seoSchemas'] = $seoData['schemas'];
 
 // Stop impersonation shortcut before rendering any HTML
 if ($requestUri === 'admin/stop-impersonate' || ($action === 'admin/stop-impersonate') || ($action === 'stop' && str_contains($requestUri, 'impersonate'))) {
@@ -178,6 +179,12 @@ $modernRoutes = [
     'jobs' => 'views/jobs_search.php',
     'jobs/view' => 'views/job_view.php',
     'sitemap.xml' => 'views/sitemap.php',
+    'sitemaps.xml' => 'views/sitemap.php',
+    'sitemap_index.xml' => 'views/sitemap.php',
+    'sitemap-pages.xml' => 'views/sitemap.php',
+    'sitemap-jobs.xml' => 'views/sitemap.php',
+    'sitemap-schools.xml' => 'views/sitemap.php',
+    'sitemap-resources.xml' => 'views/sitemap.php',
 
     // Dashboards & Portals
     'teacher/dashboard' => 'views/teacher_dashboard.php',
@@ -311,6 +318,7 @@ if (!$viewFile && array_key_exists($requestUri, $modernRoutes)) {
 if ($viewFile && file_exists(__DIR__ . '/' . $viewFile)) {
     include __DIR__ . '/' . $viewFile;
 } else {
+    http_response_code(404);
     echo '<article class="container" style="max-width: 600px; margin: 3rem auto; text-align: center;">
         <div class="alert alert-error">
             <h2>404 - Page Not Found</h2>
